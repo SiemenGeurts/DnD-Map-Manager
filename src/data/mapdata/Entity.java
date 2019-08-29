@@ -2,11 +2,11 @@ package data.mapdata;
 
 import javafx.scene.image.Image;
 
-public class Tile {
+public class Entity {
+
+private int type;
 	
-	private int type;
-	
-	public Tile(Integer _type) {
+	public Entity(Integer _type) {
 		type = _type;
 	}
 	
@@ -17,4 +17,5 @@ public class Tile {
 	public Image getTexture() {
 		return AssetManager.textures.get(type);
 	}
+	
 }

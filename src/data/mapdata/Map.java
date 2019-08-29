@@ -4,7 +4,7 @@ public class Map {
 
 	private int width, height;
 	private Tile[][] tiles;
-	
+	private Entity[][] entities;
 	
 	public Map(int _width, int _height) {
 		width = _width;
@@ -15,8 +15,16 @@ public class Map {
 		tiles[y][x] = tile;
 	}
 	
+	public void addEntity(int x, int y, Entity entity) {
+		entities[y][x] = entity;
+	}
+	
 	public Tile getTile(int x, int y) {
 		return tiles[y][x];
+	}
+	
+	public Entity getEntity(int x, int y) {
+		return entities[y][x];
 	}
 	
 	public int getWidth() {

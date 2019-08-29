@@ -2,13 +2,12 @@ package controller;
 import controller.InitClassStructure.SceneController;
 import data.mapdata.Map;
 import data.mapdata.Tile;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
+import javafx.scene.input.ZoomEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 
@@ -102,7 +101,7 @@ public class MapBuilderController extends SceneController {
 			}
 		} else {
 			if (direction == -1) {
-				offsetY = Math.max(-canvas.getHeight() + TILE_SIZE * SCALE + toolbar2.getHeight(), offsetY - OFFSET_SPEED);
+				offsetY = Math.max(-canvas.getHeight() + TILE_SIZE * SCALE, offsetY - OFFSET_SPEED);
 			} else {
 				offsetY = Math.min(currentMap.getHeight() * TILE_SIZE * SCALE - TILE_SIZE * SCALE, offsetY + OFFSET_SPEED);
 			}
@@ -112,22 +111,8 @@ public class MapBuilderController extends SceneController {
 	}
 	
 	@FXML
-	void zoomIn(ActionEvent event) {
-		double centerX = canvas.getWidth() / 2;
-		double centerY = canvas.getHeight() / 2;
-		zoom(1, centerX, centerY);
-	}
-
-	@FXML
-	void zoomOut(ActionEvent event) {
-		double centerX = canvas.getWidth() / 2;
-		double centerY = canvas.getHeight() / 2;
-		zoom(-1, centerX, centerY);
-	}
-	
-	@FXML
-	void zoomMap(ScrollEvent event) {
-		zoom(event.getDeltaY(), event.getX(), event.getY());
+	void zoomMap(ZoomEvent event) {
+		zoom(event.getTotalZoomFactor(), event.getX(), event.getY());
 	}
 
 	private void zoom(double zoom, double x, double y) {
@@ -138,7 +123,7 @@ public class MapBuilderController extends SceneController {
 			double mapHeight = TILE_SIZE * SCALE * currentMap.getHeight();
 			offsetX = Math.max(-canvas.getWidth() + TILE_SIZE * SCALE, Math.min(offsetX - (x + offsetX) * (oldScale / SCALE - 1) * SCALING_FACTOR,
 					mapWidth - TILE_SIZE * SCALE));
-			offsetY = Math.max(-canvas.getHeight() + TILE_SIZE * SCALE + toolbar2.getHeight(), Math.min(offsetY - (y + offsetY) * (oldScale / SCALE - 1) * SCALING_FACTOR,
+			offsetY = Math.max(-canvas.getHeight() + TILE_SIZE * SCALE, Math.min(offsetY - (y + offsetY) * (oldScale / SCALE - 1) * SCALING_FACTOR,
 					mapHeight - TILE_SIZE * SCALE));
 		} else {
 			SCALE = Math.max(0.5, SCALE / SCALING_FACTOR);
@@ -146,7 +131,7 @@ public class MapBuilderController extends SceneController {
 			double mapHeight = TILE_SIZE * SCALE * currentMap.getHeight();
 			offsetX = Math.max(-canvas.getWidth() + TILE_SIZE * SCALE, Math.min(offsetX - (x + offsetX) * (oldScale / SCALE - 1) / SCALING_FACTOR,
 					mapWidth - TILE_SIZE * SCALE));
-			offsetY = Math.max(-canvas.getHeight() + TILE_SIZE * SCALE + toolbar2.getHeight(), Math.min(offsetY - (y + offsetY) * (oldScale / SCALE - 1) / SCALING_FACTOR,
+			offsetY = Math.max(-canvas.getHeight() + TILE_SIZE * SCALE, Math.min(offsetY - (y + offsetY) * (oldScale / SCALE - 1) / SCALING_FACTOR,
 					mapHeight - TILE_SIZE * SCALE));
 		}
 		drawBackground();
@@ -157,7 +142,7 @@ public class MapBuilderController extends SceneController {
 		Tile[][] tiles = currentMap.getTiles();
 		for (int i = Math.max(0, minY); i <= Math.min(tiles.length - 1, maxY); i++) {
 			for (int j = Math.max(0, minX); j <= Math.min(tiles[0].length - 1, maxX); j++) {
-				
+				drawImage(tiles[i][j].getTexture(), j, i);
 			}
 		}
 	}
