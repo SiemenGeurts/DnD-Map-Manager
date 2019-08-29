@@ -14,6 +14,10 @@ public class Tile {
 		return type;
 	}
 	
+	public void setType(int _type) {
+		type = _type;
+	}
+	
 	public Image getTexture() {
 		return AssetManager.textures.get(type);
 	}
