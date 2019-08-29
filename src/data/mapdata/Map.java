@@ -1,5 +1,7 @@
 package data.mapdata;
 
+import java.awt.Point;
+
 public class Map {
 
 	private int width, height;
@@ -19,8 +21,16 @@ public class Map {
 		entities[y][x] = entity;
 	}
 	
+	public Tile getTile(Point p) {
+		return tiles[p.y][p.x];
+	}
+	
 	public Tile getTile(int x, int y) {
 		return tiles[y][x];
+	}
+	
+	public Entity getEntity(Point p) {
+		return entities[p.y][p.x];
 	}
 	
 	public Entity getEntity(int x, int y) {
