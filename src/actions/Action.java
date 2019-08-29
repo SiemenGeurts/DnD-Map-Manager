@@ -1,5 +1,7 @@
 package actions;
 
+import app.ClientGameHandler;
+
 public abstract class Action {
     Action next;
     float delay;
@@ -33,13 +35,13 @@ public abstract class Action {
     public void attach() {
         if(!attached) {
             attached = true;
-            //GameHandler.actions.add(this);
+            ClientGameHandler.instance.actions.add(this);
         }
     }
 
     protected void detach() {
         if(attached)
-            ;//GameHandler.actions.remove(this);
+        	ClientGameHandler.instance.actions.remove(this);
     }
 
     public void setDelay(float delay) {

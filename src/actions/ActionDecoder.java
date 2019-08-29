@@ -2,13 +2,23 @@ package actions;
 
 import java.awt.Point;
 import java.util.ArrayList;
-import java.util.List;
 
 import app.GameHandler;
 
 public class ActionDecoder {
 	
 	public static Action decode(String s) {
+		if(s.contains(";")) {
+			Action a = Action.empty();
+			for(String line : s.split(";")) {
+				a.addAction(decodeLine(line));
+			}
+			return a;
+		} else
+			return decodeLine(s);
+	}
+	
+	private static Action decodeLine(String s) {
 		//every command starts with a single word representing the type of action.
 		//extract that word first
 		int index = s.indexOf(" ");
@@ -42,13 +52,13 @@ public class ActionDecoder {
 				return new Action(0.5f) {
 					@Override
 					protected void execute() {
-						GameHandler.map.getTile((Point) arg.get(0)).setType(PresetTile.EMPTY);
+						//GameHandler.map.getTile((Point) arg.get(0)).setType(PresetTile.EMPTY);
 					}
 				};
 			default:
 				return null;
 		}
-		return null;
+	return null;
 	}
 	
 	private static ArrayList<Object> parseArgs(String s) {
@@ -77,9 +87,4 @@ public class ActionDecoder {
 		} while(index<s.length());
 		return arglist;
 	}
-	
-	public static void main(String[] args) {
-		parseArgs("[1,2] to (3) to <sssg>");
-	}
-
 }
