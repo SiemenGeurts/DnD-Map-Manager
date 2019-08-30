@@ -1,7 +1,6 @@
 package controller;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -10,7 +9,6 @@ import java.util.List;
 
 import data.mapdata.Map;
 import javafx.fxml.FXML;
-
 import javafx.stage.FileChooser;
 
 public class MapBuilderController extends MapController {
@@ -36,23 +34,27 @@ public class MapBuilderController extends MapController {
 		File file = currentFile;
 		if (file == null) {
 			mapChooser.setTitle("Save map");
-			currentFile = file = mapChooser.showSaveDialog(SceneManager.getPrimaryStage());			
+			currentFile = file = mapChooser.showSaveDialog(SceneManager.getPrimaryStage());
 		}
-		if (file != null && file.exists()) {
-			BufferedWriter bf = new BufferedWriter(new FileWriter(file));
-			bf.write(currentMap.encode());
-			bf.close();
+		if (file != null) {
+			FileWriter writer = new FileWriter(file, false);
+			writer.write(currentMap.encode());
+			writer.close();
 		}
 	}
 	
 	@FXML
-	void saveAsMap() throws IOException {
+	void saveAsMap() {
 		mapChooser.setTitle("Save map");
 		File file = mapChooser.showSaveDialog(SceneManager.getPrimaryStage());
-		if (file != null && file.exists()) {
-			BufferedWriter bf = new BufferedWriter(new FileWriter(file));
-			bf.write(currentMap.encode());
-			bf.close();
+		try {
+			if (file != null) {
+				FileWriter writer = new FileWriter(file, false);
+				writer.write(currentMap.encode());
+				writer.close();
+			}			
+		} catch(IOException e) {
+			e.printStackTrace();
 		}
 	}
 

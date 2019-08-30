@@ -18,6 +18,8 @@ public class Map {
 	
 	private Map(Tile[][] _tiles) {
 		tiles = _tiles;
+		width = _tiles[0].length;
+		height = _tiles.length;
 		entities = new ArrayList<>();
 	}
 	
@@ -77,7 +79,7 @@ public class Map {
 		int rowlen = tiles[0].length;
 		for(int i = 0; i < tiles.length; i++)
 			for(int j = 0; j < rowlen; j++)
-				tiles[i][j] = new Tile(Integer.valueOf(s[i*rowlen+j]));
+				tiles[i][j] = new Tile(Integer.valueOf(s[i*rowlen+j+2]));
 		return new Map(tiles);
 	}
 	

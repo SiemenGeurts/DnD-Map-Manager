@@ -21,4 +21,9 @@ public class Tile {
 	public Image getTexture() {
 		return AssetManager.textures.get(type);
 	}
+	
+	@Override
+	public String toString() {
+		return String.valueOf(type);
+	}
 }
