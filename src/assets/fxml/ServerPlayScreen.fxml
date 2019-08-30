@@ -8,12 +8,11 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 
-
 <VBox xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.ServerController">
    <children>
       <SplitPane dividerPositions="0.75" prefHeight="363.0" prefWidth="600.0">
         <items>
-          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="382.0" prefWidth="446.0">
+          <AnchorPane minHeight="0.0" minWidth="0.0" onKeyPressed="#keyDown" onScroll="#zoomMap" prefHeight="382.0" prefWidth="446.0">
                <children>
                   <Canvas fx:id="canvas" height="400.0" width="446.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                </children>
@@ -27,7 +26,8 @@
       </SplitPane>
       <ToolBar prefHeight="40.0" prefWidth="200.0">
         <items>
-          <Button mnemonicParsing="false" text="begin" />
+          <Button fx:id="resync" mnemonicParsing="false" onAction="#beginClicked" text="begin" />
+            <Button fx:id="reconnect" disable="true" mnemonicParsing="false" onAction="#reconnectClicked" text="reconnect" />
         </items>
       </ToolBar>
    </children>

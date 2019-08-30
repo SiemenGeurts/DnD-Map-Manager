@@ -26,7 +26,7 @@ public class MapBuilderController extends MapController {
 		List<FileChooser.ExtensionFilter> extensionFilters = mapChooser.getExtensionFilters();
 		extensionFilters.add(new FileChooser.ExtensionFilter("Map files (*.map)", "*.map"));
 		drawBackground();
-		drawMap(0, 20, 0, 20);
+		drawMap(0, 0, 20, 20);
     }
     
     @FXML
@@ -74,7 +74,7 @@ public class MapBuilderController extends MapController {
 		if (m != null)
 			currentMap = m;
 		drawBackground();
-		drawMap(0, currentMap.getWidth(), 0, currentMap.getHeight());
+		drawMap(0, 0, currentMap.getWidth(), currentMap.getHeight());
 	}
 	
 }
