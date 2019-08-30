@@ -8,19 +8,59 @@ import java.io.IOException;
 import java.util.List;
 
 import data.mapdata.Map;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.MenuBar;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.stage.WindowEvent;
 
 public class MapBuilderController extends MapController {
 	
 	private File currentFile = null;
 	private FileChooser mapChooser;
 	
+	@FXML
+	MenuBar menuBar;
+	
     @Override
 	public void initialize() {
     	super.initialize();
 		currentMap = Map.emptyMap(20, 20);
 		
+		FXMLLoader loader = new FXMLLoader(MainMenuController.class.getResource("../assets/fxml/Toolkit.fxml"));
+        Parent root = null;
+		try {
+			root = loader.load();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+        Scene scene = new Scene(root);
+        Stage toolkit = new Stage();
+        toolkit.setScene(scene);
+        toolkit.initStyle(StageStyle.UNDECORATED);
+        toolkit.show();
+        menuBar.sceneProperty().addListener((observableScene, oldScene, newScene) -> { if (oldScene == null && newScene != null) {
+        	newScene.windowProperty().addListener((observableWindow, oldWindow, newWindow) -> { if (oldWindow == null && newWindow != null) {
+        		toolkit.setHeight(newWindow.getHeight());
+        		newWindow.xProperty().addListener((obs, oldVal, newVal) -> toolkit.setX(newVal.doubleValue() + newWindow.getWidth()));
+            	newWindow.yProperty().addListener((obs, oldVal, newVal) -> toolkit.setY(newVal.doubleValue()));
+            	newWindow.focusedProperty().addListener((obs, oldVal, newVal) -> {
+            		toolkit.setAlwaysOnTop(true);
+                	toolkit.setAlwaysOnTop(false);
+            	});
+            	newWindow.setOnCloseRequest(new EventHandler<WindowEvent>() {
+					@Override
+					public void handle(WindowEvent event) {
+						toolkit.close();
+					}
+            	});
+        	}});
+        }});
 		mapChooser = new FileChooser();
 
 		List<FileChooser.ExtensionFilter> extensionFilters = mapChooser.getExtensionFilters();
