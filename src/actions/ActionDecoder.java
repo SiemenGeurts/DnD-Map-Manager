@@ -42,7 +42,7 @@ public class ActionDecoder {
 				return new Action(0.5f) {
 					@Override
 					protected void execute() {
-						GameHandler.map.getTile((Point) arg.get(0)).setType(PresetTile.EMPTY);
+						//GameHandler.map.getTile((Point) arg.get(0)).setType(PresetTile.EMPTY);
 					}
 				};
 			default:

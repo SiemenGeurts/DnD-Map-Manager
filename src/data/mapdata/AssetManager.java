@@ -97,7 +97,7 @@ public class AssetManager {
 		while (line != null) {
 			int id = Integer.valueOf(line);
 			System.out.println(defaultDirectory + "\\DnD Map Manager\\Textures\\" + id + ".png");
-			textures.put(id, new Image("file://" + defaultDirectory + "\\DnD Map Manager\\Textures\\" + id + ".png"));
+			textures.put(id, new Image("file://" + defaultDirectory + "/DnD Map Manager/Textures/" + id + ".png"));
 			line = reader.readLine();
 		}
 		reader.close();
