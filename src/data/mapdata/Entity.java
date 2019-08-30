@@ -9,12 +9,15 @@ public class Entity {
 
 	private int type;
 	private double x, y;
+	private int width, height;
 	private boolean bloodied = false;
 	
-	public Entity(Integer _type, int _x, int _y) {
+	public Entity(Integer _type, int _x, int _y, int _width, int _height) {
 		type = _type;
 		x = _x;
 		y = _y;
+		width = _width;
+		height = _height;
 	}
 	
 	public Integer getType() {
@@ -55,6 +58,14 @@ public class Entity {
 	
 	public int getTileY() {
 		return (int) y;
+	}
+	
+	public int getWidth() {
+		return width;
+	}
+	
+	public int getHeight() {
+		return height;
 	}
 	
 	public Point2D getLocation() {

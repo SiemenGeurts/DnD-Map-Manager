@@ -1,28 +1,28 @@
 package data.mapdata;
 
 import java.awt.Point;
+import java.util.ArrayList;
 
 public class Map {
 
 	private int width, height;
 	private Tile[][] tiles;
-	private Entity[][] entities;
+	private ArrayList<Entity> entities;
 	
 	public Map(int _width, int _height) {
 		width = _width;
 		height = _height;
+		tiles = new Tile[_height][_width];
+		entities = new ArrayList<>();
 	}
 	
 	private Map(Tile[][] _tiles) {
 		tiles = _tiles;
+		entities = new ArrayList<>();
 	}
 	
 	public void setTile(int x, int y, Tile tile) {
 		tiles[y][x] = tile;
-	}
-	
-	public void addEntity(int x, int y, Entity entity) {
-		entities[y][x] = entity;
 	}
 	
 	public Tile getTile(Point p) {
@@ -34,11 +34,15 @@ public class Map {
 	}
 	
 	public Entity getEntity(Point p) {
-		return entities[p.y][p.x];
+		return getEntity(p.x, p.y);
 	}
 	
 	public Entity getEntity(int x, int y) {
-		return entities[y][x];
+		for (Entity e : entities) {
+			if (x >= e.getTileX() && x < e.getTileX() + e.getWidth() && y >= e.getTileY() && y < e.getTileY() + e.getHeight())
+				return e;
+		}
+		return null;
 	}
 	
 	public int getWidth() {
@@ -76,4 +80,15 @@ public class Map {
 				tiles[i][j] = new Tile(Integer.valueOf(s[i*rowlen+j]));
 		return new Map(tiles);
 	}
+	
+	public static Map emptyMap(int width, int height) {
+		Map map = new Map(width, height);
+		for (int x = 0; x < width; x++) {
+			for (int y = 0; y < height; y++) {
+				map.setTile(x, y, new Tile(PresetTile.EMPTY));
+			}
+		}
+		return map;
+	}
+	
 }

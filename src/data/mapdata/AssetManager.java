@@ -25,8 +25,8 @@ public class AssetManager {
 	private static AtomicInteger generator;
 	private static ArrayList<Integer> openSlots;
 	public static HashMap<Integer, Image> textures;
-
-	public static void initializeManager() throws IOException {
+	
+	public static void initializeManager() throws IOException, NullPointerException {
 		textures = new HashMap<>();
 		readTexturesFromDisk();
 		ArrayList<Integer> takenSlots = new ArrayList<>();
@@ -42,7 +42,7 @@ public class AssetManager {
 					openSlots.add(i);
 			}
 		}
-		generator = new AtomicInteger(max + 1);
+		generator = new AtomicInteger(Math.max(0, max + 1));
 	}
 
 	public static void addTexture(Image texture) throws IOException {
@@ -53,6 +53,11 @@ public class AssetManager {
 			textures.put(id = generator.getAndIncrement(), texture);
 		saveToFile(id, texture);
 	}
+	
+	public static void forceAddTexture(int id, Image texture) throws IOException {
+		textures.put(id, texture);
+		saveToFile(id, texture);
+	}
 
 	public static void removeTexture(Integer id) throws IOException {
 		textures.remove(id);
@@ -60,10 +65,17 @@ public class AssetManager {
 		removeFile(id);
 	}
 	
-	private static void removeFile(int id) throws IOException {
+	private static boolean removeFile(int id) {
+		if (id < 0)
+			return false;
 		String defaultDirectory = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
 		new File(defaultDirectory + "/DnD Map Manager/Textures/" + id + ".png").delete();
-		writeTexturesToDisk();
+		try {
+			writeTexturesToDisk();			
+		} catch(IOException e) {
+			return false;
+		}
+		return true;
 	}
 
 	private static void saveToFile(int id, Image image) throws IOException {

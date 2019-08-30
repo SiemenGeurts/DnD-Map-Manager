@@ -28,6 +28,7 @@ public class MapBuilderController extends SceneController {
     @Override
 	public void initialize() {
 		gc = canvas.getGraphicsContext2D();
+		currentMap = new Map(20, 20);
     }
     
     
