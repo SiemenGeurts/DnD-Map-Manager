@@ -11,7 +11,6 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.input.ZoomEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 
