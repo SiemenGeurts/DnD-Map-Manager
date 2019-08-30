@@ -31,7 +31,9 @@ public class Client {
 	}
 	
 	public String read() throws IOException {
-		return in.readLine();
+		String s = in.readLine();
+		System.out.println("[" + System.currentTimeMillis() + "] reading: " + s);
+		return s;
 	}
 	
 	public Image readImage() throws IOException {

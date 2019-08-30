@@ -33,7 +33,9 @@ public class Server {
 	}
 	
 	public void write(String s) throws IOException {
+		System.out.println("[" + System.currentTimeMillis() + "] writing: " + s);
 		out.write(s);
+		out.newLine();
 		out.flush();
 	}
 	

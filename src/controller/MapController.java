@@ -21,7 +21,7 @@ public class MapController extends SceneController {
 	private int OFFSET_SPEED = TILE_SIZE + 10;
 	private double SCALING_FACTOR = 1.3;
 	private double offsetX, offsetY;
-	protected Map currentMap;
+	public Map currentMap;
 	
 	private GraphicsContext gc;
 	
@@ -112,7 +112,7 @@ public class MapController extends SceneController {
 			}
 		}
 		drawBackground();
-		drawMap(0, currentMap.getWidth(), 0, currentMap.getHeight());
+		drawMap(0, 0, currentMap.getWidth(), currentMap.getHeight());
 	}
 	
 	@FXML
@@ -140,16 +140,20 @@ public class MapController extends SceneController {
 					mapHeight - TILE_SIZE * SCALE));
 		}
 		drawBackground();
-		drawMap(0, currentMap.getWidth(), 0, currentMap.getHeight());
+		drawMap(0, 0, currentMap.getWidth(), currentMap.getHeight());
 	}
 	
-	void drawMap(int minX, int maxX, int minY, int maxY) {
+	public void drawMap(int minX, int minY, int maxX, int maxY) {
 		Tile[][] tiles = currentMap.getTiles();
 		for (int i = Math.max(0, minY); i <= Math.min(tiles.length - 1, maxY); i++) {
 			for (int j = Math.max(0, minX); j <= Math.min(tiles[0].length - 1, maxX); j++) {
 				drawImage(tiles[i][j].getTexture(), j, i);
 			}
 		}
+	}
+	
+	public void drawMap() {
+		drawMap(0, 0, currentMap.getWidth(), currentMap.getHeight());
 	}
 	
 	void drawBackground() {

@@ -3,6 +3,7 @@ package actions;
 import java.awt.Point;
 import java.util.ArrayList;
 
+import app.ClientGameHandler;
 import app.GameHandler;
 
 public class ActionDecoder {
@@ -23,15 +24,18 @@ public class ActionDecoder {
 		//extract that word first
 		int index = s.indexOf(" ");
 		if(index == -1) {
-			if(s.equals("reset"))
-				;//reset
-			else
+			if(s.equals("reset")) {
+				return new Action(0) {
+				@Override
+				protected void execute() {
+					ClientGameHandler.instance.loadMap();
+				}
+			};
+			} else
 				throw new IllegalArgumentException("command " + s + " could not be parsed.");
 		}
 		ArrayList<Object> arg = parseArgs(s.substring(index).trim());
 		switch(s.substring(0, s.indexOf(" "))) {
-			case "reset":
-				break;
 			case "set":
 				return new Action(0.5f) {
 					@Override
@@ -58,7 +62,6 @@ public class ActionDecoder {
 			default:
 				return null;
 		}
-	return null;
 	}
 	
 	private static ArrayList<Object> parseArgs(String s) {
