@@ -10,6 +10,7 @@ import comms.Server;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -25,7 +26,15 @@ public class MainMenuController {
 
     @FXML
     void startMapBuilder(ActionEvent event) {
-    	
+    	try {
+            FXMLLoader loader = new FXMLLoader(MainMenuController.class.getResource("../assets/fxml/MapBuilder.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            scene.getRoot().requestFocus();
+            sceneManager.pushView(scene,loader);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML

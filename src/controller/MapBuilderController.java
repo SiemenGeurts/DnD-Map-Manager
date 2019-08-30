@@ -1,4 +1,6 @@
 package controller;
+import java.io.IOException;
+
 import controller.InitClassStructure.SceneController;
 import data.mapdata.Map;
 import data.mapdata.Tile;
@@ -6,7 +8,9 @@ import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.ZoomEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
@@ -28,7 +32,10 @@ public class MapBuilderController extends SceneController {
     @Override
 	public void initialize() {
 		gc = canvas.getGraphicsContext2D();
-		currentMap = new Map(20, 20);
+		currentMap = Map.emptyMap(20, 20);
+		
+		drawBackground();
+		drawMap(0, 20, 0, 20);
     }
     
     
@@ -112,8 +119,8 @@ public class MapBuilderController extends SceneController {
 	}
 	
 	@FXML
-	void zoomMap(ZoomEvent event) {
-		zoom(event.getTotalZoomFactor(), event.getX(), event.getY());
+	void zoomMap(ScrollEvent event) {
+		zoom(event.getDeltaY(), event.getX(), event.getY());
 	}
 
 	private void zoom(double zoom, double x, double y) {
@@ -151,6 +158,26 @@ public class MapBuilderController extends SceneController {
 	void drawBackground() {
 		gc.setFill(Color.WHITE);
 		gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+	}
+	
+	@FXML
+	void keyDown(KeyEvent keyEvent) throws IOException {
+		switch (keyEvent.getCode()) {
+		case UP:
+			moveScreen(1, -1);
+			break;
+		case RIGHT:
+			moveScreen(0, 1);
+			break;
+		case DOWN:
+			moveScreen(1, 1);
+			break;
+		case LEFT:
+			moveScreen(0, -1);
+			break;
+		default:
+			break;
+		}
 	}
 
 }
