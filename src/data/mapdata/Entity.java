@@ -11,6 +11,7 @@ public class Entity {
 	private double x, y;
 	private int width, height;
 	private boolean bloodied = false;
+	private PropertySet properties;
 	
 	public Entity(Integer _type, int _x, int _y, int _width, int _height) {
 		type = _type;
@@ -79,5 +80,15 @@ public class Entity {
 	
 	public Point getTileLocation() {
 		return new Point((int) x, (int) y);
+	}
+	
+	public String encode() {
+		StringBuilder builder = new StringBuilder();
+		builder.append(type).append(',').append((int) x).append(',').append((int) y).append(',').append(width).append(',').append(height);
+		return builder.toString();
+	}
+	
+	public static Entity decode(String s) {
+		return null;
 	}
 }

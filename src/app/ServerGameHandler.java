@@ -43,10 +43,9 @@ public class ServerGameHandler extends GameHandler {
 			controller.setGameHandler(this);
 			loadMap();
 	        MainMenuController.sceneManager.pushView(scene, loader);
-		//wait for the DM clicks a "begin" button
-		//all interaction will be handled by a javafx controller class
-		//all communication and gameplay will be handled by this gamehandler.
-		
+			//wait for the DM clicks a "begin" button
+			//all interaction will be handled by a javafx controller class
+			//all communication and gameplay will be handled by this gamehandler.
 		} catch (IOException e) {
 			ErrorHandler.handle("Well, something went horribly wrong...", e);
 		}
@@ -58,7 +57,6 @@ public class ServerGameHandler extends GameHandler {
 		sendTextures();
 		sendMap();
 		startGame();
-
 	}
 	
 	public void resync() {
@@ -106,7 +104,7 @@ public class ServerGameHandler extends GameHandler {
 			alert.setTitle("Connection established.");
 			alert.setHeaderText("A client connected to the game.");
 			alert.setContentText("The players are now able to view the visible regions.");
-			alert.showAndWait();
+			alert.show();
 		} catch(IOException e) {
 			ErrorHandler.handle("Something went wrong while waiting for a client connection.", e);
 		}

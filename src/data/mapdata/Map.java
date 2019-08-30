@@ -61,25 +61,34 @@ public class Map {
 	
 	public String encode() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(tiles.length);
-		builder.append(":");
-		builder.append(tiles[0].length);
-		builder.append(":");
+		builder.append(tiles.length).append(':')
+				.append(tiles[0].length).append(':');
 		for(int i = 0; i < tiles.length; i++)
-			for(int j = 0; j < tiles[0].length; j++) {
-				builder.append(tiles[i][j].getType());
-				builder.append(":");
-			}
+			for(int j = 0; j < tiles[0].length; j++)
+				builder.append(tiles[i][j].getType()).append(':');
+
+		builder.append(';').append(entities.size()).append(':');
+		for(Entity e : entities)
+			builder.append(e.encode()).append(':');
 		return builder.toString();
 	}
 	
 	public static Map decode(String string) {
-		String[] s = string.split(":");
+		int index = string.indexOf(";");
+		String[] s = string.substring(0, index).split(":");
 		Tile[][] tiles = new Tile[Integer.valueOf(s[0])][Integer.valueOf(s[1])];
 		int rowlen = tiles[0].length;
 		for(int i = 0; i < tiles.length; i++)
 			for(int j = 0; j < rowlen; j++)
 				tiles[i][j] = new Tile(Integer.valueOf(s[i*rowlen+j+2]));
+		Map map = new Map(tiles);
+		
+		s = string.substring(index+1).split(":");
+		ArrayList<Entity> entities = new ArrayList<>(Integer.valueOf(s[0]));
+		for(String entity : s) {
+			entities.add(Entity.decode(entity));
+		}
+		map.entities = entities;
 		return new Map(tiles);
 	}
 	
