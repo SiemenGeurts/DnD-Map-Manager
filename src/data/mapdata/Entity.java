@@ -11,7 +11,6 @@ public class Entity {
 	private double x, y;
 	private int width, height;
 	private boolean bloodied = false;
-	private PropertySet properties;
 	
 	public Entity(Integer _type, int _x, int _y, int _width, int _height) {
 		type = _type;

@@ -75,7 +75,7 @@
                   </ScrollPane>
                   <ToolBar nodeOrientation="RIGHT_TO_LEFT" prefHeight="40.0" prefWidth="200.0">
 			        <items>
-			          <Button fx:id="btnAdd" disable="true" mnemonicParsing="false" onAction="#btnAddClick" text="Add" />
+			          <Button fx:id="btnAdd" disable="true" mnemonicParsing="false" onAction="#addBtnClicked" text="Add" />
 			        </items>
 			      </ToolBar>
                </children>

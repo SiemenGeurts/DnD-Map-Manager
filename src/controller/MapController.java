@@ -5,6 +5,7 @@ import controller.InitClassStructure.SceneController;
 import data.mapdata.Map;
 import data.mapdata.Tile;
 import javafx.fxml.FXML;
+import javafx.geometry.Point2D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -18,23 +19,37 @@ public class MapController extends SceneController {
 
 	private int TILE_SIZE = 50;
 	private double SCALE = 1;
-	private int OFFSET_SPEED = TILE_SIZE + 10;
+	//private int OFFSET_SPEED = TILE_SIZE + 10;
 	private double SCALING_FACTOR = 1.3;
 	private double offsetX, offsetY;
 	public Map currentMap;
 	
-	private GraphicsContext gc;
+	private Point2D lastDragCoords;
 	
+	private GraphicsContext gc;
 	
     @FXML
     private Canvas canvas;
     
-
     @Override
 	public void initialize() {
 		gc = canvas.getGraphicsContext2D();
     }
     
+    @FXML
+    public void onDragHandler(MouseEvent e) {
+    	if(lastDragCoords != null) {
+	    	double dx = (lastDragCoords.getX()-e.getX())/(TILE_SIZE*SCALE*SCALING_FACTOR);
+	    	double dy = (lastDragCoords.getY()-e.getY())/(TILE_SIZE*SCALE*SCALING_FACTOR);
+	    	moveScreen(dx, dy);
+    	}
+    	lastDragCoords = new Point2D(e.getX(), e.getY());
+    }
+    
+    @FXML
+    public void onMouseReleased(MouseEvent e) {
+    	lastDragCoords = null;
+    }
     
     @FXML
     void hoverTile(MouseEvent event) {
@@ -97,7 +112,7 @@ public class MapController extends SceneController {
 			gc.drawImage(texture, x, y, TILE_SIZE * SCALE, TILE_SIZE * SCALE);
 	}
 	
-	void moveScreen(int orientation, int direction) {
+	/*void moveScreen(int orientation, int direction) {
 		if (orientation == 0) {
 			if (direction == -1) {
 				offsetX = Math.max(-canvas.getWidth() + TILE_SIZE * SCALE, offsetX - OFFSET_SPEED);
@@ -113,6 +128,18 @@ public class MapController extends SceneController {
 		}
 		drawBackground();
 		drawMap(0, 0, currentMap.getWidth(), currentMap.getHeight());
+	}*/
+	void moveScreen(double dx, double dy) {
+		if(dx<0)
+			offsetX = Math.max(-canvas.getWidth() + TILE_SIZE*SCALE, offsetX+dx*TILE_SIZE*SCALE);
+		else
+			offsetX = Math.min((currentMap.getWidth()-1)*TILE_SIZE*SCALE, offsetX+dx*TILE_SIZE*SCALE);
+		if(dy<0)
+			offsetY = Math.max(-canvas.getHeight() + TILE_SIZE * SCALE, offsetY + dy*TILE_SIZE*SCALE);
+		else
+			offsetY = Math.min(currentMap.getHeight() * TILE_SIZE * SCALE - TILE_SIZE * SCALE, offsetY + dy*TILE_SIZE*SCALE);
+		drawBackground();
+		drawMap();
 	}
 	
 	@FXML
@@ -140,7 +167,7 @@ public class MapController extends SceneController {
 					mapHeight - TILE_SIZE * SCALE));
 		}
 		drawBackground();
-		drawMap(0, 0, currentMap.getWidth(), currentMap.getHeight());
+		drawMap();
 	}
 	
 	public void drawMap(int minX, int minY, int maxX, int maxY) {
@@ -165,16 +192,16 @@ public class MapController extends SceneController {
 	void keyDown(KeyEvent keyEvent) throws IOException {
 		switch (keyEvent.getCode()) {
 		case UP:
-			moveScreen(1, -1);
+			moveScreen(0, 1.1);
 			break;
 		case RIGHT:
-			moveScreen(0, 1);
+			moveScreen(-1.1,0);
 			break;
 		case DOWN:
-			moveScreen(1, 1);
+			moveScreen(0,-1.1);
 			break;
 		case LEFT:
-			moveScreen(0, -1);
+			moveScreen(1.1, 0);
 			break;
 		default:
 			break;

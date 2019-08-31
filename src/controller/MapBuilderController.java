@@ -11,7 +11,6 @@ import data.mapdata.Map;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuBar;
 import javafx.stage.FileChooser;
@@ -20,56 +19,59 @@ import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 
 public class MapBuilderController extends MapController {
-	
+
 	private File currentFile = null;
 	private FileChooser mapChooser;
-	
+
 	@FXML
 	MenuBar menuBar;
-	
-    @Override
+
+	@Override
 	public void initialize() {
-    	super.initialize();
-		currentMap = Map.emptyMap(20, 20);
-		
-		FXMLLoader loader = new FXMLLoader(MainMenuController.class.getResource("../assets/fxml/Toolkit.fxml"));
-        Parent root = null;
+		super.initialize();
 		try {
-			root = loader.load();
+			currentMap = Map.emptyMap(20, 20);
+			FXMLLoader loader = new FXMLLoader(MainMenuController.class.getResource("../assets/fxml/Toolkit.fxml"));
+			Scene scene = new Scene(loader.load());
+			Stage toolkit = new Stage();
+			toolkit.setScene(scene);
+			toolkit.initStyle(StageStyle.UNDECORATED);
+			toolkit.show();
+			menuBar.sceneProperty().addListener((observableScene, oldScene, newScene) -> {
+				if (oldScene == null && newScene != null) {
+					newScene.windowProperty().addListener((observableWindow, oldWindow, newWindow) -> {
+						if (oldWindow == null && newWindow != null) {
+							toolkit.setHeight(newWindow.getHeight());
+							newWindow.xProperty().addListener(
+									(obs, oldVal, newVal) -> toolkit.setX(newVal.doubleValue() + newWindow.getWidth()));
+							newWindow.yProperty()
+									.addListener((obs, oldVal, newVal) -> toolkit.setY(newVal.doubleValue()));
+							newWindow.focusedProperty().addListener((obs, oldVal, newVal) -> {
+								toolkit.setAlwaysOnTop(true);
+								toolkit.setAlwaysOnTop(false);
+							});
+							newWindow.setOnCloseRequest(new EventHandler<WindowEvent>() {
+								@Override
+								public void handle(WindowEvent event) {
+									toolkit.close();
+								}
+							});
+						}
+					});
+				}
+			});
+			mapChooser = new FileChooser();
+
+			List<FileChooser.ExtensionFilter> extensionFilters = mapChooser.getExtensionFilters();
+			extensionFilters.add(new FileChooser.ExtensionFilter("Map files (*.map)", "*.map"));
+			drawBackground();
+			drawMap(0, 0, 20, 20);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-        Scene scene = new Scene(root);
-        Stage toolkit = new Stage();
-        toolkit.setScene(scene);
-        toolkit.initStyle(StageStyle.UNDECORATED);
-        toolkit.show();
-        menuBar.sceneProperty().addListener((observableScene, oldScene, newScene) -> { if (oldScene == null && newScene != null) {
-        	newScene.windowProperty().addListener((observableWindow, oldWindow, newWindow) -> { if (oldWindow == null && newWindow != null) {
-        		toolkit.setHeight(newWindow.getHeight());
-        		newWindow.xProperty().addListener((obs, oldVal, newVal) -> toolkit.setX(newVal.doubleValue() + newWindow.getWidth()));
-            	newWindow.yProperty().addListener((obs, oldVal, newVal) -> toolkit.setY(newVal.doubleValue()));
-            	newWindow.focusedProperty().addListener((obs, oldVal, newVal) -> {
-            		toolkit.setAlwaysOnTop(true);
-                	toolkit.setAlwaysOnTop(false);
-            	});
-            	newWindow.setOnCloseRequest(new EventHandler<WindowEvent>() {
-					@Override
-					public void handle(WindowEvent event) {
-						toolkit.close();
-					}
-            	});
-        	}});
-        }});
-		mapChooser = new FileChooser();
+	}
 
-		List<FileChooser.ExtensionFilter> extensionFilters = mapChooser.getExtensionFilters();
-		extensionFilters.add(new FileChooser.ExtensionFilter("Map files (*.map)", "*.map"));
-		drawBackground();
-		drawMap(0, 0, 20, 20);
-    }
-    
-    @FXML
+	@FXML
 	void saveMap() throws IOException {
 		File file = currentFile;
 		if (file == null) {
@@ -82,7 +84,7 @@ public class MapBuilderController extends MapController {
 			writer.close();
 		}
 	}
-	
+
 	@FXML
 	void saveAsMap() {
 		mapChooser.setTitle("Save map");
@@ -92,8 +94,8 @@ public class MapBuilderController extends MapController {
 				FileWriter writer = new FileWriter(file, false);
 				writer.write(currentMap.encode());
 				writer.close();
-			}			
-		} catch(IOException e) {
+			}
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -116,5 +118,5 @@ public class MapBuilderController extends MapController {
 		drawBackground();
 		drawMap(0, 0, currentMap.getWidth(), currentMap.getHeight());
 	}
-	
+
 }

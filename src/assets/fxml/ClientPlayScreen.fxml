@@ -5,6 +5,6 @@
 
 <AnchorPane onKeyPressed="#keyDown" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.ClientController">
    <children>
-      <Canvas fx:id="canvas" height="500.0" onScroll="#zoomMap" width="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+      <Canvas fx:id="canvas" height="500.0" onMouseDragged="#onDragHandler" onMouseReleased="#onMouseReleased" onScroll="#zoomMap" width="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
    </children>
 </AnchorPane>
