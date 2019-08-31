@@ -41,7 +41,6 @@ public class MapBuilderController extends MapController {
 				if (oldScene == null && newScene != null) {
 					newScene.windowProperty().addListener((observableWindow, oldWindow, newWindow) -> {
 						if (oldWindow == null && newWindow != null) {
-							toolkit.setHeight(newWindow.getHeight());
 							newWindow.xProperty().addListener(
 									(obs, oldVal, newVal) -> toolkit.setX(newVal.doubleValue() + newWindow.getWidth()));
 							newWindow.yProperty()
