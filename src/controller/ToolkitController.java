@@ -7,12 +7,18 @@ import java.util.List;
 import javax.imageio.ImageIO;
 
 import app.ErrorHandler;
+import app.ServerGameHandler;
+import data.mapdata.Entity;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
 public class ToolkitController {
@@ -24,13 +30,26 @@ public class ToolkitController {
 	ImageView imgView;
 	@FXML
 	Button btnAdd;
-	
+	@FXML
+	VBox vbox;
+	@FXML
+	AnchorPane propertyEditor;
 	TextureType current;
 	static FileChooser fc = new FileChooser();
 	
 	public void initialize() {
 		List<FileChooser.ExtensionFilter> extensionFilters = fc.getExtensionFilters();
 		extensionFilters.add(new FileChooser.ExtensionFilter("Image files (*.png)", "*.png"));
+		try {
+			FXMLLoader loader = new FXMLLoader(ServerGameHandler.class.getResource("../assets/fxml/PropertyEditor.fxml"));
+			propertyEditor = (AnchorPane) new Scene(loader.load()).getRoot();
+			propertyEditor.setVisible(false);
+			PropertyEditorController controller = loader.getController();
+			controller.setEntity(new Entity(1, 0, 0, 1, 1));
+			vbox.getChildren().add(3, propertyEditor);
+		} catch (IOException e) {
+			ErrorHandler.handle("Could not load PropertyEditor", e);
+		}
 	}
 	
 	@FXML
@@ -55,6 +74,7 @@ public class ToolkitController {
 				imgView.setImage(image);
 				current = TextureType.TILE;
 				btnAdd.setDisable(false);
+				propertyEditor.setVisible(false);
 			}
 		} catch (IOException ex) {
 			ErrorHandler.handle("Could not read image file", ex);
@@ -69,6 +89,7 @@ public class ToolkitController {
 				imgView.setImage(image);
 				current = TextureType.ENTITY;
 				btnAdd.setDisable(false);
+				propertyEditor.setVisible(true);
 			}
 		} catch (IOException ex) {
 			ErrorHandler.handle("Could not read image file", ex);
@@ -83,6 +104,7 @@ public class ToolkitController {
 				imgView.setImage(image);
 				current = TextureType.PLAYER;
 				btnAdd.setDisable(false);
+				propertyEditor.setVisible(false);
 			}
 		} catch (IOException ex) {
 			ErrorHandler.handle("Could not read image file", ex);

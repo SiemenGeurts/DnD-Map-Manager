@@ -6,16 +6,17 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 
-
-<AnchorPane prefHeight="265.0" prefWidth="166.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.171">
+<AnchorPane prefHeight="265.0" prefWidth="303.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.PropertyEditorController">
    <children>
       <VBox prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <ListView fx:id="listView" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
+            <ListView fx:id="listView" prefHeight="225.0" prefWidth="305.0" VBox.vgrow="ALWAYS" />
             <ToolBar prefHeight="40.0" prefWidth="200.0" VBox.vgrow="NEVER">
               <items>
                   <Button fx:id="btnEdit" mnemonicParsing="false" onAction="#btnEditClicked" text="Edit" />
-                <Button fx:id="btnSave" mnemonicParsing="false" onAction="#btnSaveClicked" text="Save" visible="false" />
+                  <Button fx:id="btnSave" disable="true" mnemonicParsing="false" onAction="#btnSaveClicked" text="Save" />
+                  <Button fx:id="btnAdd" disable="true" mnemonicParsing="false" onAction="#btnAddClicked" text="Add" />
+                  <Button fx:id="btnRemove" disable="true" mnemonicParsing="false" onAction="#btnRemoveClicked" text="Remove" />
               </items>
             </ToolBar>
          </children>

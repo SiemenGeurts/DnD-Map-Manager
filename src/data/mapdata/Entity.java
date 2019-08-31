@@ -4,7 +4,6 @@ import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
-import javafx.beans.property.StringProperty;
 import javafx.scene.image.Image;
 
 public class Entity {
@@ -83,9 +82,9 @@ public class Entity {
 		return new Point((int) x, (int) y);
 	}
 	
-	public ArrayList<StringProperty> getProperties() {
+	public ArrayList<Property> getProperties() {
 		//TODO
-		return null;
+		return new ArrayList<Property>();
 	}
 	
 	
