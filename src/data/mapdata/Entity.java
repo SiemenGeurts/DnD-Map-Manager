@@ -2,7 +2,9 @@ package data.mapdata;
 
 import java.awt.Point;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 
+import javafx.beans.property.StringProperty;
 import javafx.scene.image.Image;
 
 public class Entity {
@@ -80,6 +82,12 @@ public class Entity {
 	public Point getTileLocation() {
 		return new Point((int) x, (int) y);
 	}
+	
+	public ArrayList<StringProperty> getProperties() {
+		//TODO
+		return null;
+	}
+	
 	
 	public String encode() {
 		StringBuilder builder = new StringBuilder();
