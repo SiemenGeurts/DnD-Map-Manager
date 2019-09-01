@@ -29,7 +29,7 @@ public class MapController extends SceneController {
 	private GraphicsContext gc;
 	
     @FXML
-    private Canvas canvas;
+    protected Canvas canvas;
     
     @Override
 	public void initialize() {

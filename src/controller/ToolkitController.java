@@ -2,21 +2,18 @@ package controller;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.imageio.ImageIO;
 
 import app.ServerGameHandler;
 import data.mapdata.Entity;
-import data.mapdata.PresetTile;
 import data.mapdata.Tile;
 import data.mapdata.prefabs.EntityPrefab;
 import data.mapdata.prefabs.Prefab;
 import data.mapdata.prefabs.TilePrefab;
 import gui.BuilderButton;
 import gui.ErrorHandler;
-import gui.GridSelectionPane;
 import helpers.AssetManager;
 import helpers.JSONManager;
 import javafx.css.PseudoClass;
@@ -26,7 +23,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -49,15 +45,8 @@ public class ToolkitController {
 	AnchorPane propertyEditor;
 	@FXML
 	TextField nameField;
-	@FXML
-	ScrollPane entityScrollPane;
-	@FXML
-	ScrollPane tileScrollPane;
-	@FXML
-	ScrollPane playerScrollPane;
-	@FXML
-	GridSelectionPane tilePane, entityPane, playerPane;
 	
+	MapBuilderController mbController;
 	PropertyEditorController propertyEditorController;
 	
 	private static final PseudoClass ERROR_BORDER = PseudoClass.getPseudoClass("invalid");
@@ -78,28 +67,6 @@ public class ToolkitController {
 		} catch (IOException e) {
 			ErrorHandler.handle("Could not load PropertyEditor", e);
 		}
-		tilePane = new GridSelectionPane(5);
-		tilePane.add(new BuilderButton<Tile>(new TilePrefab(PresetTile.EMPTY), AssetManager.textures.get(PresetTile.EMPTY)));
-		tilePane.add(new BuilderButton<Tile>(new TilePrefab(PresetTile.FLOOR), AssetManager.textures.get(PresetTile.FLOOR)));
-		tilePane.add(new BuilderButton<Tile>(new TilePrefab(PresetTile.WALL), AssetManager.textures.get(PresetTile.WALL)));
-		tilePane.add(new BuilderButton<Tile>(new TilePrefab(PresetTile.BUSHES), AssetManager.textures.get(PresetTile.BUSHES)));
-		tileScrollPane.setContent(tilePane);
-		entityPane = new GridSelectionPane(5);
-		entityScrollPane.setContent(entityPane);
-		playerPane = new GridSelectionPane(5);
-		playerScrollPane.setContent(playerPane);
-		ArrayList<TilePrefab> tiles = JSONManager.getTiles();
-		if(tiles != null)
-			for(TilePrefab tp : tiles)
-				tilePane.add(new BuilderButton<Tile>(tp, AssetManager.textures.get(tp.getID())));
-		ArrayList<EntityPrefab> entities = JSONManager.getEntities();
-		if(entities != null)
-			for(EntityPrefab ep : entities)
-				entityPane.add(new BuilderButton<Entity>(ep, AssetManager.textures.get(ep.getID())));
-		entities = JSONManager.getPlayers();
-		if(entities != null)
-			for(EntityPrefab ep : entities)
-				playerPane.add(new BuilderButton<Entity>(ep, AssetManager.textures.get(ep.getID())));
 	}
 	
 	@FXML
@@ -120,25 +87,29 @@ public class ToolkitController {
 					prefab = new EntityPrefab(id, propertyEditorController.getWidth(), propertyEditorController.getHeight(), propertyEditorController.getPropertyList(), propertyEditorController.getBloodied());
 					BuilderButton<Entity> ebtn = new BuilderButton<>((EntityPrefab) prefab, imgView.getImage());
 					JSONManager.addEntity((EntityPrefab) prefab);
-					entityPane.add(ebtn);
+					mbController.entityPane.add(ebtn);
 					break;
 				case PLAYER:
 					prefab = new EntityPrefab(id, 1, 1, null, false);
 					BuilderButton<Entity> pbtn = new BuilderButton<>((EntityPrefab) prefab, imgView.getImage());
 					JSONManager.addPlayer((EntityPrefab) prefab);
-					playerPane.add(pbtn);
+					mbController.playerPane.add(pbtn);
 					break;
 				case TILE:
 					prefab = new TilePrefab(id);
 					BuilderButton<Tile> tbtn = new BuilderButton<>((TilePrefab) prefab, imgView.getImage());
 					JSONManager.addTile((TilePrefab) prefab);
-					tilePane.add(tbtn);
+					mbController.tilePane.add(tbtn);
 					break;
 			}
 			
 		} catch (IOException e1) {
 			ErrorHandler.handle("Could not add texture.", e1);
 		}
+	}
+	
+	public void setMapBuilderController(MapBuilderController mbController) {
+		this.mbController = mbController;
 	}
 	
 	public Image getTexture() throws IOException {

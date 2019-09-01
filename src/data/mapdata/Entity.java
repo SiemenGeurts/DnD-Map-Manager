@@ -106,10 +106,17 @@ public class Entity {
 	
 	public static ArrayList<Property> getDefaultProperties() {
 		ArrayList<Property> list = new ArrayList<>(8);
-		list.add(new Property("Strength", "+2"));
-		list.add(new Property("AC", "12"));
-		list.add(new Property("DC", "12"));
-		list.add(new Property("Speed", "25"));
+		list.add(new Property("Strength", "12"));
+		list.add(new Property("Dexterity", "9"));
+		list.add(new Property("Constitution", "15"));
+		list.add(new Property("Intelligence", "13"));
+		list.add(new Property("Wisdom", "15"));
+		list.add(new Property("Charisma", "8"));
+		list.add(new Property("Saving Throws", ""));
+		list.add(new Property("Skills", ""));
+		list.add(new Property("Senses", ""));
+		list.add(new Property("Languages", ""));
+		list.add(new Property("Challenge", ""));
 		return list;
 	}
 }

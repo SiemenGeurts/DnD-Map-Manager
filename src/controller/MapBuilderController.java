@@ -5,18 +5,28 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
+import app.MapManagerApp;
+import data.mapdata.Entity;
 import data.mapdata.Map;
-import javafx.event.EventHandler;
+import data.mapdata.PresetTile;
+import data.mapdata.Tile;
+import data.mapdata.prefabs.EntityPrefab;
+import data.mapdata.prefabs.TilePrefab;
+import gui.BuilderButton;
+import gui.GridSelectionPane;
+import helpers.AssetManager;
+import helpers.JSONManager;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
-import javafx.stage.WindowEvent;
 
 public class MapBuilderController extends MapController {
 
@@ -25,6 +35,19 @@ public class MapBuilderController extends MapController {
 
 	@FXML
 	MenuBar menuBar;
+	
+	@FXML
+	private AnchorPane toolkitPane;
+	@FXML
+	ScrollPane entityScrollPane;
+	@FXML
+	ScrollPane tileScrollPane;
+	@FXML
+	ScrollPane playerScrollPane;
+	@FXML
+	GridSelectionPane tilePane, entityPane, playerPane;
+	
+	ToolkitController tkController;
 
 	@Override
 	public void initialize() {
@@ -32,12 +55,19 @@ public class MapBuilderController extends MapController {
 		try {
 			currentMap = Map.emptyMap(20, 20);
 			FXMLLoader loader = new FXMLLoader(MainMenuController.class.getResource("../assets/fxml/Toolkit.fxml"));
-			Scene scene = new Scene(loader.load());
-			Stage toolkit = new Stage();
-			toolkit.setScene(scene);
-			toolkit.initStyle(StageStyle.UNDECORATED);
-			toolkit.show();
-			menuBar.sceneProperty().addListener((observableScene, oldScene, newScene) -> {
+			Node root = new Scene(loader.load()).getRoot();
+			toolkitPane.getChildren().add(root);
+			tkController = loader.getController();
+			AnchorPane.setTopAnchor(root, 0d);
+			AnchorPane.setBottomAnchor(root, 0d);
+			AnchorPane.setLeftAnchor(root, 0d);
+			AnchorPane.setRightAnchor(root, 0d);
+			
+			canvas.widthProperty().bind(((AnchorPane) canvas.getParent()).widthProperty());
+			canvas.heightProperty().bind(((AnchorPane) canvas.getParent()).heightProperty());
+			canvas.widthProperty().addListener(event -> drawMap());
+			canvas.heightProperty().addListener(event -> drawMap());
+			/*menuBar.sceneProperty().addListener((observableScene, oldScene, newScene) -> {
 				if (oldScene == null && newScene != null) {
 					newScene.windowProperty().addListener((observableWindow, oldWindow, newWindow) -> {
 						if (oldWindow == null && newWindow != null) {
@@ -58,16 +88,44 @@ public class MapBuilderController extends MapController {
 						}
 					});
 				}
-			});
+			});*/
+			tilePane = new GridSelectionPane(5);
+			tilePane.add(new BuilderButton<Tile>(new TilePrefab(PresetTile.EMPTY), AssetManager.textures.get(PresetTile.EMPTY)));
+			tilePane.add(new BuilderButton<Tile>(new TilePrefab(PresetTile.FLOOR), AssetManager.textures.get(PresetTile.FLOOR)));
+			tilePane.add(new BuilderButton<Tile>(new TilePrefab(PresetTile.WALL), AssetManager.textures.get(PresetTile.WALL)));
+			tilePane.add(new BuilderButton<Tile>(new TilePrefab(PresetTile.BUSHES), AssetManager.textures.get(PresetTile.BUSHES)));
+			tileScrollPane.setContent(tilePane);
+			entityPane = new GridSelectionPane(5);
+			entityScrollPane.setContent(entityPane);
+			playerPane = new GridSelectionPane(5);
+			playerScrollPane.setContent(playerPane);
+			ArrayList<TilePrefab> tiles = JSONManager.getTiles();
+			if(tiles != null)
+				for(TilePrefab tp : tiles)
+					tilePane.add(new BuilderButton<Tile>(tp, AssetManager.textures.get(tp.getID())));
+			ArrayList<EntityPrefab> entities = JSONManager.getEntities();
+			if(entities != null)
+				for(EntityPrefab ep : entities)
+					entityPane.add(new BuilderButton<Entity>(ep, AssetManager.textures.get(ep.getID())));
+			entities = JSONManager.getPlayers();
+			if(entities != null)
+				for(EntityPrefab ep : entities)
+					playerPane.add(new BuilderButton<Entity>(ep, AssetManager.textures.get(ep.getID())));
+			
 			mapChooser = new FileChooser();
 
 			List<FileChooser.ExtensionFilter> extensionFilters = mapChooser.getExtensionFilters();
 			extensionFilters.add(new FileChooser.ExtensionFilter("Map files (*.map)", "*.map"));
-			drawBackground();
-			drawMap(0, 0, 20, 20);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void endInit() {
+		MapManagerApp.stage.setResizable(true);
+		MapManagerApp.stage.setMaximized(true);
+		drawBackground();
+		drawMap();
 	}
 
 	@FXML
@@ -117,5 +175,4 @@ public class MapBuilderController extends MapController {
 		drawBackground();
 		drawMap(0, 0, currentMap.getWidth(), currentMap.getHeight());
 	}
-
 }

@@ -10,7 +10,6 @@ import gui.ErrorHandler;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -28,10 +27,10 @@ public class MainMenuController {
     void startMapBuilder(ActionEvent event) {
     	try {
             FXMLLoader loader = new FXMLLoader(MainMenuController.class.getResource("../assets/fxml/MapBuilder.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
+            Scene scene = new Scene(loader.load());
             scene.getRoot().requestFocus();
             sceneManager.pushView(scene,loader);
+            ((MapBuilderController) loader.getController()).endInit();
         } catch (IOException e) {
             e.printStackTrace();
         }

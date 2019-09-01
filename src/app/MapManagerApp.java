@@ -16,8 +16,11 @@ public class MapManagerApp extends Application{
 	
 	private SceneManager sceneManager;
 	
+	public static Stage stage;
+	
 	@Override
 	public void start(Stage stage) throws Exception {
+		MapManagerApp.stage = stage;
 		stage.setResizable(false);
         FXMLLoader loader = new FXMLLoader(MapManagerApp.class.getResource("../assets/fxml/MainMenu.fxml"));
         Parent root = loader.load();
