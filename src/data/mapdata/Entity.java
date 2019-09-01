@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
+import helpers.AssetManager;
 import javafx.scene.image.Image;
 
 public class Entity {
@@ -12,6 +13,7 @@ public class Entity {
 	private double x, y;
 	private int width, height;
 	private boolean bloodied = false;
+	private ArrayList<Property> properties;
 	
 	public Entity(Integer _type, int _x, int _y, int _width, int _height) {
 		type = _type;
@@ -19,6 +21,7 @@ public class Entity {
 		y = _y;
 		width = _width;
 		height = _height;
+		properties = new ArrayList<>();
 	}
 	
 	public Integer getType() {
@@ -35,6 +38,10 @@ public class Entity {
 
 	public void setBloodied(boolean bloodied) {
 		this.bloodied = bloodied;
+	}
+	
+	public void setProperties(ArrayList<Property> properties) {
+		this.properties = properties;
 	}
 
 	public double getX() {
@@ -83,8 +90,7 @@ public class Entity {
 	}
 	
 	public ArrayList<Property> getProperties() {
-		//TODO
-		return new ArrayList<Property>();
+		return properties;
 	}
 	
 	
@@ -96,5 +102,14 @@ public class Entity {
 	
 	public static Entity decode(String s) {
 		return null;
+	}
+	
+	public static ArrayList<Property> getDefaultProperties() {
+		ArrayList<Property> list = new ArrayList<>(8);
+		list.add(new Property("Strength", "+2"));
+		list.add(new Property("AC", "12"));
+		list.add(new Property("DC", "12"));
+		list.add(new Property("Speed", "25"));
+		return list;
 	}
 }

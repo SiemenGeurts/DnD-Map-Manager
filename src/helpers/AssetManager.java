@@ -1,4 +1,4 @@
-package data.mapdata;
+package helpers;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
@@ -45,18 +45,20 @@ public class AssetManager {
 		generator = new AtomicInteger(Math.max(0, max + 1));
 	}
 
-	public static void addTexture(Image texture) throws IOException {
+	public static int addTexture(Image texture) throws IOException {
 		int id = 0;
 		if (!openSlots.isEmpty()) {
 			textures.put(id = openSlots.remove(0), texture);
 		} else
 			textures.put(id = generator.getAndIncrement(), texture);
 		saveToFile(id, texture);
+		return id;
 	}
 	
-	public static void forceAddTexture(int id, Image texture) throws IOException {
+	public static int forceAddTexture(int id, Image texture) throws IOException {
 		textures.put(id, texture);
 		saveToFile(id, texture);
+		return id;
 	}
 
 	public static void removeTexture(Integer id) throws IOException {
@@ -115,4 +117,6 @@ public class AssetManager {
 		reader.close();
 	}
 
+	
+	
 }

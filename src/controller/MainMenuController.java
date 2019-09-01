@@ -3,10 +3,10 @@ package controller;
 import java.io.IOException;
 
 import app.ClientGameHandler;
-import app.ErrorHandler;
 import app.ServerGameHandler;
 import comms.Client;
 import comms.Server;
+import gui.ErrorHandler;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;

@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import controller.MainMenuController;
 import controller.SceneManager;
-import data.mapdata.AssetManager;
 import data.mapdata.PresetTile;
+import helpers.AssetManager;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;

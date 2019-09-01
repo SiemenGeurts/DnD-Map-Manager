@@ -1,5 +1,6 @@
 package controller;
 
+import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -11,7 +12,7 @@ import javafx.stage.Stage;
 public class IPDialogController {
 	
 	public static final int OK = 1, CANCEL=2, SERVER=3, CLIENT=4;
-	
+	public static final PseudoClass INVALID = PseudoClass.getPseudoClass("invalid");
 	@FXML
 	private Button btnOk;
 	@FXML
@@ -45,7 +46,7 @@ public class IPDialogController {
 					ip = ipField.getText();
 					closeStage(e);
 				} else {
-					ipField.getStyleClass().add("invalid");
+					ipField.pseudoClassStateChanged(INVALID, true);
 				}
 			}
 		} else {

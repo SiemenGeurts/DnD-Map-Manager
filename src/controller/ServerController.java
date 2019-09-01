@@ -2,8 +2,8 @@ package controller;
 
 import java.io.IOException;
 
-import app.ErrorHandler;
 import app.ServerGameHandler;
+import gui.ErrorHandler;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;

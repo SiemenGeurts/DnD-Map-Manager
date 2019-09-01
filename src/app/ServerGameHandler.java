@@ -15,6 +15,7 @@ import controller.SceneManager;
 import controller.ServerController;
 import data.mapdata.Map;
 import data.mapdata.Tile;
+import gui.ErrorHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;

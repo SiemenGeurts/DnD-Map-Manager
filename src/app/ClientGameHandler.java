@@ -10,6 +10,7 @@ import comms.Client;
 import controller.ClientController;
 import controller.MainMenuController;
 import data.mapdata.Map;
+import gui.ErrorHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;

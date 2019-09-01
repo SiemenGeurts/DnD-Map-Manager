@@ -4,8 +4,7 @@ import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
-import app.Calculator;
-
+import helpers.Calculator;
 
 public class GuideLine {
     private ArrayList<Point2D> path;
@@ -49,5 +48,4 @@ public class GuideLine {
     public boolean hasArrived() {
         return arrived;
     }
-
 }

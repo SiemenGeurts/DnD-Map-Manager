@@ -1,5 +1,6 @@
 package data.mapdata;
 
+import helpers.AssetManager;
 import javafx.scene.image.Image;
 
 public class Tile {
