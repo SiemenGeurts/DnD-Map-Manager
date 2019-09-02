@@ -82,8 +82,8 @@ public class PropertyEditorController {
     @FXML
     void btnEditClicked(ActionEvent event) {
     	if(btnEdit.getText().equals("Cancel")) {
-    		ButtonType yes = new ButtonType("yes", ButtonBar.ButtonData.OK_DONE);
-    		ButtonType no = new ButtonType("no", ButtonBar.ButtonData.CANCEL_CLOSE);
+    		ButtonType yes = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
+    		ButtonType no = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
     		Alert alert = new Alert(AlertType.CONFIRMATION, "All unsaved changed will be lost.", yes, no);
     		alert.setTitle("Confirm cancel");
     		alert.setHeaderText("Are you sure you want to cancel editing?");

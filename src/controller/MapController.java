@@ -4,6 +4,7 @@ import java.io.IOException;
 import controller.InitClassStructure.SceneController;
 import data.mapdata.Map;
 import data.mapdata.Tile;
+import helpers.Calculator;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.Canvas;
@@ -12,6 +13,7 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.input.ZoomEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 
@@ -25,7 +27,8 @@ public class MapController extends SceneController {
 	public Map currentMap;
 	
 	private Point2D lastDragCoords;
-	
+	private double oldZoom = 1;
+	private boolean zooming = false;
 	private GraphicsContext gc;
 	
     @FXML
@@ -34,21 +37,6 @@ public class MapController extends SceneController {
     @Override
 	public void initialize() {
 		gc = canvas.getGraphicsContext2D();
-    }
-    
-    @FXML
-    public void onDragHandler(MouseEvent e) {
-    	if(lastDragCoords != null) {
-	    	double dx = (lastDragCoords.getX()-e.getX())/(TILE_SIZE*SCALE*SCALING_FACTOR);
-	    	double dy = (lastDragCoords.getY()-e.getY())/(TILE_SIZE*SCALE*SCALING_FACTOR);
-	    	moveScreen(dx, dy);
-    	}
-    	lastDragCoords = new Point2D(e.getX(), e.getY());
-    }
-    
-    @FXML
-    public void onMouseReleased(MouseEvent e) {
-    	lastDragCoords = null;
     }
     
     @FXML
@@ -141,31 +129,23 @@ public class MapController extends SceneController {
 		drawBackground();
 		drawMap();
 	}
-	
-	@FXML
-	void zoomMap(ScrollEvent event) {
-		zoom(event.getDeltaY(), event.getX(), event.getY());
-	}
 
+	/**
+	 * Zooms in (or out) on the map. 
+	 * @param zoom the zoom factor. For zooming in. Values greater than 1 for zooming in, values between 0 and 1 for zooming out.
+	 * @param x the x coordinate on which the zooming should focus.
+	 * @param y the y coordinate on which the zooming should focus.
+	 */
 	private void zoom(double zoom, double x, double y) {
 		double oldScale = SCALE;
-		if (zoom > 0) {
-			SCALE = Math.min(10, SCALE * SCALING_FACTOR);
-			double mapWidth = TILE_SIZE * SCALE * currentMap.getWidth();
-			double mapHeight = TILE_SIZE * SCALE * currentMap.getHeight();
-			offsetX = Math.max(-canvas.getWidth() + TILE_SIZE * SCALE, Math.min(offsetX - (x + offsetX) * (oldScale / SCALE - 1) * SCALING_FACTOR,
-					mapWidth - TILE_SIZE * SCALE));
-			offsetY = Math.max(-canvas.getHeight() + TILE_SIZE * SCALE, Math.min(offsetY - (y + offsetY) * (oldScale / SCALE - 1) * SCALING_FACTOR,
-					mapHeight - TILE_SIZE * SCALE));
-		} else {
-			SCALE = Math.max(0.5, SCALE / SCALING_FACTOR);
-			double mapWidth = TILE_SIZE * SCALE * currentMap.getWidth();
-			double mapHeight = TILE_SIZE * SCALE * currentMap.getHeight();
-			offsetX = Math.max(-canvas.getWidth() + TILE_SIZE * SCALE, Math.min(offsetX - (x + offsetX) * (oldScale / SCALE - 1) / SCALING_FACTOR,
-					mapWidth - TILE_SIZE * SCALE));
-			offsetY = Math.max(-canvas.getHeight() + TILE_SIZE * SCALE, Math.min(offsetY - (y + offsetY) * (oldScale / SCALE - 1) / SCALING_FACTOR,
-					mapHeight - TILE_SIZE * SCALE));
-		}
+		double factor=zoom;//(zoom>0 ? SCALING_FACTOR*zoom : 1/(SCALING_FACTOR*-zoom));
+		SCALE = Calculator.clamp(SCALE*factor, 0.5, 10);
+		double mapWidth = TILE_SIZE * SCALE * currentMap.getWidth();
+		double mapHeight = TILE_SIZE * SCALE * currentMap.getHeight();
+		offsetX = Math.max(-canvas.getWidth() + TILE_SIZE * SCALE, Math.min(offsetX - (x + offsetX) * (oldScale / SCALE - 1) * factor,
+				mapWidth - TILE_SIZE * SCALE));
+		offsetY = Math.max(-canvas.getHeight() + TILE_SIZE * SCALE, Math.min(offsetY - (y + offsetY) * (oldScale / SCALE - 1) * factor,
+				mapHeight - TILE_SIZE * SCALE));
 		drawBackground();
 		drawMap();
 	}
@@ -188,26 +168,80 @@ public class MapController extends SceneController {
 		gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 	}
 	
+	//The zoom events are only called for touchscreen/-pad zooming
+	@FXML
+	void onZoomStarted(ZoomEvent event) {
+		zooming = true;
+		oldZoom = 1;
+	}
+	
+	@FXML
+	void onZoomFinished(ZoomEvent event) {
+		zooming = false;
+	}
+	
+	@FXML
+	void onZoom(ZoomEvent event) {
+		zoom(event.getTotalZoomFactor()/oldZoom, event.getX(), event.getY());
+		oldZoom = event.getTotalZoomFactor();
+	}
+	
+	@FXML
+	void onScroll(ScrollEvent event) {
+		if(zooming) return;
+		if(!event.isDirect()) //event triggered by mouse
+			zoom(Math.pow(SCALING_FACTOR, event.getDeltaY()/event.getMultiplierY()), event.getX(), event.getY()); //the multiplier is for device and settings dependent scaling
+		else { //event triggered by touchscreen
+			if(lastDragCoords != null) {
+		    	double dx = (lastDragCoords.getX()-event.getX())/(TILE_SIZE*SCALE*SCALING_FACTOR);
+		    	double dy = (lastDragCoords.getY()-event.getY())/(TILE_SIZE*SCALE*SCALING_FACTOR);
+		    	moveScreen(dx, dy);
+	    	}
+	    	lastDragCoords = new Point2D(event.getX(), event.getY());
+		}
+	}
+	
+	@FXML
+    public void onDragHandler(MouseEvent e) {
+		if(!e.isSynthesized()) { // event triggered by mouse
+	    	if(lastDragCoords != null) {
+		    	double dx = (lastDragCoords.getX()-e.getX())/(TILE_SIZE*SCALE*SCALING_FACTOR);
+		    	double dy = (lastDragCoords.getY()-e.getY())/(TILE_SIZE*SCALE*SCALING_FACTOR);
+		    	moveScreen(dx, dy);
+	    	}
+	    	lastDragCoords = new Point2D(e.getX(), e.getY());
+		}
+    }
+    
+    @FXML
+    public void onMousePressed(MouseEvent e) {
+    	lastDragCoords = new Point2D(e.getX(), e.getY());
+    }
+    
+    //Only called if the event is triggered by a touchscreen.
+    @FXML
+    public void onScrollStarted(ScrollEvent e) {
+    	lastDragCoords = new Point2D(e.getX(), e.getY());
+    }
+	
 	@FXML
 	void keyDown(KeyEvent keyEvent) throws IOException {
+		//note that we move the camera, not the map!
 		switch (keyEvent.getCode()) {
 		case UP:
-			moveScreen(0, 1.1);
+			moveScreen(0, -1.1);
 			break;
 		case RIGHT:
-			moveScreen(-1.1,0);
+			moveScreen(1.1,0);
 			break;
 		case DOWN:
-			moveScreen(0,-1.1);
+			moveScreen(0,1.1);
 			break;
 		case LEFT:
-			moveScreen(1.1, 0);
+			moveScreen(-1.1, 0);
 			break;
 		default:
 			break;
 		}
 	}
-	
-	
-
 }
