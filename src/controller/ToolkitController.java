@@ -27,6 +27,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
@@ -62,7 +63,8 @@ public class ToolkitController {
 			propertyEditor = (AnchorPane) new Scene(loader.load()).getRoot();
 			propertyEditor.setVisible(false);
 			propertyEditorController = loader.getController();
-			vbox.getChildren().add(3, propertyEditor);		
+			vbox.getChildren().add(3, propertyEditor);
+			VBox.setVgrow(propertyEditor, Priority.ALWAYS);
 			JSONManager.initialize();
 		} catch (IOException e) {
 			ErrorHandler.handle("Could not load PropertyEditor", e);

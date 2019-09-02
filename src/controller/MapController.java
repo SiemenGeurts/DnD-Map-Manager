@@ -1,4 +1,5 @@
 package controller;
+import java.awt.Point;
 import java.io.IOException;
 
 import controller.InitClassStructure.SceneController;
@@ -19,14 +20,15 @@ import javafx.scene.transform.Rotate;
 
 public class MapController extends SceneController {
 
-	private int TILE_SIZE = 50;
-	private double SCALE = 1;
+	protected int TILE_SIZE = 50;
+	protected double SCALE = 1;
 	//private int OFFSET_SPEED = TILE_SIZE + 10;
 	private double SCALING_FACTOR = 1.3;
 	private double offsetX, offsetY;
 	public Map currentMap;
 	
 	private Point2D lastDragCoords;
+	protected Point2D mousePressedCoords;
 	private double oldZoom = 1;
 	private boolean zooming = false;
 	private GraphicsContext gc;
@@ -37,16 +39,6 @@ public class MapController extends SceneController {
     @Override
 	public void initialize() {
 		gc = canvas.getGraphicsContext2D();
-    }
-    
-    @FXML
-    void hoverTile(MouseEvent event) {
-
-    }
-
-    @FXML
-    void placeTile(MouseEvent event) {
-
     }
     
     /**
@@ -100,23 +92,6 @@ public class MapController extends SceneController {
 			gc.drawImage(texture, x, y, TILE_SIZE * SCALE, TILE_SIZE * SCALE);
 	}
 	
-	/*void moveScreen(int orientation, int direction) {
-		if (orientation == 0) {
-			if (direction == -1) {
-				offsetX = Math.max(-canvas.getWidth() + TILE_SIZE * SCALE, offsetX - OFFSET_SPEED);
-			} else {
-				offsetX = Math.min(currentMap.getWidth() * TILE_SIZE * SCALE - TILE_SIZE * SCALE, offsetX + OFFSET_SPEED);
-			}
-		} else {
-			if (direction == -1) {
-				offsetY = Math.max(-canvas.getHeight() + TILE_SIZE * SCALE, offsetY - OFFSET_SPEED);
-			} else {
-				offsetY = Math.min(currentMap.getHeight() * TILE_SIZE * SCALE - TILE_SIZE * SCALE, offsetY + OFFSET_SPEED);
-			}
-		}
-		drawBackground();
-		drawMap(0, 0, currentMap.getWidth(), currentMap.getHeight());
-	}*/
 	void moveScreen(double dx, double dy) {
 		if(dx<0)
 			offsetX = Math.max(-canvas.getWidth() + TILE_SIZE*SCALE, offsetX+dx*TILE_SIZE*SCALE);
@@ -168,6 +143,10 @@ public class MapController extends SceneController {
 		gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 	}
 	
+	public Point getTileOnPosition(double x, double y) {
+		return new Point((int) ((x + offsetX)/(TILE_SIZE*SCALE)), (int) ((y+offsetY)/(TILE_SIZE*SCALE)));
+	}
+	
 	//The zoom events are only called for touchscreen/-pad zooming
 	@FXML
 	void onZoomStarted(ZoomEvent event) {
@@ -215,7 +194,7 @@ public class MapController extends SceneController {
     
     @FXML
     public void onMousePressed(MouseEvent e) {
-    	lastDragCoords = new Point2D(e.getX(), e.getY());
+    	mousePressedCoords = lastDragCoords = new Point2D(e.getX(), e.getY());
     }
     
     //Only called if the event is triggered by a touchscreen.

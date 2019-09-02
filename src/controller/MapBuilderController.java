@@ -1,5 +1,6 @@
 package controller;
 
+import java.awt.Point;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -25,6 +26,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 
@@ -62,9 +64,6 @@ public class MapBuilderController extends MapController {
 			AnchorPane.setBottomAnchor(root, 0d);
 			AnchorPane.setLeftAnchor(root, 0d);
 			AnchorPane.setRightAnchor(root, 0d);
-			toolkitPane.widthProperty().addListener(event -> {
-				System.out.println(toolkitPane.getWidth());
-			});
 			
 			canvas.widthProperty().bind(((AnchorPane) canvas.getParent()).widthProperty());
 			canvas.heightProperty().bind(((AnchorPane) canvas.getParent()).heightProperty());
@@ -113,6 +112,33 @@ public class MapBuilderController extends MapController {
 		drawBackground();
 		drawMap();
 	}
+	
+    @FXML
+    void hoverTile(MouseEvent event) {
+ 
+    }
+
+    private void placeTile(Point loc) {
+    	
+    }
+    
+    private void editProperties(Point loc) {
+    	Entity entity = currentMap.getEntity(loc);
+    	if(entity == null) return;
+    	else {
+    		
+    	}    	
+    }
+
+    @FXML
+    void onMouseClicked(MouseEvent event) {
+    	if(mousePressedCoords.distance(event.getX(), event.getY())>TILE_SIZE*SCALE/2) return;
+    	System.out.println("mouse clicked " + event.isPrimaryButtonDown());
+    	if(event.isPrimaryButtonDown())
+    		placeTile(getTileOnPosition(event.getX(), event.getY()));
+    	else
+    		editProperties(getTileOnPosition(event.getX(), event.getY()));
+    }
 
 	@FXML
 	void saveMap() throws IOException {

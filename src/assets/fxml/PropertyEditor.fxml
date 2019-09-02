@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
@@ -18,7 +19,7 @@
          <children>
             <GridPane prefHeight="156.0" prefWidth="303.0" vgap="2.0" VBox.vgrow="NEVER">
               <columnConstraints>
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
               </columnConstraints>
               <rowConstraints>
@@ -45,6 +46,9 @@
               </items>
             </ToolBar>
          </children>
+         <padding>
+            <Insets bottom="10.0" top="20.0" />
+         </padding>
       </VBox>
    </children>
 </AnchorPane>
