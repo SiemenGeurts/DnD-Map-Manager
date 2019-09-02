@@ -5,44 +5,35 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<HBox prefHeight="455.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.ToolkitController">
+
+<VBox fx:id="vbox" alignment="TOP_CENTER" prefHeight="398.0" prefWidth="279.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.ToolkitController">
    <children>
-      <VBox fx:id="vbox" prefHeight="398.0" prefWidth="279.0">
+      <Label alignment="CENTER" text="Import texture" textAlignment="CENTER">
+         <font>
+            <Font size="21.0" />
+         </font>
+      </Label>
+      <HBox alignment="CENTER" prefHeight="46.0" prefWidth="279.0">
          <children>
-            <Label alignment="CENTER" prefHeight="40.0" prefWidth="279.0" text="Import texture as...">
-               <font>
-                  <Font size="21.0" />
-               </font>
-            </Label>
-            <HBox alignment="CENTER" prefHeight="46.0" prefWidth="279.0">
-               <children>
-                  <Button mnemonicParsing="false" onAction="#addTile" prefHeight="25.0" prefWidth="47.0" text="Tile" />
-                  <Button mnemonicParsing="false" onAction="#addEntity" text="Enemy" />
-                  <Button mnemonicParsing="false" onAction="#addPlayer" text="Player" />
-               </children>
-            </HBox>
-            <BorderPane>
-               <center>
-                  <ImageView fx:id="imgView" fitHeight="150.0" fitWidth="239.0" pickOnBounds="true" preserveRatio="true" />
-               </center>
-            </BorderPane>
-            <HBox alignment="CENTER_RIGHT" spacing="10.0" VBox.vgrow="NEVER">
-               <children>
-                  <Label text="Name:" HBox.hgrow="NEVER" />
-                  <TextField fx:id="nameField" prefHeight="25.0" prefWidth="126.0" styleClass="button" stylesheets="@../css/text-fields.css" HBox.hgrow="ALWAYS" />
-			          <Button fx:id="btnAdd" disable="true" mnemonicParsing="false" onAction="#addBtnClicked" text="Add" HBox.hgrow="NEVER" />
-               </children>
-               <padding>
-                  <Insets left="10.0" right="10.0" />
-               </padding>
-            </HBox>
+            <Button mnemonicParsing="false" onAction="#addTile" prefHeight="25.0" prefWidth="47.0" text="Tile" />
+            <Button mnemonicParsing="false" onAction="#addEntity" text="Enemy" />
+            <Button mnemonicParsing="false" onAction="#addPlayer" text="Player" />
          </children>
-      </VBox>
-      
+      </HBox>
+      <ImageView fx:id="imgView" fitHeight="150.0" fitWidth="239.0" pickOnBounds="true" preserveRatio="true" />
+      <HBox alignment="CENTER_RIGHT" spacing="10.0" VBox.vgrow="NEVER">
+         <children>
+            <Label text="Name:" HBox.hgrow="NEVER" />
+            <TextField fx:id="nameField" prefHeight="25.0" prefWidth="126.0" styleClass="button" stylesheets="@../css/text-fields.css" HBox.hgrow="ALWAYS" />
+			          <Button fx:id="btnAdd" disable="true" mnemonicParsing="false" onAction="#addBtnClicked" text="Add" HBox.hgrow="NEVER" />
+         </children>
+         <padding>
+            <Insets left="10.0" right="10.0" />
+         </padding>
+      </HBox>
    </children>
-</HBox>
+</VBox>

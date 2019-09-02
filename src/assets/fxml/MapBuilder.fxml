@@ -61,7 +61,7 @@
         <items>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                <children>
-                  <Canvas fx:id="canvas" height="593.0" onMouseClicked="#placeTile" onMouseDragged="#onDragHandler" onMouseMoved="#hoverTile" onMouseReleased="#onMouseReleased" onScroll="#zoomMap" width="616.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  <Canvas fx:id="canvas" height="593.0" onMouseClicked="#placeTile" onMouseDragged="#onDragHandler" onMouseMoved="#hoverTile" onMouseReleased="#onMouseReleased" onScroll="#zoomMap" width="657.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                </children>
             </AnchorPane>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
@@ -72,14 +72,14 @@
                         <content>
                           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                  <children>
-                                    <VBox prefHeight="564.0" prefWidth="244.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                    <VBox alignment="TOP_CENTER" prefHeight="564.0" prefWidth="244.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                        <children>
-                                          <Label alignment="CENTER" prefHeight="57.0" prefWidth="296.0" text="Selection Menu">
+                                          <Label alignment="CENTER" prefHeight="57.0" prefWidth="296.0" text="Click on a button to select it." textAlignment="CENTER" wrapText="true" VBox.vgrow="NEVER">
                                              <font>
-                                                <Font size="35.0" />
+                                                <Font size="15.0" />
                                              </font>
                                           </Label>
-                                          <Accordion prefHeight="344.0" prefWidth="296.0">
+                                          <Accordion prefHeight="344.0" prefWidth="296.0" VBox.vgrow="ALWAYS">
                                              <panes>
                                                 <TitledPane animated="false" text="Tiles">
                                                    <content>
@@ -106,7 +106,7 @@
                       </Tab>
                       <Tab text="Add object">
                         <content>
-                              <AnchorPane fx:id="toolkitPane" minHeight="0.0" minWidth="0.0" prefHeight="398.0" prefWidth="244.0" />
+                              <AnchorPane fx:id="toolkitPane" minHeight="0.0" minWidth="0.0" />
                         </content>
                       </Tab>
                     </tabs>

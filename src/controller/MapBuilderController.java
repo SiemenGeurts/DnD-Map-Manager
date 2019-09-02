@@ -62,33 +62,19 @@ public class MapBuilderController extends MapController {
 			AnchorPane.setBottomAnchor(root, 0d);
 			AnchorPane.setLeftAnchor(root, 0d);
 			AnchorPane.setRightAnchor(root, 0d);
+			toolkitPane.widthProperty().addListener(event -> {
+				System.out.println(toolkitPane.getWidth());
+			});
 			
 			canvas.widthProperty().bind(((AnchorPane) canvas.getParent()).widthProperty());
 			canvas.heightProperty().bind(((AnchorPane) canvas.getParent()).heightProperty());
-			canvas.widthProperty().addListener(event -> drawMap());
-			canvas.heightProperty().addListener(event -> drawMap());
-			/*menuBar.sceneProperty().addListener((observableScene, oldScene, newScene) -> {
-				if (oldScene == null && newScene != null) {
-					newScene.windowProperty().addListener((observableWindow, oldWindow, newWindow) -> {
-						if (oldWindow == null && newWindow != null) {
-							newWindow.xProperty().addListener(
-									(obs, oldVal, newVal) -> toolkit.setX(newVal.doubleValue() + newWindow.getWidth()));
-							newWindow.yProperty()
-									.addListener((obs, oldVal, newVal) -> toolkit.setY(newVal.doubleValue()));
-							newWindow.focusedProperty().addListener((obs, oldVal, newVal) -> {
-								toolkit.setAlwaysOnTop(true);
-								toolkit.setAlwaysOnTop(false);
-							});
-							newWindow.setOnCloseRequest(new EventHandler<WindowEvent>() {
-								@Override
-								public void handle(WindowEvent event) {
-									toolkit.close();
-								}
-							});
-						}
-					});
-				}
-			});*/
+			canvas.widthProperty().addListener(event -> {
+				drawBackground(); drawMap();
+			});
+			canvas.heightProperty().addListener(event -> {
+				drawBackground(); drawMap();
+			});
+
 			tilePane = new GridSelectionPane(5);
 			tilePane.add(new BuilderButton<Tile>(new TilePrefab(PresetTile.EMPTY), AssetManager.textures.get(PresetTile.EMPTY)));
 			tilePane.add(new BuilderButton<Tile>(new TilePrefab(PresetTile.FLOOR), AssetManager.textures.get(PresetTile.FLOOR)));
