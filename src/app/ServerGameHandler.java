@@ -44,6 +44,7 @@ public class ServerGameHandler extends GameHandler {
 			controller.setGameHandler(this);
 			loadMap();
 	        MainMenuController.sceneManager.pushView(scene, loader);
+	        controller.endInit();
 			//wait for the DM clicks a "begin" button
 			//all interaction will be handled by a javafx controller class
 			//all communication and gameplay will be handled by this gamehandler.

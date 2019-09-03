@@ -1,36 +1,25 @@
 package controller;
 
-import java.awt.Point;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import app.MapManagerApp;
-import data.mapdata.Entity;
 import data.mapdata.Map;
-import data.mapdata.PresetTile;
-import data.mapdata.Tile;
-import data.mapdata.prefabs.EntityPrefab;
-import data.mapdata.prefabs.TilePrefab;
-import gui.BuilderButton;
-import gui.GridSelectionPane;
-import helpers.AssetManager;
 import helpers.JSONManager;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.MenuBar;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 
-public class MapBuilderController extends MapController {
+public class MapBuilderController extends MapEditorController {
 
 	private File currentFile = null;
 	private FileChooser mapChooser;
@@ -41,20 +30,16 @@ public class MapBuilderController extends MapController {
 	@FXML
 	private AnchorPane toolkitPane;
 	@FXML
-	ScrollPane entityScrollPane;
-	@FXML
-	ScrollPane tileScrollPane;
-	@FXML
-	ScrollPane playerScrollPane;
-	@FXML
-	GridSelectionPane tilePane, entityPane, playerPane;
+	private AnchorPane selectorPane;
 	
 	ToolkitController tkController;
+	ObjectSelectorController osController;
 
 	@Override
 	public void initialize() {
 		super.initialize();
 		try {
+			JSONManager.initialize();
 			currentMap = Map.emptyMap(20, 20);
 			FXMLLoader loader = new FXMLLoader(MainMenuController.class.getResource("../assets/fxml/Toolkit.fxml"));
 			Node root = new Scene(loader.load()).getRoot();
@@ -65,6 +50,17 @@ public class MapBuilderController extends MapController {
 			AnchorPane.setLeftAnchor(root, 0d);
 			AnchorPane.setRightAnchor(root, 0d);
 			
+			loader = new FXMLLoader(MainMenuController.class.getResource("../assets/fxml/ObjectSelector.fxml"));
+			root = loader.load();
+			osController = loader.getController();
+			osController.setController(this);
+			selectorPane.getChildren().add(root);
+			AnchorPane.setTopAnchor(root, 0d);
+			AnchorPane.setBottomAnchor(root, 0d);
+			AnchorPane.setLeftAnchor(root, 0d);
+			AnchorPane.setRightAnchor(root, 0d);
+			tkController.setSelector(osController);
+			
 			canvas.widthProperty().bind(((AnchorPane) canvas.getParent()).widthProperty());
 			canvas.heightProperty().bind(((AnchorPane) canvas.getParent()).heightProperty());
 			canvas.widthProperty().addListener(event -> {
@@ -73,29 +69,6 @@ public class MapBuilderController extends MapController {
 			canvas.heightProperty().addListener(event -> {
 				drawBackground(); drawMap();
 			});
-
-			tilePane = new GridSelectionPane(5);
-			tilePane.add(new BuilderButton<Tile>(new TilePrefab(PresetTile.EMPTY), AssetManager.textures.get(PresetTile.EMPTY)));
-			tilePane.add(new BuilderButton<Tile>(new TilePrefab(PresetTile.FLOOR), AssetManager.textures.get(PresetTile.FLOOR)));
-			tilePane.add(new BuilderButton<Tile>(new TilePrefab(PresetTile.WALL), AssetManager.textures.get(PresetTile.WALL)));
-			tilePane.add(new BuilderButton<Tile>(new TilePrefab(PresetTile.BUSHES), AssetManager.textures.get(PresetTile.BUSHES)));
-			tileScrollPane.setContent(tilePane);
-			entityPane = new GridSelectionPane(5);
-			entityScrollPane.setContent(entityPane);
-			playerPane = new GridSelectionPane(5);
-			playerScrollPane.setContent(playerPane);
-			ArrayList<TilePrefab> tiles = JSONManager.getTiles();
-			if(tiles != null)
-				for(TilePrefab tp : tiles)
-					tilePane.add(new BuilderButton<Tile>(tp, AssetManager.textures.get(tp.getID())));
-			ArrayList<EntityPrefab> entities = JSONManager.getEntities();
-			if(entities != null)
-				for(EntityPrefab ep : entities)
-					entityPane.add(new BuilderButton<Entity>(ep, AssetManager.textures.get(ep.getID())));
-			entities = JSONManager.getPlayers();
-			if(entities != null)
-				for(EntityPrefab ep : entities)
-					playerPane.add(new BuilderButton<Entity>(ep, AssetManager.textures.get(ep.getID())));
 			
 			mapChooser = new FileChooser();
 
@@ -116,28 +89,6 @@ public class MapBuilderController extends MapController {
     @FXML
     void hoverTile(MouseEvent event) {
  
-    }
-
-    private void placeTile(Point loc) {
-    	
-    }
-    
-    private void editProperties(Point loc) {
-    	Entity entity = currentMap.getEntity(loc);
-    	if(entity == null) return;
-    	else {
-    		
-    	}    	
-    }
-
-    @FXML
-    void onMouseClicked(MouseEvent event) {
-    	if(mousePressedCoords.distance(event.getX(), event.getY())>TILE_SIZE*SCALE/2) return;
-    	System.out.println("mouse clicked " + event.isPrimaryButtonDown());
-    	if(event.isPrimaryButtonDown())
-    		placeTile(getTileOnPosition(event.getX(), event.getY()));
-    	else
-    		editProperties(getTileOnPosition(event.getX(), event.getY()));
     }
 
 	@FXML

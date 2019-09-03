@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Accordion?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="TOP_CENTER" prefHeight="564.0" prefWidth="244.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.ObjectSelectorController">
+   <children>
+      <Label alignment="CENTER" prefHeight="57.0" prefWidth="296.0" text="Click on a button to select it." textAlignment="CENTER" wrapText="true" VBox.vgrow="NEVER">
+         <font>
+            <Font size="15.0" />
+         </font>
+      </Label>
+      <Accordion prefHeight="344.0" prefWidth="296.0" VBox.vgrow="ALWAYS">
+         <panes>
+            <TitledPane animated="false" text="Tiles">
+               <content>
+                  <ScrollPane fx:id="tileScrollPane" fitToWidth="true" prefHeight="285.0" prefWidth="248.0" />
+               </content>
+            </TitledPane>
+            <TitledPane animated="false" text="Enemies">
+               <content>
+                  <ScrollPane fx:id="entityScrollPane" fitToWidth="true" prefHeight="285.0" prefWidth="248.0" />
+               </content>
+            </TitledPane>
+            <TitledPane animated="false" prefHeight="266.0" prefWidth="296.0" text="Players">
+               <content>
+                  <ScrollPane fx:id="playerScrollPane" fitToWidth="true" prefHeight="285.0" prefWidth="248.0" />
+               </content>
+            </TitledPane>
+         </panes>
+      </Accordion>
+   </children>
+</VBox>

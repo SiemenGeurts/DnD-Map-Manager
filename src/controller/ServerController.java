@@ -2,28 +2,69 @@ package controller;
 
 import java.io.IOException;
 
+import app.MapManagerApp;
 import app.ServerGameHandler;
 import gui.ErrorHandler;
+import helpers.JSONManager;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
-import javafx.scene.control.ListView;
+import javafx.scene.layout.AnchorPane;
 
-public class ServerController extends MapController {
+public class ServerController extends MapEditorController {
 
     @FXML
-    private ListView<?> lv;
+    private AnchorPane selectorPane;
     @FXML
     private Button resync;
     @FXML
     private Button reconnect;
 	
 	private ServerGameHandler gameHandler;
+	private ObjectSelectorController osController;
 	
 	@FXML
 	@Override
 	public void initialize() {
 		super.initialize();
+		
+		canvas.widthProperty().bind(((AnchorPane) canvas.getParent()).widthProperty());
+		canvas.heightProperty().bind(((AnchorPane) canvas.getParent()).heightProperty());
+		canvas.widthProperty().addListener(event -> {
+			drawBackground(); drawMap();
+		});
+		canvas.heightProperty().addListener(event -> {
+			drawBackground(); drawMap();
+		});
+		
+		try {
+			JSONManager.initialize();
+		} catch (IOException e) {
+			ErrorHandler.handle("Stored data could not be read.", e);
+		}
+	}
+	
+	public void endInit() {
+		try {
+			FXMLLoader loader = new FXMLLoader(MainMenuController.class.getResource("../assets/fxml/ObjectSelector.fxml"));
+			Parent root = loader.load();
+			osController = loader.getController();
+			osController.setController(this);
+			selectorPane.getChildren().add(root);
+			AnchorPane.setTopAnchor(root, 0d);
+			AnchorPane.setBottomAnchor(root, 0d);
+			AnchorPane.setLeftAnchor(root, 0d);
+			AnchorPane.setRightAnchor(root, 0d);
+			
+			MapManagerApp.stage.setResizable(true);
+			MapManagerApp.stage.setMaximized(true);
+			drawBackground();
+			drawMap();
+		} catch(IOException e) {
+			ErrorHandler.handle("Selection pane could not be loaded.", e);
+		}
 	}
 	
 	public void beginClicked(ActionEvent e) {

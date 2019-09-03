@@ -8,11 +8,9 @@ import javax.imageio.ImageIO;
 
 import app.ServerGameHandler;
 import data.mapdata.Entity;
-import data.mapdata.Tile;
 import data.mapdata.prefabs.EntityPrefab;
 import data.mapdata.prefabs.Prefab;
 import data.mapdata.prefabs.TilePrefab;
-import gui.BuilderButton;
 import gui.ErrorHandler;
 import helpers.AssetManager;
 import helpers.JSONManager;
@@ -47,8 +45,9 @@ public class ToolkitController {
 	@FXML
 	TextField nameField;
 	
-	MapBuilderController mbController;
+	ObjectSelectorController osController;
 	PropertyEditorController propertyEditorController;
+	
 	
 	private static final PseudoClass ERROR_BORDER = PseudoClass.getPseudoClass("invalid");
 	
@@ -65,7 +64,6 @@ public class ToolkitController {
 			propertyEditorController = loader.getController();
 			vbox.getChildren().add(3, propertyEditor);
 			VBox.setVgrow(propertyEditor, Priority.ALWAYS);
-			JSONManager.initialize();
 		} catch (IOException e) {
 			ErrorHandler.handle("Could not load PropertyEditor", e);
 		}
@@ -87,21 +85,18 @@ public class ToolkitController {
 			switch(current) {
 				case ENTITY:
 					prefab = new EntityPrefab(id, propertyEditorController.getWidth(), propertyEditorController.getHeight(), propertyEditorController.getPropertyList(), propertyEditorController.getBloodied());
-					BuilderButton<Entity> ebtn = new BuilderButton<>((EntityPrefab) prefab, imgView.getImage());
+					osController.addEntity((EntityPrefab) prefab, imgView.getImage());
 					JSONManager.addEntity((EntityPrefab) prefab);
-					mbController.entityPane.add(ebtn);
 					break;
 				case PLAYER:
 					prefab = new EntityPrefab(id, 1, 1, null, false);
-					BuilderButton<Entity> pbtn = new BuilderButton<>((EntityPrefab) prefab, imgView.getImage());
+					osController.addEntity((EntityPrefab) prefab, imgView.getImage());
 					JSONManager.addPlayer((EntityPrefab) prefab);
-					mbController.playerPane.add(pbtn);
 					break;
 				case TILE:
 					prefab = new TilePrefab(id);
-					BuilderButton<Tile> tbtn = new BuilderButton<>((TilePrefab) prefab, imgView.getImage());
+					osController.addTile((TilePrefab) prefab, imgView.getImage());
 					JSONManager.addTile((TilePrefab) prefab);
-					mbController.tilePane.add(tbtn);
 					break;
 			}
 			
@@ -110,8 +105,8 @@ public class ToolkitController {
 		}
 	}
 	
-	public void setMapBuilderController(MapBuilderController mbController) {
-		this.mbController = mbController;
+	public void setSelector(ObjectSelectorController controller) {
+		osController = controller;
 	}
 	
 	public Image getTexture() throws IOException {
