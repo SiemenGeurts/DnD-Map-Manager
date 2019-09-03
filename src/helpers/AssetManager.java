@@ -47,17 +47,19 @@ public class AssetManager {
 
 	public static int addTexture(Image texture) throws IOException {
 		int id = 0;
+		Object result;
 		if (!openSlots.isEmpty()) {
-			textures.put(id = openSlots.remove(0), texture);
+			result = textures.put(id = openSlots.remove(0), texture);
 		} else
-			textures.put(id = generator.getAndIncrement(), texture);
-		saveToFile(id, texture);
+			result = textures.put(id = generator.getAndIncrement(), texture);
+		if(result==null)
+			saveToFile(id, texture);
 		return id;
 	}
 	
 	public static int forceAddTexture(int id, Image texture) throws IOException {
-		textures.put(id, texture);
-		saveToFile(id, texture);
+		if(textures.put(id, texture)==null)
+			saveToFile(id, texture);
 		return id;
 	}
 
@@ -110,8 +112,11 @@ public class AssetManager {
 		String line = reader.readLine();
 		while (line != null) {
 			int id = Integer.valueOf(line);
-			System.out.println(defaultDirectory + "\\DnD Map Manager\\Textures\\" + id + ".png");
-			textures.put(id, new Image("file://" + defaultDirectory + "/DnD Map Manager/Textures/" + id + ".png"));
+			if(id>=0) {
+				System.out.println(defaultDirectory + "\\DnD Map Manager\\Textures\\" + id + ".png");
+				textures.put(id, new Image("file:\\" + defaultDirectory + "\\DnD Map Manager\\Textures\\" + id + ".png"));
+				System.out.println("Loading image: " + id + ", success: " + !textures.get(id).isError());
+			}
 			line = reader.readLine();
 		}
 		reader.close();

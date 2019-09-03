@@ -61,15 +61,6 @@ public class MapBuilderController extends MapEditorController {
 			AnchorPane.setRightAnchor(root, 0d);
 			tkController.setSelector(osController);
 			
-			canvas.widthProperty().bind(((AnchorPane) canvas.getParent()).widthProperty());
-			canvas.heightProperty().bind(((AnchorPane) canvas.getParent()).heightProperty());
-			canvas.widthProperty().addListener(event -> {
-				drawBackground(); drawMap();
-			});
-			canvas.heightProperty().addListener(event -> {
-				drawBackground(); drawMap();
-			});
-			
 			mapChooser = new FileChooser();
 
 			List<FileChooser.ExtensionFilter> extensionFilters = mapChooser.getExtensionFilters();

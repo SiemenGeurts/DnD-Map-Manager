@@ -28,17 +28,7 @@ public class ServerController extends MapEditorController {
 	@FXML
 	@Override
 	public void initialize() {
-		super.initialize();
-		
-		canvas.widthProperty().bind(((AnchorPane) canvas.getParent()).widthProperty());
-		canvas.heightProperty().bind(((AnchorPane) canvas.getParent()).heightProperty());
-		canvas.widthProperty().addListener(event -> {
-			drawBackground(); drawMap();
-		});
-		canvas.heightProperty().addListener(event -> {
-			drawBackground(); drawMap();
-		});
-		
+		super.initialize();		
 		try {
 			JSONManager.initialize();
 		} catch (IOException e) {

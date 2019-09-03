@@ -15,6 +15,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.ZoomEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.scene.transform.Rotate;
 
@@ -39,6 +40,14 @@ public class MapController extends SceneController {
     @Override
 	public void initialize() {
 		gc = canvas.getGraphicsContext2D();
+		canvas.widthProperty().bind(((AnchorPane) canvas.getParent()).widthProperty());
+		canvas.heightProperty().bind(((AnchorPane) canvas.getParent()).heightProperty());
+		canvas.widthProperty().addListener(event -> {
+			drawBackground(); drawMap();
+		});
+		canvas.heightProperty().addListener(event -> {
+			drawBackground(); drawMap();
+		});
     }
     
     /**
