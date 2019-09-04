@@ -143,4 +143,8 @@ public class ServerGameHandler extends GameHandler {
 		}
 		return true;
 	}
+	
+	public void sendUpdate(String str) throws IOException {
+		server.write(str);
+	}
 }

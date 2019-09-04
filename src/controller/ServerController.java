@@ -1,9 +1,12 @@
 package controller;
 
+import java.awt.Point;
 import java.io.IOException;
 
+import actions.ActionEncoder;
 import app.MapManagerApp;
 import app.ServerGameHandler;
+import data.mapdata.Entity;
 import gui.ErrorHandler;
 import helpers.JSONManager;
 import javafx.event.ActionEvent;
@@ -11,6 +14,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 
 public class ServerController extends MapEditorController {
@@ -24,6 +28,8 @@ public class ServerController extends MapEditorController {
 	
 	private ServerGameHandler gameHandler;
 	private ObjectSelectorController osController;
+	
+	private Entity selected = null;
 	
 	@FXML
 	@Override
@@ -54,6 +60,29 @@ public class ServerController extends MapEditorController {
 			drawMap();
 		} catch(IOException e) {
 			ErrorHandler.handle("Selection pane could not be loaded.", e);
+		}
+	}
+	
+	@Override
+	public void handleClick(Point p, MouseEvent event) {
+		Entity entity = null;
+		if((entity = currentMap.getEntity(getTileOnPosition(event.getX(), event.getY()))) != null) {
+			selected = entity;
+			//TODO: enable editing of properties
+		} else {
+			if(selected != null)
+				move(selected, getTileOnPosition(event.getX(), event.getY()));
+			else
+				super.handleClick(p, event);
+		}
+	}
+	
+	private void move(Entity entity, Point p) {
+		try {
+			gameHandler.sendUpdate(ActionEncoder.movement(entity.getTileX(), entity.getTileY(), p.x, p.y));
+			entity.setLocation(p);
+		} catch (IOException e) {
+			ErrorHandler.handle("could not transmit action.", e);
 		}
 	}
 	

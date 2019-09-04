@@ -27,9 +27,13 @@ public class MapEditorController extends MapController {
     @FXML
     void onMouseClicked(MouseEvent event) {
     	if(mousePressedCoords.distance(event.getX(), event.getY())>TILE_SIZE*SCALE/2) return;
+    	handleClick(getTileOnPosition(event.getX(), event.getY()), event);
+    }
+    
+    public void handleClick(Point p, MouseEvent event) {
     	System.out.println("mouse clicked [touch=" + event.isSynthesized() + "; x=" + event.getX() + ", y=" + event.getY() + "]");
     	if(event.isPrimaryButtonDown())
-    		placeTile(getTileOnPosition(event.getX(), event.getY()));
+    		placeTile(p);
     	else
     		editProperties(getTileOnPosition(event.getX(), event.getY()));
     }
