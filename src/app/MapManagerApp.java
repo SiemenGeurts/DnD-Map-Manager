@@ -22,7 +22,7 @@ public class MapManagerApp extends Application{
 	public void start(Stage stage) throws Exception {
 		MapManagerApp.stage = stage;
 		stage.setResizable(false);
-        FXMLLoader loader = new FXMLLoader(MapManagerApp.class.getResource("../assets/fxml/MainMenu.fxml"));
+        FXMLLoader loader = new FXMLLoader(MapManagerApp.class.getResource("/assets/fxml/MainMenu.fxml"));
         Parent root = loader.load();
         Scene scene = new Scene(root);
         sceneManager = new SceneManager(stage,scene,loader);

@@ -1,8 +1,10 @@
 package controller;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.io.IOException;
 
 import controller.InitClassStructure.SceneController;
+import data.mapdata.Entity;
 import data.mapdata.Map;
 import data.mapdata.Tile;
 import helpers.Calculator;
@@ -42,6 +44,10 @@ public class MapController extends SceneController {
 		gc = canvas.getGraphicsContext2D();
 		canvas.widthProperty().bind(((AnchorPane) canvas.getParent()).widthProperty());
 		canvas.heightProperty().bind(((AnchorPane) canvas.getParent()).heightProperty());
+    }
+    
+    public void setMap(Map map) {
+    	currentMap = map;
 		canvas.widthProperty().addListener(event -> {
 			drawBackground(); drawMap();
 		});
@@ -92,7 +98,7 @@ public class MapController extends SceneController {
 		gc.restore(); // back to original state (before rotation)
 	}
 	
-	private void drawImage(Image texture, int tileX, int tileY, int... rotation) {
+	private void drawImage(Image texture, double tileX, double tileY, int... rotation) {
 		double x = tileX * TILE_SIZE * SCALE - offsetX;
 		double y = tileY * TILE_SIZE * SCALE - offsetY;
 		if (rotation.length > 0 && rotation[0] != 0) {
@@ -141,6 +147,12 @@ public class MapController extends SceneController {
 				drawImage(tiles[i][j].getTexture(), j, i);
 			}
 		}
+		for(Entity e : currentMap.getEntities())
+			drawImage(e.getTexture(), e.getX(), e.getY());
+	}
+	
+	public void drawMap(Rectangle rect) {
+		drawMap(rect.x, rect.y, (int) rect.getMaxX(), (int) rect.getMaxY());
 	}
 	
 	public void drawMap() {

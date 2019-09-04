@@ -41,7 +41,7 @@ public class MapBuilderController extends MapEditorController {
 		try {
 			JSONManager.initialize();
 			currentMap = Map.emptyMap(20, 20);
-			FXMLLoader loader = new FXMLLoader(MainMenuController.class.getResource("../assets/fxml/Toolkit.fxml"));
+			FXMLLoader loader = new FXMLLoader(MainMenuController.class.getResource("/assets/fxml/Toolkit.fxml"));
 			Node root = new Scene(loader.load()).getRoot();
 			toolkitPane.getChildren().add(root);
 			tkController = loader.getController();
@@ -50,7 +50,7 @@ public class MapBuilderController extends MapEditorController {
 			AnchorPane.setLeftAnchor(root, 0d);
 			AnchorPane.setRightAnchor(root, 0d);
 			
-			loader = new FXMLLoader(MainMenuController.class.getResource("../assets/fxml/ObjectSelector.fxml"));
+			loader = new FXMLLoader(MainMenuController.class.getResource("/assets/fxml/ObjectSelector.fxml"));
 			root = loader.load();
 			osController = loader.getController();
 			osController.setController(this);

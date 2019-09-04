@@ -41,7 +41,13 @@ public class Client {
 		istream.read(size);
 		int len = ByteBuffer.wrap(size).asIntBuffer().get();
 		byte[] img = new byte[len];
-		istream.read(img);
+		int pos = 0;
+		do {
+			int lenreceived = istream.read(img, pos, len-pos);
+			if(lenreceived==-1) break;
+			else pos+=lenreceived;
+		} while(pos<len);
+		System.out.println("img size: " + len + " : " + pos);
 		BufferedImage image = ImageIO.read(new ByteArrayInputStream(img));
 		return SwingFXUtils.toFXImage(image, null);
 	}

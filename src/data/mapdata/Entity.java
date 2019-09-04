@@ -97,11 +97,19 @@ public class Entity {
 	public String encode() {
 		StringBuilder builder = new StringBuilder();
 		builder.append(type).append(',').append((int) x).append(',').append((int) y).append(',').append(width).append(',').append(height);
+		for(Property p : properties)
+			builder.append(',').append(p.getKey()).append('/').append(p.getValue());
 		return builder.toString();
 	}
 	
 	public static Entity decode(String s) {
-		return null;
+		String[] arr = s.split(",");
+		Entity entity = new Entity(Integer.valueOf(arr[0]), Integer.valueOf(arr[1]), Integer.valueOf(arr[2]), Integer.valueOf(arr[3]), Integer.valueOf(arr[4]));
+		for(int i = 5; i < arr.length; i++) {
+			int index = arr[i].indexOf("/");
+			entity.properties.add(new Property(arr[i].substring(0, index), arr[i].substring(index+1)));
+		}
+		return entity;
 	}
 	
 	public static ArrayList<Property> getDefaultProperties() {

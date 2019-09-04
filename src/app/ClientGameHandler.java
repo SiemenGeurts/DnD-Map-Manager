@@ -11,6 +11,8 @@ import controller.ClientController;
 import controller.MainMenuController;
 import data.mapdata.Map;
 import gui.ErrorHandler;
+import helpers.AssetManager;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -30,7 +32,7 @@ public class ClientGameHandler extends GameHandler {
 		actions = new ArrayList<>();
 		try {
 			FXMLLoader loader = new FXMLLoader(
-					ServerGameHandler.class.getResource("../assets/fxml/ClientPlayScreen.fxml"));
+					ClientGameHandler.class.getResource("/assets/fxml/ClientPlayScreen.fxml"));
 			Scene scene = new Scene(loader.load());
 			scene.getRoot().requestFocus();
 			controller = loader.getController();
@@ -46,9 +48,16 @@ public class ClientGameHandler extends GameHandler {
 			@Override
 			public void run() {
 				try {
-					ActionDecoder.decode(client.read()).attach();
-				} catch (IOException e) {
-					ErrorHandler.handle("Could not recieve message", e);
+					while (true) {
+						Thread.sleep((long) (1000 / 20));
+						ActionDecoder.decode(client.read()).attach();
+					}
+				} catch (IOException | InterruptedException e) {
+					Platform.runLater(new Runnable() {
+						public void run() {
+							ErrorHandler.handle("Could not recieve message.", e);
+						}
+					});
 				}
 			}
 		});
@@ -62,6 +71,7 @@ public class ClientGameHandler extends GameHandler {
 					try {
 						Thread.sleep((long) (1000 / 20));
 						update(System.currentTimeMillis() - time);
+						time = System.currentTimeMillis();
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -73,9 +83,9 @@ public class ClientGameHandler extends GameHandler {
 	}
 
 	public void update(float dt) {
-		for (Action a : actions) {
-			currentAction = a;
-			a.update(dt);
+		for (int i = 0; i < actions.size(); i++) {
+			currentAction = actions.get(i);
+			currentAction.update(dt);
 		}
 		currentAction = null;
 	}
@@ -84,7 +94,7 @@ public class ClientGameHandler extends GameHandler {
 		System.out.println("[CLIENT] Loading textures.");
 		try {
 			int amount = Integer.valueOf(client.read());
-			HashMap<Integer, Image> textures = new HashMap<>(amount);
+			HashMap<Integer, Image> textures = AssetManager.textures;
 			for (int i = 0; i < amount; i++) {
 				int id = Integer.valueOf(client.read());
 				Image image = client.readImage();
@@ -108,6 +118,10 @@ public class ClientGameHandler extends GameHandler {
 			return false;
 		}
 		return true;
+	}
+
+	public ClientController getController() {
+		return controller;
 	}
 
 	public Action insertAction(Action action) {

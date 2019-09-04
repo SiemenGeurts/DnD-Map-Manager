@@ -8,13 +8,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
+import javax.swing.filechooser.FileSystemView;
+
 import actions.ActionEncoder;
 import comms.Server;
 import controller.MainMenuController;
-import controller.SceneManager;
 import controller.ServerController;
 import data.mapdata.Map;
 import data.mapdata.Tile;
+import data.mapdata.Entity;
 import gui.ErrorHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -37,7 +39,7 @@ public class ServerGameHandler extends GameHandler {
 		List<FileChooser.ExtensionFilter> extensionFilters = mapChooser.getExtensionFilters();
 		extensionFilters.add(new FileChooser.ExtensionFilter("Map files (*.map)", "*.map"));
 		try {
-			FXMLLoader loader = new FXMLLoader(ServerGameHandler.class.getResource("../assets/fxml/ServerPlayScreen.fxml"));
+			FXMLLoader loader = new FXMLLoader(ServerGameHandler.class.getResource("/assets/fxml/ServerPlayScreen.fxml"));
 			Scene scene = new Scene(loader.load());
 			scene.getRoot().requestFocus();
 			controller = loader.getController();
@@ -78,8 +80,10 @@ public class ServerGameHandler extends GameHandler {
 	}
 	
 	public void loadMap() throws IOException {
-		mapChooser.setTitle("Load map");
-		File file = mapChooser.showOpenDialog(SceneManager.getPrimaryStage());
+		//mapChooser.setTitle("Load map");
+		//File file = mapChooser.showOpenDialog(SceneManager.getPrimaryStage());
+		File file = new File(FileSystemView.getFileSystemView().getDefaultDirectory().getPath() +  "/DnD Map Manager/map1.map");
+		System.out.println(file.getPath());
 		BufferedReader br = new BufferedReader(new FileReader(file));
 		StringBuilder sb = new StringBuilder();
 		String line = br.readLine();
@@ -118,8 +122,11 @@ public class ServerGameHandler extends GameHandler {
 		for(int i = 0; i < map.getWidth(); i++)
 			for(int j = 0; j < map.getHeight(); j++) {
 				Tile t = map.getTile(i, j);
-				textures.put(t.getType(), t.getTexture());
+				if(t.getType()>=0)
+					textures.put(t.getType(), t.getTexture());
 			}
+		for(Entity e : map.getEntities())
+			textures.put(e.getType(), e.getTexture());
 		try {
 			server.write(String.valueOf(textures.size()));
 			for(Entry<Integer, Image> pair : textures.entrySet()) {

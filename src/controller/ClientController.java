@@ -15,6 +15,7 @@ public class ClientController extends MapController {
 	@FXML
 	@Override
 	public void initialize() {
+		super.initialize();
 		MapManagerApp.stage.setResizable(true);
 		MapManagerApp.stage.setMaximized(true);
 	}

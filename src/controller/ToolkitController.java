@@ -58,7 +58,7 @@ public class ToolkitController {
 		List<FileChooser.ExtensionFilter> extensionFilters = fc.getExtensionFilters();
 		extensionFilters.add(new FileChooser.ExtensionFilter("Image files (*.png)", "*.png"));
 		try {
-			FXMLLoader loader = new FXMLLoader(ServerGameHandler.class.getResource("../assets/fxml/PropertyEditor.fxml"));
+			FXMLLoader loader = new FXMLLoader(ServerGameHandler.class.getResource("/assets/fxml/PropertyEditor.fxml"));
 			propertyEditor = (AnchorPane) new Scene(loader.load()).getRoot();
 			propertyEditor.setVisible(false);
 			propertyEditorController = loader.getController();

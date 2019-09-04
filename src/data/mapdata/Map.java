@@ -59,13 +59,17 @@ public class Map {
 		return tiles;
 	}
 	
+	public ArrayList<Entity> getEntities() {
+		return entities;
+	}
+	
 	public String encode() {
 		StringBuilder builder = new StringBuilder();
 		builder.append(tiles.length).append(':')
-				.append(tiles[0].length).append(':');
+				.append(tiles[0].length);
 		for(int i = 0; i < tiles.length; i++)
 			for(int j = 0; j < tiles[0].length; j++)
-				builder.append(tiles[i][j].getType()).append(':');
+				builder.append(':').append(tiles[i][j].getType());
 
 		builder.append(';').append(entities.size()).append(':');
 		for(Entity e : entities)
@@ -85,11 +89,11 @@ public class Map {
 		
 		s = string.substring(index+1).split(":");
 		ArrayList<Entity> entities = new ArrayList<>(Integer.valueOf(s[0]));
-		for(String entity : s) {
-			entities.add(Entity.decode(entity));
+		for(int i = 1; i < s.length; i++) {
+			entities.add(Entity.decode(s[i]));
 		}
 		map.entities = entities;
-		return new Map(tiles);
+		return map;
 	}
 	
 	public static Map emptyMap(int width, int height) {

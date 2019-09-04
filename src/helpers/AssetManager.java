@@ -30,9 +30,8 @@ public class AssetManager {
 		textures = new HashMap<>();
 		readTexturesFromDisk();
 		ArrayList<Integer> takenSlots = new ArrayList<>();
-		for (Entry<Integer, Image> entry : textures.entrySet()) {
+		for (Entry<Integer, Image> entry : textures.entrySet())
 			takenSlots.add(entry.getKey());
-		}
 		openSlots = new ArrayList<>();
 		int max = -1;
 		if (!takenSlots.isEmpty()) {
@@ -63,15 +62,15 @@ public class AssetManager {
 		return id;
 	}
 
-	public static void removeTexture(Integer id) throws IOException {
+	public static boolean removeTexture(Integer id) throws IOException {
+		if (id < 0)
+			return false;
 		textures.remove(id);
 		openSlots.add(id);
-		removeFile(id);
+		return removeFile(id);
 	}
 	
 	private static boolean removeFile(int id) {
-		if (id < 0)
-			return false;
 		String defaultDirectory = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
 		new File(defaultDirectory + "/DnD Map Manager/Textures/" + id + ".png").delete();
 		try {
@@ -96,7 +95,8 @@ public class AssetManager {
 		FileWriter writer = new FileWriter(new File(defaultDirectory + "/DnD Map Manager/Textures/textureInfo.txt"), false);
 		StringBuilder s = new StringBuilder();
 		for (Integer i : textures.keySet()) {
-			s.append(i + System.lineSeparator());
+			if(i>=0)
+				s.append(i + System.lineSeparator());
 		}
 		writer.write(new String(s));
 		writer.close();

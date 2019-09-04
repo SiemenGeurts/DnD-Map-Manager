@@ -44,7 +44,7 @@ public class ServerController extends MapEditorController {
 	
 	public void endInit() {
 		try {
-			FXMLLoader loader = new FXMLLoader(MainMenuController.class.getResource("../assets/fxml/ObjectSelector.fxml"));
+			FXMLLoader loader = new FXMLLoader(MainMenuController.class.getResource("/assets/fxml/ObjectSelector.fxml"));
 			Parent root = loader.load();
 			osController = loader.getController();
 			osController.setController(this);
@@ -81,6 +81,7 @@ public class ServerController extends MapEditorController {
 		try {
 			gameHandler.sendUpdate(ActionEncoder.movement(entity.getTileX(), entity.getTileY(), p.x, p.y));
 			entity.setLocation(p);
+			drawMap();
 		} catch (IOException e) {
 			ErrorHandler.handle("could not transmit action.", e);
 		}

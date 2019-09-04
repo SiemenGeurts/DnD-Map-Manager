@@ -26,7 +26,7 @@ public class MainMenuController {
     @FXML
     void startMapBuilder(ActionEvent event) {
     	try {
-            FXMLLoader loader = new FXMLLoader(MainMenuController.class.getResource("../assets/fxml/MapBuilder.fxml"));
+            FXMLLoader loader = new FXMLLoader(MainMenuController.class.getResource("/assets/fxml/MapBuilder.fxml"));
             Scene scene = new Scene(loader.load());
             scene.getRoot().requestFocus();
             sceneManager.pushView(scene,loader);
@@ -42,7 +42,7 @@ public class MainMenuController {
 	    	Stage stage = new Stage();
 			stage.setTitle("Connection dialog");
 			FXMLLoader loader = new FXMLLoader();
-			loader.setLocation(MainMenuController.class.getResource("../assets/fxml/IPDialog.fxml"));
+			loader.setLocation(MainMenuController.class.getResource("/assets/fxml/IPDialog.fxml"));
 			stage.setScene(new Scene(loader.load()));
 			IPDialogController controller = loader.getController();
 			stage.initModality(Modality.APPLICATION_MODAL);

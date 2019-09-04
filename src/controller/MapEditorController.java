@@ -21,7 +21,7 @@ public class MapEditorController extends MapController {
     	if(entity == null) return;
     	else {
     		
-    	}    	
+    	}
     }
 
     @FXML
@@ -29,7 +29,7 @@ public class MapEditorController extends MapController {
     	if(mousePressedCoords.distance(event.getX(), event.getY())>TILE_SIZE*SCALE/2) return;
     	handleClick(getTileOnPosition(event.getX(), event.getY()), event);
     }
-    
+
     public void handleClick(Point p, MouseEvent event) {
     	System.out.println("mouse clicked [touch=" + event.isSynthesized() + "; x=" + event.getX() + ", y=" + event.getY() + "]");
     	if(event.isPrimaryButtonDown())
@@ -37,12 +37,12 @@ public class MapEditorController extends MapController {
     	else
     		editProperties(getTileOnPosition(event.getX(), event.getY()));
     }
-	
+
 	public void setToBePlaced(Tile t) {
 		toBePlaced = t;
 		currentType = Type.TILE;
 	}
-	
+
 	public void setToBePlaced(Entity e) {
 		toBePlaced = e;
 		currentType = Type.ENTITY;

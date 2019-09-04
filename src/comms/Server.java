@@ -44,8 +44,10 @@ public class Server {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ImageIO.write(bimage, "png", baos);
 		byte[] size = ByteBuffer.allocate(4).putInt(baos.size()).array();
+		byte[] img = baos.toByteArray();
+		System.out.println("img size: " + baos.size() + " : " + img.length);
 		ostream.write(size);
-		ostream.write(baos.toByteArray());
+		ostream.write(img);
 		ostream.flush();
 	}
 	

@@ -1,10 +1,13 @@
 package actions;
 
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 
 import app.ClientGameHandler;
 import app.GameHandler;
+import data.mapdata.Entity;
+import helpers.Calculator;
 
 public class ActionDecoder {
 	
@@ -40,16 +43,28 @@ public class ActionDecoder {
 				return new Action(0.5f) {
 					@Override
 					protected void execute() {
-						GameHandler.map.getTile((Point) arg.get(0)).setType((Integer) arg.get(1));
+						Point p = (Point) arg.get(0);
+						GameHandler.map.getTile(p).setType((Integer) arg.get(1));
+						ClientGameHandler.instance.getController().drawMap(p.x, p.y, 1+p.x, 1+p.x);
 					}
 				};
 			case "move":
-				return new MovementAction(new GuideLine(new Point[] {(Point) arg.get(0), (Point) arg.get(1)}), GameHandler.map.getEntity((Point)arg.get(0)), 0.5f);
+				Point p = (Point) arg.get(0);
+				Point p2 = (Point) arg.get(1);
+				return new MovementAction(new GuideLine(new Point[] {p, p2}), GameHandler.map.getEntity((Point)arg.get(0)), 0.5f) {
+					@Override
+					public void execute() {
+						Rectangle rect = Calculator.getRectangle(p, p2);
+						ClientGameHandler.instance.getController().drawMap(rect);
+					}
+				};
 			case "bloodied":
 				return new Action(0.5f) {
 					@Override
 					protected void execute() {
-						GameHandler.map.getEntity((Point) arg.get(0)).setBloodied(true);
+						Entity entity = GameHandler.map.getEntity((Point) arg.get(0));
+						entity.setBloodied(true);
+						ClientGameHandler.instance.getController().drawMap(entity.getTileX(), entity.getTileY(), entity.getWidth()+entity.getTileX(), entity.getHeight()+entity.getTileY());
 					}
 				};
 			case "clear":
