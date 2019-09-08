@@ -215,7 +215,9 @@ public class MapController extends SceneController {
     
     @FXML
     public void onMousePressed(MouseEvent e) {
+    	System.out.println("Mouse Pressed");
     	mousePressedCoords = lastDragCoords = new Point2D(e.getX(), e.getY());
+    	System.out.println(mousePressedCoords);
     }
     
     //Only called if the event is triggered by a touchscreen.

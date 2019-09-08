@@ -17,6 +17,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.MenuBar;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
 public class MapBuilderController extends MapEditorController {
@@ -30,7 +31,7 @@ public class MapBuilderController extends MapEditorController {
 	@FXML
 	private AnchorPane toolkitPane;
 	@FXML
-	private AnchorPane selectorPane;
+	private VBox vbox;
 	
 	ToolkitController tkController;
 	ObjectSelectorController osController;
@@ -45,20 +46,19 @@ public class MapBuilderController extends MapEditorController {
 			Node root = new Scene(loader.load()).getRoot();
 			toolkitPane.getChildren().add(root);
 			tkController = loader.getController();
-			AnchorPane.setTopAnchor(root, 0d);
-			AnchorPane.setBottomAnchor(root, 0d);
-			AnchorPane.setLeftAnchor(root, 0d);
-			AnchorPane.setRightAnchor(root, 0d);
 			
 			loader = new FXMLLoader(MainMenuController.class.getResource("/assets/fxml/ObjectSelector.fxml"));
 			root = loader.load();
 			osController = loader.getController();
 			osController.setController(this);
-			selectorPane.getChildren().add(root);
-			AnchorPane.setTopAnchor(root, 0d);
-			AnchorPane.setBottomAnchor(root, 0d);
-			AnchorPane.setLeftAnchor(root, 0d);
-			AnchorPane.setRightAnchor(root, 0d);
+			vbox.getChildren().add(root);
+			
+			loader = new FXMLLoader(ServerController.class.getResource("/assets/fxml/PropertyEditor.fxml"));
+			root = loader.load();
+			setPropertyEditor(loader.getController());
+			vbox.getChildren().add(root);
+			
+			
 			tkController.setSelector(osController);
 			
 			mapChooser = new FileChooser();

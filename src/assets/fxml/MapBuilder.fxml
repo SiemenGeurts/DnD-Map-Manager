@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox onKeyPressed="#keyDown" prefHeight="620.0" prefWidth="827.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.MapBuilderController">
+<VBox onKeyPressed="#keyDown" prefHeight="620.0" prefWidth="827.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.MapBuilderController">
   <children>
     <MenuBar fx:id="menuBar" VBox.vgrow="NEVER">
       <menus>
@@ -56,7 +56,7 @@
         <items>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                <children>
-                  <Canvas fx:id="canvas" height="593.0" onMouseClicked="#onMouseClicked" onMouseDragged="#onDragHandler" onMouseMoved="#hoverTile" onScroll="#onScroll" onScrollStarted="#onScrollStarted" onZoom="#onZoom" onZoomFinished="#onZoomFinished" onZoomStarted="#onZoomStarted" width="657.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  <Canvas fx:id="canvas" height="593.0" onMouseClicked="#onMouseClicked" onMouseDragged="#onDragHandler" onMouseMoved="#hoverTile" onMousePressed="#onMousePressed" onScroll="#onScroll" onScrollStarted="#onScrollStarted" onZoom="#onZoom" onZoomFinished="#onZoomFinished" onZoomStarted="#onZoomStarted" width="657.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                </children>
             </AnchorPane>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
@@ -65,7 +65,10 @@
                     <tabs>
                       <Tab text="Selection">
                         <content>
-                          <AnchorPane fx:id="selectorPane" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+                          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                 <children>
+                                    <VBox fx:id="vbox" layoutX="48.0" layoutY="82.0" prefHeight="564.0" prefWidth="162.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                 </children></AnchorPane>
                         </content>
                       </Tab>
                       <Tab text="Add object">

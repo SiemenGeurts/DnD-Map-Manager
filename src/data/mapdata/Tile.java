@@ -23,8 +23,21 @@ public class Tile {
 		return AssetManager.textures.get(type);
 	}
 	
+	public Tile copy() {
+		return new Tile(type);
+	}
+	
 	@Override
 	public String toString() {
 		return String.valueOf(type);
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof Tile)
+			return ((Tile) obj).getType() == type;
+		else if(obj instanceof Integer)
+			return ((Integer)obj).intValue() == type;
+		else return false;
 	}
 }

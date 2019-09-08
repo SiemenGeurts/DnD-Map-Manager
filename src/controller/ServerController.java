@@ -15,12 +15,12 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
 
 public class ServerController extends MapEditorController {
 
     @FXML
-    private AnchorPane selectorPane;
+    private VBox vbox;
     @FXML
     private Button resync;
     @FXML
@@ -44,15 +44,16 @@ public class ServerController extends MapEditorController {
 	
 	public void endInit() {
 		try {
-			FXMLLoader loader = new FXMLLoader(MainMenuController.class.getResource("/assets/fxml/ObjectSelector.fxml"));
+			FXMLLoader loader = new FXMLLoader(ServerController.class.getResource("/assets/fxml/ObjectSelector.fxml"));
 			Parent root = loader.load();
 			osController = loader.getController();
 			osController.setController(this);
-			selectorPane.getChildren().add(root);
-			AnchorPane.setTopAnchor(root, 0d);
-			AnchorPane.setBottomAnchor(root, 0d);
-			AnchorPane.setLeftAnchor(root, 0d);
-			AnchorPane.setRightAnchor(root, 0d);
+			vbox.getChildren().add(root);
+			
+			loader = new FXMLLoader(ServerController.class.getResource("/assets/fxml/PropertyEditor.fxml"));
+			root = loader.load();
+			setPropertyEditor(loader.getController());
+			vbox.getChildren().add(root);
 			
 			MapManagerApp.stage.setResizable(true);
 			MapManagerApp.stage.setMaximized(true);
@@ -68,7 +69,7 @@ public class ServerController extends MapEditorController {
 		Entity entity = null;
 		if((entity = currentMap.getEntity(getTileOnPosition(event.getX(), event.getY()))) != null) {
 			selected = entity;
-			//TODO: enable editing of properties
+			propeditor.setProperties(entity.getProperties());
 		} else {
 			if(selected != null)
 				move(selected, getTileOnPosition(event.getX(), event.getY()));

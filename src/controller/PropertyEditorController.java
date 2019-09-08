@@ -22,6 +22,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.util.Callback;
 
 public class PropertyEditorController {
@@ -176,6 +177,8 @@ public class PropertyEditorController {
     		value = new TextField();
     		box.getChildren().add(key);
     		box.getChildren().add(value);
+    		HBox.setHgrow(key, Priority.ALWAYS);
+    		HBox.setHgrow(value, Priority.ALWAYS);
     		ChangeListener<Boolean> focusListener = new ChangeListener<Boolean>() {
     			@Override
     			public void changed(ObservableValue<? extends Boolean> arg0, Boolean oldVal, Boolean newVal) {
