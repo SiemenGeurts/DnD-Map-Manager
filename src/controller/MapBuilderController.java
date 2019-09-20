@@ -45,6 +45,11 @@ public class MapBuilderController extends MapEditorController {
 			FXMLLoader loader = new FXMLLoader(MainMenuController.class.getResource("/assets/fxml/Toolkit.fxml"));
 			Node root = new Scene(loader.load()).getRoot();
 			toolkitPane.getChildren().add(root);
+			AnchorPane.setBottomAnchor(root, 0d);
+			AnchorPane.setTopAnchor(root, 0d);
+			AnchorPane.setLeftAnchor(root, 0d);
+			AnchorPane.setRightAnchor(root, 0d);
+			
 			tkController = loader.getController();
 			
 			loader = new FXMLLoader(MainMenuController.class.getResource("/assets/fxml/ObjectSelector.fxml"));
