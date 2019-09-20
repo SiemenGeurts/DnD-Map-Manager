@@ -1,5 +1,7 @@
 package actions;
 
+import data.mapdata.Entity;
+
 /**
  * Possible actions:
  * - clear the map
@@ -32,4 +34,11 @@ public class ActionEncoder {
 		return "clear [" + x + "," + y + "]";
 	}
 
+	public static String removeEntity(int x, int y) {
+		return "remove [" + x + ", " + y + "]";
+	}
+	
+	public static String addEntity(Entity e) {
+		return "add <" + e.encode() + ">";
+	}
 }

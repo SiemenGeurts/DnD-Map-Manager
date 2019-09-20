@@ -30,29 +30,34 @@ public class MapEditorController extends MapController {
 
     @FXML
     void onMouseClicked(MouseEvent event) {
-    	System.out.println("Mouse clicked " +mousePressedCoords);
     	if(mousePressedCoords != null && mousePressedCoords.distance(event.getX(), event.getY())>TILE_SIZE*SCALE/2) return;
     	handleClick(getTileOnPosition(event.getX(), event.getY()), event);
     }
 
     public void handleClick(Point p, MouseEvent event) {
-    	System.out.println(" mouse clicked [touch=" + event.isSynthesized() + "; x=" + event.getX() + ", y=" + event.getY() + "]");
+    	System.out.println(" mouse clicked [touch=" + event.isSynthesized() + "; x=" + event.getX() + ", y=" + event.getY() + "]" + event.isControlDown());
     	if(event.getButton() == MouseButton.PRIMARY) {
     		if(event.isControlDown()) {
     			Entity e;
-    			if((e=currentMap.getEntity(p))!=null)
-    				currentMap.getEntities().remove(e);
-    			else
+    			if((e=currentMap.getEntity(p))!=null) {
+    				currentMap.removeEntity(e);
+    			} else {
     				currentMap.setTile(p.x, p.y, new Tile(PresetTile.EMPTY));
-    		}
-    		if(toBePlaced instanceof TilePrefab) {
-    			currentMap.setTile(p.x, p.y, ((TilePrefab) toBePlaced).getInstance(p.x, p.y));
-    		} else if(toBePlaced instanceof EntityPrefab) {
-    			Entity e;
-    			if((e=currentMap.getEntity(p))!=null)
-    				currentMap.getEntities().remove(e);
-    			currentMap.getEntities().add(((EntityPrefab)toBePlaced).getInstance(p.x, p.y));
-    		}
+    			}
+    		} else
+	    		if(toBePlaced != null) {
+		    		if(toBePlaced instanceof TilePrefab) {
+		    			currentMap.setTile(p.x, p.y, ((TilePrefab) toBePlaced).getInstance(p.x, p.y));
+		    		} else if(toBePlaced instanceof EntityPrefab) {
+		    			Entity e;
+		    			if((e=currentMap.getEntity(p))!=null) {
+		    				currentMap.removeEntity(e);
+		    			}
+		    			currentMap.addEntity(((EntityPrefab)toBePlaced).getInstance(p.x, p.y));
+		    			if(this instanceof ServerController)
+		    				toBePlaced = null;
+		    		}
+	    		}
     		drawBackground();
     		drawMap();
     	} else

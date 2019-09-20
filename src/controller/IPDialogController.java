@@ -23,6 +23,8 @@ public class IPDialogController {
 	private RadioButton rbClient;
 	@FXML
 	private TextField ipField;
+	@FXML
+	private TextField portField;
 	
 	@FXML
 	private ToggleGroup toggleGroup;
@@ -30,20 +32,41 @@ public class IPDialogController {
 	private int option;
 	private boolean isServer = false;
 	private String ip;
+	private int port = 5000;
+	
+	@FXML
+	void initialize() {
+		rbClient.selectedProperty().addListener((observable, oldVal, newVal) -> {
+			ipField.setDisable(!newVal);
+		});
+		rbServer.selectedProperty().addListener((observable, oldVal, newVal) -> {
+			portField.setDisable(!newVal);
+		});
+	}
 	
 	@FXML
 	public void handleClick(ActionEvent e) {
 		if(e.getSource() == btnOk) {
 			if(toggleGroup.getSelectedToggle() == rbServer) {
-				option = OK;
-				isServer = true;
-				closeStage(e);
+				portField.setText(portField.getText().replaceAll("\\s+", ""));
+				if(isValidPort(portField.getText())) {
+					port = Integer.parseInt(portField.getText());
+					option = OK;
+					isServer = true;
+					closeStage(e);
+				} else
+					portField.pseudoClassStateChanged(INVALID, true);
 			} else {
 				ipField.setText(ipField.getText().trim().replaceAll("\\s+", ""));
 				if(isValidIP(ipField.getText())) {
+					int index = ipField.getText().indexOf(':');
+					if(index!=-1) {
+						ip = ipField.getText().substring(0, index);
+						port = Integer.parseInt(ipField.getText().substring(index+1));
+					} else
+						ip = ipField.getText();						
 					option = OK;
 					isServer = false;
-					ip = ipField.getText();
 					closeStage(e);
 				} else {
 					ipField.pseudoClassStateChanged(INVALID, true);
@@ -56,6 +79,15 @@ public class IPDialogController {
 	}
 	
 	private boolean isValidIP(String ip) {
+		if(!ip.matches("\\A(?:(?:[0-9]{1,3}\\.){3}([0-9]{1,3})(:[0-9]*)?|localhost(:[0-9]*)?)\\z"))
+			return false;
+		int index = ip.indexOf(':');
+		if(index!=-1) {
+			if(isValidPort(ip.substring(index+1)))
+				ip = ip.substring(0, index);
+			else
+				return false;
+		}
 		if(ip.equals("localhost"))
 			return true;
 		if(ip.indexOf('.')==-1) return false;
@@ -73,6 +105,17 @@ public class IPDialogController {
 		return true;
 	}
 	
+	private boolean isValidPort(String s) {
+		try {
+			int port = Integer.parseInt(s);
+			if(!(port>0 && port < 65535))
+				return false;
+		} catch(NumberFormatException e) {
+			return false;
+		}
+		return true;
+	}
+	
 	private void closeStage(ActionEvent e) {
 		((Stage) ((Button) e.getSource()).getScene().getWindow()).close();
 	}
@@ -83,6 +126,10 @@ public class IPDialogController {
 	
 	public String getIP() {
 		return ip;
+	}
+	
+	public int getPort() {
+		return port;
 	}
 	
 	public boolean isServer() {

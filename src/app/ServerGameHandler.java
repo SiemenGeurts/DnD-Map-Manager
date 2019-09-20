@@ -7,14 +7,18 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Stack;
 
 import javax.swing.filechooser.FileSystemView;
 
+import actions.Action;
+import actions.ActionDecoder;
 import actions.ActionEncoder;
 import comms.Server;
 import controller.MainMenuController;
 import controller.ServerController;
 import data.mapdata.Map;
+import data.mapdata.ServerMap;
 import data.mapdata.Tile;
 import data.mapdata.Entity;
 import gui.ErrorHandler;
@@ -30,11 +34,19 @@ public class ServerGameHandler extends GameHandler {
 	Server server;
 	
 	ServerController controller;
+	public static ServerGameHandler instance;
 	
 	private FileChooser mapChooser;
 	
+	private StringBuilder updates;
+	private Stack<String> undo;
+	private boolean bufferUpdates = false;
+	
 	public ServerGameHandler(Server _server) {
 		server = _server;
+		updates = new StringBuilder();
+		undo = new Stack<>();
+		instance = this;
 		mapChooser = new FileChooser();
 		List<FileChooser.ExtensionFilter> extensionFilters = mapChooser.getExtensionFilters();
 		extensionFilters.add(new FileChooser.ExtensionFilter("Map files (*.map)", "*.map"));
@@ -94,7 +106,7 @@ public class ServerGameHandler extends GameHandler {
 		br.close();
 		Map m = Map.decode(new String(sb));
 		if (m != null)
-			map = m;
+			map = new ServerMap(m, this);
 		controller.currentMap = map;
 		controller.drawMap(0,0, map.getWidth(), map.getHeight());
 	}
@@ -151,7 +163,54 @@ public class ServerGameHandler extends GameHandler {
 		return true;
 	}
 	
-	public void sendUpdate(String str) throws IOException {
-		server.write(str);
+	public void sendUpdate(String action, String undoAction) {
+		if(bufferUpdates)
+			updates.append(action).append(';');
+		else
+			try {		
+				server.write(action);
+			} catch(IOException e) {
+				ErrorHandler.handle("Update [" + action + "] could not be send. Try resyncing the game.", e);
+			}
+		undo.push(undoAction);
+	}
+	
+	public void pushUpdates() {
+		if(bufferUpdates)
+			try {
+				server.write(updates.toString());
+				updates = new StringBuilder();
+			} catch (IOException e) {
+				ErrorHandler.handle("Update [" + updates.toString() + "] could not be send. Try resyncing the game.", e);
+			}
+	}
+	
+	public void undo() {
+		String[] s = undo.pop().split(";");
+		for(String line : s) {
+			Action action = ActionDecoder.decode(line, true);
+			action.setDelay(0);
+			action.update(0);
+			updates.delete(updates.lastIndexOf(";"), updates.length());
+		}
+	}
+	
+	public void undoBuffer() {
+		long count = updates.chars().filter(ch -> ch == ';').count();
+		for(int i = 0; i < count; i++)
+			undo();
+		updates = new StringBuilder();
+	}
+	
+	public void setBufferUpdates(boolean buffer) {
+		bufferUpdates = buffer;
+	}
+	
+	public String getBufferedActions() {
+		return updates.toString();
+	}
+	
+	public ServerController getController() {
+		return controller;
 	}
 }

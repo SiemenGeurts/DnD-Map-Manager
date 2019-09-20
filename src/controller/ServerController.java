@@ -2,6 +2,7 @@ package controller;
 
 import java.awt.Point;
 import java.io.IOException;
+import java.util.Optional;
 
 import actions.ActionEncoder;
 import app.MapManagerApp;
@@ -13,18 +14,27 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 
 public class ServerController extends MapEditorController {
-
+ 
     @FXML
     private VBox vbox;
     @FXML
     private Button resync;
     @FXML
     private Button reconnect;
+    @FXML
+    private CheckBox chkbxBuffer;
+    @FXML
+    private Button btnPush;
 	
 	private ServerGameHandler gameHandler;
 	private ObjectSelectorController osController;
@@ -34,7 +44,29 @@ public class ServerController extends MapEditorController {
 	@FXML
 	@Override
 	public void initialize() {
-		super.initialize();		
+		super.initialize();
+		chkbxBuffer.selectedProperty().addListener((obs, oldVal, newVal) -> {
+			if(oldVal && gameHandler.getBufferedActions().length()>0) {
+				ButtonType cont = new ButtonType("continue", ButtonBar.ButtonData.OK_DONE);
+				ButtonType push = new ButtonType("push updates", ButtonBar.ButtonData.APPLY);
+				ButtonType cancel = new ButtonType("cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+				Alert alert = new Alert(AlertType.WARNING, "If you continue, these changes will be undone. If you click 'push updates' the updates will be send before clearing the buffer.", cont, push, cancel);
+				alert.setTitle("Are you sure?");
+				alert.setHeaderText("There are one or more changes stored in the buffer.");
+				Optional<ButtonType> result = alert.showAndWait();
+				if(result.orElse(cancel)==cont) {
+					gameHandler.undoBuffer();
+				} else if(result.orElse(cancel)==push) {
+					gameHandler.pushUpdates();
+				} else {
+					chkbxBuffer.selectedProperty().set(oldVal);
+					return;
+				}
+			}				
+			btnPush.setDisable(!newVal);
+			gameHandler.setBufferUpdates(newVal);
+		});
 		try {
 			JSONManager.initialize();
 		} catch (IOException e) {
@@ -71,23 +103,27 @@ public class ServerController extends MapEditorController {
 			selected = entity;
 			propeditor.setProperties(entity.getProperties());
 		} else {
-			if(selected != null)
+			if(selected != null) {
 				move(selected, getTileOnPosition(event.getX(), event.getY()));
-			else
+				selected = null;
+			} else
 				super.handleClick(p, event);
 		}
 	}
 	
 	private void move(Entity entity, Point p) {
-		try {
-			gameHandler.sendUpdate(ActionEncoder.movement(entity.getTileX(), entity.getTileY(), p.x, p.y));
-			entity.setLocation(p);
-			drawMap();
-		} catch (IOException e) {
-			ErrorHandler.handle("could not transmit action.", e);
-		}
+		gameHandler.sendUpdate(ActionEncoder.movement(entity.getTileX(), entity.getTileY(), p.x, p.y),
+				ActionEncoder.movement(p.x, p.y, entity.getTileX(), entity.getTileY()));
+		entity.setLocation(p);
+		drawMap();
 	}
 	
+	@FXML
+	public void pushClicked(ActionEvent e) {
+		gameHandler.pushUpdates();
+	}
+
+	@FXML
 	public void beginClicked(ActionEvent e) {
 		if(resync.getText().equals("begin")) {
 			reconnect.setDisable(false);
@@ -97,6 +133,7 @@ public class ServerController extends MapEditorController {
 			gameHandler.resync();
 		}
 	}
+
 	
 	public void reconnectClicked(ActionEvent e) {
 		try {

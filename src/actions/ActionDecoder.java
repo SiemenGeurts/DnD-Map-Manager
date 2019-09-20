@@ -6,23 +6,30 @@ import java.util.ArrayList;
 
 import app.ClientGameHandler;
 import app.GameHandler;
+import app.ServerGameHandler;
 import data.mapdata.Entity;
+import data.mapdata.Map;
+import data.mapdata.PresetTile;
 import helpers.Calculator;
 
 public class ActionDecoder {
 	
 	public static Action decode(String s) {
+		return decode(s, false);
+	}
+	
+	public static Action decode(String s, boolean isServer) {
 		if(s.contains(";")) {
 			Action a = Action.empty();
 			for(String line : s.split(";")) {
-				a.addAction(decodeLine(line));
+				a.addAction(decodeLine(line, isServer));
 			}
 			return a;
 		} else
-			return decodeLine(s);
+			return decodeLine(s, isServer);
 	}
 	
-	private static Action decodeLine(String s) {
+	private static Action decodeLine(String s, boolean isServer) {
 		//every command starts with a single word representing the type of action.
 		//extract that word first
 		int index = s.indexOf(" ");
@@ -40,38 +47,72 @@ public class ActionDecoder {
 		ArrayList<Object> arg = parseArgs(s.substring(index).trim());
 		switch(s.substring(0, s.indexOf(" "))) {
 			case "set":
-				return new Action(0.5f) {
+				return new Action(isServer ? 0 : 0.5f) {
 					@Override
 					protected void execute() {
 						Point p = (Point) arg.get(0);
 						GameHandler.map.getTile(p).setType((Integer) arg.get(1));
-						ClientGameHandler.instance.getController().drawMap(p.x, p.y, 1+p.x, 1+p.x);
+						(isServer ? ServerGameHandler.instance : ClientGameHandler.instance).getController().drawMap(p.x, p.y, 1+p.x, 1+p.x);
 					}
 				};
 			case "move":
 				Point p = (Point) arg.get(0);
 				Point p2 = (Point) arg.get(1);
-				return new MovementAction(new GuideLine(new Point[] {p, p2}), GameHandler.map.getEntity((Point)arg.get(0)), 0.5f) {
-					@Override
-					public void execute() {
-						Rectangle rect = Calculator.getRectangle(p, p2);
-						ClientGameHandler.instance.getController().drawMap(rect);
-					}
-				};
+				if(isServer) {
+					return new Action(0) {
+						@Override
+						protected void execute() {
+							GameHandler.map.getEntity(p).setLocation(p2);
+							Rectangle rect = Calculator.getRectangle(p, p2);
+							ServerGameHandler.instance.getController().drawMap(rect);
+						}
+					};
+				} else
+					return new MovementAction(new GuideLine(new Point[] {p, p2}), GameHandler.map.getEntity(p), 0.5f) {
+						@Override
+						public void execute() {
+							Rectangle rect = Calculator.getRectangle(p, p2);
+							ClientGameHandler.instance.getController().drawMap(rect);
+						}
+					};
 			case "bloodied":
-				return new Action(0.5f) {
+				return new Action(isServer ? 0 : 0.5f) {
 					@Override
 					protected void execute() {
 						Entity entity = GameHandler.map.getEntity((Point) arg.get(0));
 						entity.setBloodied(true);
-						ClientGameHandler.instance.getController().drawMap(entity.getTileX(), entity.getTileY(), entity.getWidth()+entity.getTileX(), entity.getHeight()+entity.getTileY());
+						(isServer ? ServerGameHandler.instance : ClientGameHandler.instance).getController().drawMap(entity.getTileX(), entity.getTileY(), entity.getWidth()+entity.getTileX(), entity.getHeight()+entity.getTileY());
 					}
 				};
 			case "clear":
-				return new Action(0.5f) {
+				return new Action(isServer ? 0 : 0.5f) {
 					@Override
 					protected void execute() {
-						//GameHandler.map.getTile((Point) arg.get(0)).setType(PresetTile.EMPTY);
+						Point p = (Point) arg.get(0);
+						Map map = isServer? ServerGameHandler.map : ClientGameHandler.map;
+						map.getTile(p).setType(PresetTile.EMPTY);
+						Entity e = map.removeEntity(p);
+						(isServer ? ServerGameHandler.instance : ClientGameHandler.instance).getController().drawMap(p.x, p.y, p.x+(e == null?1:e.getWidth()), p.x+(e ==null?1:e.getHeight()));
+					}
+				};
+			case "remove":
+				return new Action(0f) {
+					@Override
+					protected void execute() {
+						Point p = (Point) arg.get(0);
+						GameHandler.map.getTile(p).setType(PresetTile.EMPTY);
+						Entity e = GameHandler.map.removeEntity(p);
+						if(e!= null)
+							(isServer ? ServerGameHandler.instance : ClientGameHandler.instance).getController().drawMap(p.x, p.y, p.x+e.getWidth(), p.y+e.getHeight());
+					}
+				};
+			case "add":
+				return new Action(0f) {
+					@Override
+					protected void execute() {
+						Entity e = Entity.decode((String) arg.get(0));
+						GameHandler.map.addEntity(e);
+						(isServer ? ServerGameHandler.instance : ClientGameHandler.instance).getController().drawMap(e.getTileX(), e.getTileY(), e.getWidth()+e.getTileX(), e.getHeight()+e.getTileY());
 					}
 				};
 			default:

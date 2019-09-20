@@ -2,12 +2,14 @@ package data.mapdata;
 
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class Map {
 
 	private int width, height;
 	private Tile[][] tiles;
-	private ArrayList<Entity> entities;
+	protected ArrayList<Entity> entities;
 	
 	public Map(int _width, int _height) {
 		width = _width;
@@ -16,7 +18,7 @@ public class Map {
 		entities = new ArrayList<>();
 	}
 	
-	private Map(Tile[][] _tiles) {
+	protected Map(Tile[][] _tiles) {
 		tiles = _tiles;
 		width = _tiles[0].length;
 		height = _tiles.length;
@@ -47,6 +49,21 @@ public class Map {
 		return null;
 	}
 	
+	public void addEntity(Entity e) {
+		entities.add(e);
+	}
+	
+	public void removeEntity(Entity e) {
+		entities.remove(e);
+	}
+	
+	public Entity removeEntity(Point p) {
+		Entity e = getEntity(p);
+		if(e != null)
+			removeEntity(e);
+		return e;
+	}
+	
 	public int getWidth() {
 		return width;
 	}
@@ -59,7 +76,11 @@ public class Map {
 		return tiles;
 	}
 	
-	public ArrayList<Entity> getEntities() {
+	public List<Entity> getEntities() {
+		return Collections.unmodifiableList(entities);
+	}
+	
+	protected ArrayList<Entity> getAllEntities() {
 		return entities;
 	}
 	

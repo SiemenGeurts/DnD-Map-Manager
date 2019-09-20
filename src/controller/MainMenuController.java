@@ -50,13 +50,13 @@ public class MainMenuController {
 			if(controller.getResult() == IPDialogController.OK) {
 				if(controller.isServer()) {
 					try {
-						new ServerGameHandler(Server.create(5000));
+						new ServerGameHandler(Server.create(controller.getPort()));
 					} catch(IOException e) {
 						ErrorHandler.handle("A server could not be created.", e);
 					}
 				} else {
 					try {
-						new ClientGameHandler(Client.create(controller.getIP(), 5000));
+						new ClientGameHandler(Client.create(controller.getIP(), controller.getPort()));
 					} catch(IOException e) {
 						ErrorHandler.handle("A client could not be created.", e);
 					}
