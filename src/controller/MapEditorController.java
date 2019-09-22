@@ -60,8 +60,10 @@ public class MapEditorController extends MapController {
 	    		}
     		drawBackground();
     		drawMap();
-    	} else
+    	} else {
     		editProperties(getTileOnPosition(event.getX(), event.getY()));
+    		
+    	}
     }
 
 	public void setToBePlaced(TilePrefab t) {

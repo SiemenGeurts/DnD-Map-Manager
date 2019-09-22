@@ -35,6 +35,9 @@
                   <TextField fx:id="tfHeight" text="1" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                   <TextField fx:id="tfWidth" text="1" GridPane.columnIndex="1" />
                </children>
+               <padding>
+                  <Insets bottom="5.0" left="5.0" right="5.0" />
+               </padding>
             </GridPane>
             <ListView fx:id="listView" prefHeight="225.0" prefWidth="305.0" VBox.vgrow="ALWAYS" />
             <ToolBar prefHeight="40.0" prefWidth="200.0" VBox.vgrow="NEVER">
@@ -47,7 +50,7 @@
             </ToolBar>
          </children>
          <padding>
-            <Insets bottom="10.0" top="20.0" />
+            <Insets bottom="10.0" top="10.0" />
          </padding>
       </VBox>
    </children>
