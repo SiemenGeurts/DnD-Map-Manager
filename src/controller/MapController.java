@@ -59,6 +59,7 @@ public class MapController extends SceneController {
 		});
 		if(map.getBackground() != null)
 			imagebounds = ScalingBounds.getBounds(canvas.getWidth(), canvas.getHeight(), map.getBackground(), map.getScaling());
+		redraw();
     }
     
     /**
@@ -121,8 +122,7 @@ public class MapController extends SceneController {
 			offsetY = Math.max(-canvas.getHeight() + TILE_SIZE * SCALE, offsetY + dy*TILE_SIZE*SCALE);
 		else
 			offsetY = Math.min(currentMap.getHeight() * TILE_SIZE * SCALE - TILE_SIZE * SCALE, offsetY + dy*TILE_SIZE*SCALE);
-		drawBackground();
-		drawMap();
+		redraw();
 	}
 
 	/**
@@ -141,8 +141,7 @@ public class MapController extends SceneController {
 				mapWidth - TILE_SIZE * SCALE));
 		offsetY = Math.max(-canvas.getHeight() + TILE_SIZE * SCALE, Math.min(offsetY - (y + offsetY) * (oldScale / SCALE - 1) * factor,
 				mapHeight - TILE_SIZE * SCALE));
-		drawBackground();
-		drawMap();
+		redraw();
 	}
 	
 	public void drawMap(int minX, int minY, int maxX, int maxY) {
@@ -166,16 +165,19 @@ public class MapController extends SceneController {
 	}
 	
 	void drawBackground() {
-		if(currentMap.getBackground() != null)
+		if(currentMap.getBackground() != null) {
 			gc.drawImage(currentMap.getBackground(),imagebounds.getSourceX(), imagebounds.getSourceY(), imagebounds.getSourceWidth(), imagebounds.getSourceHeight(),
 					imagebounds.getDestX(), imagebounds.getDestY(), imagebounds.getDestWidth(), imagebounds.getDestHeight());
-		else {
+			System.out.println("Drawing background");
+		} else {
 			gc.setFill(Color.WHITE);
 			gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 		}
 	}
 	
 	public void redraw() {
+		gc.setFill(Color.WHITE);
+		gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 		drawBackground();
 		drawMap();
 	}

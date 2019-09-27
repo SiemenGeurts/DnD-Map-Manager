@@ -1,27 +1,24 @@
 package app;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.Stack;
-
-import javax.swing.filechooser.FileSystemView;
 
 import actions.Action;
 import actions.ActionDecoder;
 import actions.ActionEncoder;
 import comms.Server;
 import controller.MainMenuController;
+import controller.SceneManager;
 import controller.ServerController;
 import data.mapdata.Map;
 import data.mapdata.ServerMap;
 import data.mapdata.Tile;
 import data.mapdata.Entity;
 import gui.ErrorHandler;
+import helpers.IOHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -37,7 +34,6 @@ public class ServerGameHandler extends GameHandler {
 	public static ServerGameHandler instance;
 	
 	private FileChooser mapChooser;
-	
 	private StringBuilder updates;
 	private Stack<String> undo;
 	private boolean bufferUpdates = false;
@@ -48,15 +44,14 @@ public class ServerGameHandler extends GameHandler {
 		undo = new Stack<>();
 		instance = this;
 		mapChooser = new FileChooser();
-		List<FileChooser.ExtensionFilter> extensionFilters = mapChooser.getExtensionFilters();
-		extensionFilters.add(new FileChooser.ExtensionFilter("Map files (*.map)", "*.map"));
+		mapChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Map files (*.map)", "*.map"));
 		try {
 			FXMLLoader loader = new FXMLLoader(ServerGameHandler.class.getResource("/assets/fxml/ServerPlayScreen.fxml"));
 			Scene scene = new Scene(loader.load());
 			scene.getRoot().requestFocus();
 			controller = loader.getController();
 			controller.setGameHandler(this);
-			loadMap();
+			while(!loadMap());
 	        MainMenuController.sceneManager.pushView(scene, loader);
 	        controller.endInit();
 			//wait for the DM clicks a "begin" button
@@ -91,24 +86,15 @@ public class ServerGameHandler extends GameHandler {
 		begin();
 	}
 	
-	public void loadMap() throws IOException {
-		//mapChooser.setTitle("Load map");
-		//File file = mapChooser.showOpenDialog(SceneManager.getPrimaryStage());
-		File file = new File(FileSystemView.getFileSystemView().getDefaultDirectory().getPath() +  "/DnD Map Manager/map1.map");
-		System.out.println(file.getPath());
-		BufferedReader br = new BufferedReader(new FileReader(file));
-		StringBuilder sb = new StringBuilder();
-		String line = br.readLine();
-		while (line != null) {
-			sb.append(line);
-			line = br.readLine();
-		}
-		br.close();
-		Map m = Map.decode(new String(sb));
-		if (m != null)
-			map = new ServerMap(m, this);
-		controller.currentMap = map;
-		controller.drawMap(0,0, map.getWidth(), map.getHeight());
+	public boolean loadMap() throws IOException {
+		mapChooser.setTitle("Load map");
+		File file = mapChooser.showOpenDialog(SceneManager.getPrimaryStage());
+		Map m = IOHandler.loadMap(file);
+		controller.currentFile = file;
+		if (m == null) return false;
+		map = new ServerMap(m, this);
+		controller.setMap(map);
+		return true;
 	}
 	
 	public void startGame() {

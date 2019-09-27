@@ -90,7 +90,7 @@ public class ToolkitController {
 					break;
 				case PLAYER:
 					prefab = new EntityPrefab(id, 1, 1, null, false);
-					osController.addEntity((EntityPrefab) prefab, imgView.getImage());
+					osController.addPlayer((EntityPrefab) prefab, imgView.getImage());
 					JSONManager.addPlayer((EntityPrefab) prefab);
 					break;
 				case TILE:

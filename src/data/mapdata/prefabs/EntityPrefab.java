@@ -28,7 +28,8 @@ public class EntityPrefab extends Prefab<Entity> {
 	public Entity getInstance(int x, int y) {
 		Entity entity = new Entity(id, x, y, width, height);
 		entity.setBloodied(bloodied);
-		entity.setProperties(new ArrayList<>(properties.stream().map(prop -> prop.copy()).collect(Collectors.toList())));
+		if(properties != null)
+			entity.setProperties(new ArrayList<>(properties.stream().map(prop -> prop.copy()).collect(Collectors.toList())));
 		return entity;
 	}
 }	

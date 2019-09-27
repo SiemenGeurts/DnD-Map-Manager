@@ -2,24 +2,38 @@ package controller;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.io.File;
+import java.io.IOException;
 
 import data.mapdata.Entity;
+import data.mapdata.Map;
 import data.mapdata.PresetTile;
 import data.mapdata.Tile;
 import data.mapdata.prefabs.EntityPrefab;
 import data.mapdata.prefabs.Prefab;
 import data.mapdata.prefabs.TilePrefab;
+import gui.ErrorHandler;
+import helpers.IOHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
 
 public class MapEditorController extends MapController {
 	private Prefab<?> toBePlaced;
 	
+	public File currentFile = null;
+	private FileChooser mapChooser;
+	
 	protected PropertyEditorController propeditor;
 	private Entity currentlyEdited;
+	
+	public MapEditorController() {
+		mapChooser = new FileChooser();
+		mapChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Map files (*.map)", "*.map"));
+	}
 	
 	
 	public void setPropertyEditor(PropertyEditorController editor) {
@@ -91,5 +105,38 @@ public class MapEditorController extends MapController {
 
 	public void setToBePlaced(EntityPrefab e) {
 		toBePlaced = e;
+	}
+	
+	@FXML
+	void saveMap(){
+		if(currentFile != null)
+			try {
+				IOHandler.saveMap(currentFile, currentMap);
+			} catch(IOException e) {
+				ErrorHandler.handle("Map could not be saved!", e);				
+			}
+		else
+			saveAsMap();
+	}
+
+	@FXML
+	void saveAsMap() {
+		mapChooser.setTitle("Save map");
+		currentFile = mapChooser.showSaveDialog(SceneManager.getPrimaryStage());
+		try {
+			IOHandler.saveMap(currentFile, currentMap);
+		} catch(IOException e) {
+			ErrorHandler.handle("Map could not be saved!", e);
+		}
+	}
+
+	@FXML
+	void loadMap() throws IOException {
+		mapChooser.setTitle("Load map");
+		currentFile = mapChooser.showOpenDialog(SceneManager.getPrimaryStage());
+		Map map = IOHandler.loadMap(currentFile);
+		if(map != null)
+			setMap(map);
+		redraw();
 	}
 }

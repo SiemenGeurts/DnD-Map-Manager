@@ -52,7 +52,7 @@ public class ActionDecoder {
 					protected void execute() {
 						Point p = (Point) arg.get(0);
 						GameHandler.map.getTile(p).setType((Integer) arg.get(1));
-						(isServer ? ServerGameHandler.instance : ClientGameHandler.instance).getController().drawMap(p.x, p.y, 1+p.x, 1+p.x);
+						(isServer ? ServerGameHandler.instance : ClientGameHandler.instance).getController().redraw();
 					}
 				};
 			case "move":
@@ -64,7 +64,8 @@ public class ActionDecoder {
 						protected void execute() {
 							GameHandler.map.getEntity(p).setLocation(p2);
 							Rectangle rect = Calculator.getRectangle(p, p2);
-							ServerGameHandler.instance.getController().drawMap(rect);
+							//ServerGameHandler.instance.getController().drawMap(rect);
+							ServerGameHandler.instance.getController().redraw();
 						}
 					};
 				} else
@@ -72,7 +73,7 @@ public class ActionDecoder {
 						@Override
 						public void execute() {
 							Rectangle rect = Calculator.getRectangle(p, p2);
-							ClientGameHandler.instance.getController().drawMap(rect);
+							ClientGameHandler.instance.getController().redraw();
 						}
 					};
 			case "bloodied":
@@ -81,7 +82,7 @@ public class ActionDecoder {
 					protected void execute() {
 						Entity entity = GameHandler.map.getEntity((Point) arg.get(0));
 						entity.setBloodied(true);
-						(isServer ? ServerGameHandler.instance : ClientGameHandler.instance).getController().drawMap(entity.getTileX(), entity.getTileY(), entity.getWidth()+entity.getTileX(), entity.getHeight()+entity.getTileY());
+						(isServer ? ServerGameHandler.instance : ClientGameHandler.instance).getController().redraw();
 					}
 				};
 			case "clear":
@@ -92,7 +93,7 @@ public class ActionDecoder {
 						Map map = isServer? ServerGameHandler.map : ClientGameHandler.map;
 						map.getTile(p).setType(PresetTile.EMPTY);
 						Entity e = map.removeEntity(p);
-						(isServer ? ServerGameHandler.instance : ClientGameHandler.instance).getController().drawMap(p.x, p.y, p.x+(e == null?1:e.getWidth()), p.x+(e ==null?1:e.getHeight()));
+						(isServer ? ServerGameHandler.instance : ClientGameHandler.instance).getController().redraw();
 					}
 				};
 			case "remove":
@@ -103,7 +104,7 @@ public class ActionDecoder {
 						GameHandler.map.getTile(p).setType(PresetTile.EMPTY);
 						Entity e = GameHandler.map.removeEntity(p);
 						if(e!= null)
-							(isServer ? ServerGameHandler.instance : ClientGameHandler.instance).getController().drawMap(p.x, p.y, p.x+e.getWidth(), p.y+e.getHeight());
+							(isServer ? ServerGameHandler.instance : ClientGameHandler.instance).getController().redraw();
 					}
 				};
 			case "add":
@@ -112,7 +113,7 @@ public class ActionDecoder {
 					protected void execute() {
 						Entity e = Entity.decode((String) arg.get(0));
 						GameHandler.map.addEntity(e);
-						(isServer ? ServerGameHandler.instance : ClientGameHandler.instance).getController().drawMap(e.getTileX(), e.getTileY(), e.getWidth()+e.getTileX(), e.getHeight()+e.getTileY());
+						(isServer ? ServerGameHandler.instance : ClientGameHandler.instance).getController().redraw();
 					}
 				};
 			default:

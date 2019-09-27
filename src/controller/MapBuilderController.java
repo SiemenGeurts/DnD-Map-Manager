@@ -1,21 +1,22 @@
 package controller;
 
 import java.awt.Point;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 
+import javax.imageio.ImageIO;
+
 import app.MapManagerApp;
-import data.mapdata.Entity;
 import data.mapdata.Map;
 import data.mapdata.PresetTile;
 import data.mapdata.Tile;
+import gui.ErrorHandler;
 import gui.NumericFieldListener;
 import helpers.JSONManager;
+import helpers.ScalingBounds;
+import helpers.ScalingBounds.ScaleMode;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -25,7 +26,9 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
@@ -38,9 +41,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
 public class MapBuilderController extends MapEditorController {
-
-	private File currentFile = null;
-	private FileChooser mapChooser;
 
 	@FXML
 	MenuBar menuBar;
@@ -58,20 +58,28 @@ public class MapBuilderController extends MapEditorController {
 	@FXML
 	private TextField tfWidth, tfHeight;
 	private Point anchor;
+	@FXML
+	private Button btnChooseImage;
+	@FXML
+	private RadioButton rbFit;
+	@FXML
+	private RadioButton rbExtend;
+	@FXML
+	private RadioButton rbStretch;
+	@FXML
+	private ToggleGroup tgScaling;
 	
 	ToolkitController tkController;
 	ObjectSelectorController osController;
 
+	private FileChooser imgChooser;
+	
 	@Override
 	public void initialize() {
 		super.initialize();
 		try {
 			JSONManager.initialize();
 			currentMap = Map.emptyMap(20, 20);
-			currentMap.setTile(0, 0, new Tile(PresetTile.WALL));
-			currentMap.setTile(0, currentMap.getHeight()-1, new Tile(PresetTile.WALL));
-			currentMap.setTile(currentMap.getWidth()-1, 0, new Tile(PresetTile.WALL));
-			currentMap.setTile(currentMap.getWidth()-1, currentMap.getHeight()-1, new Tile(PresetTile.WALL));
 			
 			FXMLLoader loader = new FXMLLoader(MainMenuController.class.getResource("/assets/fxml/Toolkit.fxml"));
 			Node root = new Scene(loader.load()).getRoot();
@@ -98,10 +106,6 @@ public class MapBuilderController extends MapEditorController {
 			
 			tkController.setSelector(osController);
 			
-			mapChooser = new FileChooser();
-
-			List<FileChooser.ExtensionFilter> extensionFilters = mapChooser.getExtensionFilters();
-			extensionFilters.add(new FileChooser.ExtensionFilter("Map files (*.map)", "*.map"));
 			anchorButtons = new Button[3][3];
 			radialArrows = new ImageView[3][3];
 			for(Node n : expandAnchorPane.getChildren()) {
@@ -120,6 +124,23 @@ public class MapBuilderController extends MapEditorController {
 			tfHeight.setText(""+currentMap.getHeight());
 			tfWidth.textProperty().addListener(new NumericFieldListener(tfWidth, false));
 			tfHeight.textProperty().addListener(new NumericFieldListener(tfHeight, true));
+			
+			//Background image stuff
+			imgChooser = new FileChooser();
+			imgChooser.setTitle("Choose background image");
+			imgChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files (*.png, *.jpg)", "*.png", "*.jpg"));
+			tgScaling.selectedToggleProperty().addListener((obs, oldVal, newVal) -> {
+				if(oldVal==newVal) return;
+				if(newVal==rbFit)
+					currentMap.setScaling(ScaleMode.FIT);
+				else if(newVal==rbExtend)
+					currentMap.setScaling(ScaleMode.EXTEND);
+				else
+					currentMap.setScaling(ScaleMode.STRETCH);
+				imagebounds = ScalingBounds.getBounds(canvas.getWidth(), canvas.getHeight(), currentMap.getBackground(), currentMap.getScaling());
+				redraw();
+			});
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -135,52 +156,20 @@ public class MapBuilderController extends MapEditorController {
     void hoverTile(MouseEvent event) {
  
     }
-
+	
 	@FXML
-	void saveMap() throws IOException {
-		File file = currentFile;
-		if (file == null) {
-			mapChooser.setTitle("Save map");
-			currentFile = file = mapChooser.showSaveDialog(SceneManager.getPrimaryStage());
-		}
-		if (file != null) {
-			FileWriter writer = new FileWriter(file, false);
-			writer.write(currentMap.encode());
-			writer.close();
-		}
-	}
-
-	@FXML
-	void saveAsMap() {
-		mapChooser.setTitle("Save map");
-		File file = mapChooser.showSaveDialog(SceneManager.getPrimaryStage());
+	void onBtnChooseImageClicked(ActionEvent e) {
+		File f = imgChooser.showOpenDialog(SceneManager.getPrimaryStage());
+		if(f == null) return;
+		imgChooser.setInitialDirectory(new File(f.getParent()));
 		try {
-			if (file != null) {
-				FileWriter writer = new FileWriter(file, false);
-				writer.write(currentMap.encode());
-				writer.close();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
+			Image img = SwingFXUtils.toFXImage(ImageIO.read(f), null);
+			imagebounds = ScalingBounds.getBounds(canvas.getWidth(), canvas.getHeight(), img, currentMap.getScaling());
+			currentMap.setBackground(img);
+		} catch (IOException e1) {
+			ErrorHandler.handle("Could not read image.", e1);
+			e1.printStackTrace();
 		}
-	}
-
-	@FXML
-	void loadMap() throws IOException {
-		mapChooser.setTitle("Load map");
-		File file = mapChooser.showOpenDialog(SceneManager.getPrimaryStage());
-		BufferedReader br = new BufferedReader(new FileReader(file));
-		StringBuilder sb = new StringBuilder();
-		String line = br.readLine();
-		while (line != null) {
-			sb.append(line);
-			line = br.readLine();
-		}
-		br.close();
-		Map m = Map.decode(new String(sb));
-		if (m != null)
-			currentMap = m;
-		redraw();
 	}
 	
 	public void setSelectedAnchor(int row, int col) {
@@ -275,10 +264,7 @@ public class MapBuilderController extends MapEditorController {
 					tiles[y][x] = new Tile(PresetTile.EMPTY);
 		}
 		
-		Map map = new Map(tiles);
-		for(Entity entity : currentMap.getEntities())
-			map.addEntity(entity);
-		currentMap = map;
+		currentMap.setTiles(tiles);
 		redraw();
 	}
 	

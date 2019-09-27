@@ -13,8 +13,8 @@ public class Map {
 	private int width, height;
 	private Tile[][] tiles;
 	protected ArrayList<Entity> entities;
-	private Image background;
-	private ScalingBounds.ScaleMode mode = ScalingBounds.ScaleMode.FIT;
+	protected Image background;
+	protected ScalingBounds.ScaleMode mode = ScalingBounds.ScaleMode.FIT;
 	
 	public Map(int _width, int _height) {
 		width = _width;
@@ -79,6 +79,12 @@ public class Map {
 	
 	public Tile[][] getTiles() {
 		return tiles;
+	}
+	
+	public void setTiles(Tile[][] tiles) {
+		this.tiles = tiles;
+		width = tiles[0].length;
+		height = tiles.length;
 	}
 	
 	public Image getBackground() {
@@ -146,6 +152,5 @@ public class Map {
 			}
 		}
 		return map;
-	}
-	
+	}	
 }
