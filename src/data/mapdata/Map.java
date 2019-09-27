@@ -5,11 +5,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Map {
+import helpers.ScalingBounds;
+import javafx.scene.image.Image;
 
+public class Map {
+	
 	private int width, height;
 	private Tile[][] tiles;
 	protected ArrayList<Entity> entities;
+	private Image background;
+	private ScalingBounds.ScaleMode mode = ScalingBounds.ScaleMode.FIT;
 	
 	public Map(int _width, int _height) {
 		width = _width;
@@ -18,7 +23,7 @@ public class Map {
 		entities = new ArrayList<>();
 	}
 	
-	protected Map(Tile[][] _tiles) {
+	public Map(Tile[][] _tiles) {
 		tiles = _tiles;
 		width = _tiles[0].length;
 		height = _tiles.length;
@@ -76,6 +81,22 @@ public class Map {
 		return tiles;
 	}
 	
+	public Image getBackground() {
+		return background;
+	}
+
+	public void setBackground(Image background) {
+		this.background = background;
+	}
+	
+	public void setScaling(ScalingBounds.ScaleMode mode) {
+		this.mode = mode;
+	}
+	
+	public ScalingBounds.ScaleMode getScaling() {
+		return mode;
+	}
+
 	public List<Entity> getEntities() {
 		return Collections.unmodifiableList(entities);
 	}

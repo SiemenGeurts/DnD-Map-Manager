@@ -110,16 +110,22 @@ public class AssetManager {
 		InputStream is = new FileInputStream(f);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 		String line = reader.readLine();
+		if(!isWindows() && defaultDirectory.charAt(0)=='/')
+			defaultDirectory=defaultDirectory.substring(1);
 		while (line != null) {
 			int id = Integer.valueOf(line);
 			if(id>=0) {
-				System.out.println(defaultDirectory + "\\DnD Map Manager\\Textures\\" + id + ".png");
-				textures.put(id, new Image("file:\\" + defaultDirectory + "\\DnD Map Manager\\Textures\\" + id + ".png"));
+				System.out.println("file:/" + defaultDirectory + "/DnD Map Manager/Textures/" + id + ".png");
+				textures.put(id, new Image("file:/" + defaultDirectory + "/DnD Map Manager/Textures/" + id + ".png"));
 				System.out.println("Loading image: " + id + ", success: " + !textures.get(id).isError());
 			}
 			line = reader.readLine();
 		}
 		reader.close();
+	}
+	
+	private static boolean isWindows() {
+		return System.getProperty("os.name").startsWith("Windows");
 	}
 
 	

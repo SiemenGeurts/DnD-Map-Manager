@@ -2,14 +2,17 @@ package controller;
 
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import data.mapdata.Property;
+import gui.NumericFieldListener;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -17,6 +20,7 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Control;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
@@ -60,54 +64,56 @@ public class PropertyEditorController {
     		}
     	});
     	properties = FXCollections.observableArrayList();
-    	properties.addAll(props);
+    	properties.addAll(props.stream().map(prop -> prop.copy()).collect(Collectors.toList()));
     	listView.setItems(properties);
-    	tfWidth.textProperty().addListener((observable, oldVal, newVal) -> {
-    		if(!newVal.matches("\\d*"))
-    			tfWidth.setText(newVal.replaceAll("[^\\d]", ""));
-    		if(newVal.length()==0)
-    			tfWidth.setText("1");
-    		if(newVal.charAt(0)=='-' || newVal.charAt(0)=='0')
-    			tfWidth.setText(newVal.substring(1));
-    	});
-    	tfHeight.textProperty().addListener((observable, oldVal, newVal) -> {
-    		if(!newVal.matches("\\d*"))
-    			tfHeight.setText(newVal.replaceAll("[^\\d]", ""));
-    		if(newVal.length()==0)
-    			tfHeight.setText("1");
-    		if(newVal.charAt(0)=='-' || newVal.charAt(0)=='0')
-    			tfHeight.setText(newVal.substring(1));
-    	});
+    	tfWidth.textProperty().addListener(new NumericFieldListener(tfWidth, false));
+    	tfHeight.textProperty().addListener(new NumericFieldListener(tfHeight, false));
     }
 
     @FXML
     void btnEditClicked(ActionEvent event) {
     	if(btnEdit.getText().equals("Cancel")) {
-    		ButtonType yes = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
-    		ButtonType no = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
-    		Alert alert = new Alert(AlertType.CONFIRMATION, "All unsaved changed will be lost.", yes, no);
-    		alert.setTitle("Confirm cancel");
-    		alert.setHeaderText("Are you sure you want to cancel editing?");
-    		Optional<ButtonType> result = alert.showAndWait();
-    		if(result.orElse(no) == yes) {
-    			properties.clear();
-    			properties.addAll(startProperties);
-    		}
+    		if(!requestCancelEditing())
+    			return;
     	}
-    	editing = !editing;
+    	setEditing(!editing);
+    }
+    
+    //returns true if editing is canceled.
+    public boolean requestCancelEditing() {
+    	if(editing) {
+	    	ButtonType yes = new ButtonType("Yes", ButtonBar.ButtonData.OK_DONE);
+			ButtonType no = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
+			Alert alert = new Alert(AlertType.CONFIRMATION, "All unsaved changed will be lost.", yes, no);
+			alert.setTitle("Confirm cancel");
+			alert.setHeaderText("Are you sure you want to cancel editing?");
+			Optional<ButtonType> result = alert.showAndWait();
+			if(result.orElse(no) == yes) {
+				properties.clear();
+				properties.addAll(startProperties.stream().map(prop -> prop.copy()).collect(Collectors.toList()));
+				return true;
+			}
+			return false;
+    	} else
+    		return true;
+    }
+
+    private void setEditing(boolean b) {
+    	editing = b;
     	listView.refresh();
     	btnSave.setDisable(!editing);
     	btnAdd.setDisable(!editing);
     	btnRemove.setDisable(!editing);
     	btnEdit.setText(editing ? "Cancel" : "Edit");
     }
-
+    
     @FXML
     void btnSaveClicked(ActionEvent event) {
     	startProperties.clear();
     	startProperties.addAll(listView.getItems());
     	if(onSaveClicked != null)
     		onSaveClicked.run();
+    	setEditing(false);
     }
     
     @FXML
@@ -118,7 +124,6 @@ public class PropertyEditorController {
     @FXML
     void btnRemoveClicked(ActionEvent event) {
     	for(int i : listView.getSelectionModel().getSelectedIndices()) {
-    		System.out.println("removing index "  + i);
     		properties.remove(i);
     	}
     }
@@ -146,11 +151,13 @@ public class PropertyEditorController {
     class PropertyCell extends ListCell<Property> {
     	
     	private final PropertyCellController controller = new PropertyCellController();
-    	private final Node view = controller.getView();
+    	private final PropertyCellEditorController editorController = new PropertyCellEditorController();
+    	private Node view;
     	
     	public PropertyCell() {
     		prefWidthProperty().bind(listView.widthProperty().subtract(2));
     		setMaxWidth(Control.USE_PREF_SIZE);
+    		view = controller.getView();
     	}
     	
     	@Override
@@ -159,19 +166,55 @@ public class PropertyEditorController {
     		if(empty) {
     			setGraphic(null);
     		} else {
-    			controller.setProperty(prop);
+    			if(editing) {
+    				view = editorController.getView();
+    				editorController.setProperty(prop);
+    			} else {
+    				view = controller.getView();
+    				controller.setProperty(prop);
+    			}
     			setGraphic(view);
     		}
     	}
     }
     
     class PropertyCellController {
+    	HBox box;
+    	Label key, value;
+    	
+    	PropertyCellController() {
+    		box = new HBox();
+    		key = new Label();
+    		value = new Label();
+    		key.setMaxWidth(100000);
+    		value.setMaxWidth(100000);
+    		key.setPrefWidth(100000);
+    		value.setPrefWidth(100000);
+    		key.setAlignment(Pos.BASELINE_LEFT);
+    		value.setAlignment(Pos.BASELINE_LEFT);
+    		box.getChildren().add(key);
+    		box.getChildren().add(value);
+    		HBox.setHgrow(key, Priority.ALWAYS);
+    		HBox.setHgrow(value, Priority.ALWAYS);
+    	}
+    	
+    	void setProperty(Property prop) {
+    		key.setText(prop.getKey());
+    		value.setText(prop.getValue());
+    	}
+    	
+    	HBox getView() {
+    		return box;
+    	}
+    }
+    
+    class PropertyCellEditorController {
     	Property prop;
     	
     	HBox box;
     	TextField key, value;
     	
-    	PropertyCellController() {
+    	PropertyCellEditorController() {
     		box = new HBox();
     		key = new TextField();
     		value = new TextField();
@@ -188,15 +231,13 @@ public class PropertyEditorController {
     		};
     		key.focusedProperty().addListener(focusListener);
     		value.focusedProperty().addListener(focusListener);
-    		key.addEventHandler(ActionEvent.ACTION, event -> prop.setKey(key.getText()));
-    		value.addEventHandler(ActionEvent.ACTION, event -> prop.setValue(value.getText()));
+    		key.textProperty().addListener((obs, oldVal, newVal) -> prop.setKey(newVal));
+    		value.textProperty().addListener((obs, oldVal, newVal) -> prop.setValue(newVal));
     	}
     	
     	void setProperty(Property _prop) {
     		prop = _prop;
-    		key.setDisable(!editing);
-    		value.setDisable(!editing);
-    		key.setText((String) prop.getKey());
+    		key.setText(prop.getKey());
     		value.setText(prop.getValue());
     	}
     	

@@ -8,8 +8,10 @@ import data.mapdata.Entity;
 import data.mapdata.Map;
 import data.mapdata.Tile;
 import helpers.Calculator;
+import helpers.ScalingBounds;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -34,7 +36,8 @@ public class MapController extends SceneController {
 	protected Point2D mousePressedCoords;
 	private double oldZoom = 1;
 	private boolean zooming = false;
-	private GraphicsContext gc;
+	protected GraphicsContext gc;
+	protected ScalingBounds imagebounds;
 	
     @FXML
     protected Canvas canvas;
@@ -54,6 +57,8 @@ public class MapController extends SceneController {
 		canvas.heightProperty().addListener(event -> {
 			drawBackground(); drawMap();
 		});
+		if(map.getBackground() != null)
+			imagebounds = ScalingBounds.getBounds(canvas.getWidth(), canvas.getHeight(), map.getBackground(), map.getScaling());
     }
     
     /**
@@ -148,7 +153,8 @@ public class MapController extends SceneController {
 			}
 		}
 		for(Entity e : currentMap.getEntities())
-			drawImage(e.getTexture(), e.getX(), e.getY());
+			if(e.getX()>minX && e.getY()>minY && e.getX()+e.getWidth()<maxX && e.getY()+e.getHeight()<maxY)
+				drawImage(e.getTexture(), e.getX(), e.getY());
 	}
 	
 	public void drawMap(Rectangle rect) {
@@ -160,12 +166,38 @@ public class MapController extends SceneController {
 	}
 	
 	void drawBackground() {
-		gc.setFill(Color.WHITE);
-		gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+		if(currentMap.getBackground() != null)
+			gc.drawImage(currentMap.getBackground(),imagebounds.getSourceX(), imagebounds.getSourceY(), imagebounds.getSourceWidth(), imagebounds.getSourceHeight(),
+					imagebounds.getDestX(), imagebounds.getDestY(), imagebounds.getDestWidth(), imagebounds.getDestHeight());
+		else {
+			gc.setFill(Color.WHITE);
+			gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+		}
+	}
+	
+	public void redraw() {
+		drawBackground();
+		drawMap();
 	}
 	
 	public Point getTileOnPosition(double x, double y) {
 		return new Point((int) ((x + offsetX)/(TILE_SIZE*SCALE)), (int) ((y+offsetY)/(TILE_SIZE*SCALE)));
+	}
+	
+	public Point2D screenToWorld(Point p) {
+		return new Point2D((p.x + offsetX)/(TILE_SIZE*SCALE), (p.y+offsetY)/(TILE_SIZE*SCALE));
+	}
+		
+	public Point worldToScreen(Point2D p) {
+		return new Point((int)(p.getX()*TILE_SIZE*SCALE-offsetX),(int) (p.getY()*TILE_SIZE*SCALE-offsetY));
+	}
+	
+	public Rectangle2D screenToWorld(Rectangle rect) {
+		return new Rectangle2D((rect.x + offsetX)/(TILE_SIZE*SCALE), (rect.y+offsetY)/(TILE_SIZE*SCALE), rect.getWidth()*TILE_SIZE*SCALE, rect.getHeight()*TILE_SIZE*SCALE);
+	}
+	
+	public Rectangle worldToScreen(Rectangle2D rect) {
+		return new Rectangle((int)(rect.getMinX()*TILE_SIZE*SCALE-offsetX),(int) (rect.getMinY()*TILE_SIZE*SCALE-offsetY), (int) (rect.getWidth()*TILE_SIZE*SCALE), (int) (rect.getHeight()*TILE_SIZE*SCALE));
 	}
 	
 	//The zoom events are only called for touchscreen/-pad zooming

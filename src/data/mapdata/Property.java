@@ -25,6 +25,10 @@ public class Property {
 		this.value = value;
 	}
 	
+	public Property copy() {
+		return new Property(key, value);
+	}
+	
 	@Override
 	public String toString() {
 		return "Property " + key + ": " + value;

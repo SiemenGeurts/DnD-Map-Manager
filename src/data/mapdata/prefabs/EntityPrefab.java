@@ -1,6 +1,7 @@
 package data.mapdata.prefabs;
 
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 import data.mapdata.Entity;
 import data.mapdata.Property;
@@ -27,7 +28,7 @@ public class EntityPrefab extends Prefab<Entity> {
 	public Entity getInstance(int x, int y) {
 		Entity entity = new Entity(id, x, y, width, height);
 		entity.setBloodied(bloodied);
-		entity.setProperties(properties);
+		entity.setProperties(new ArrayList<>(properties.stream().map(prop -> prop.copy()).collect(Collectors.toList())));
 		return entity;
 	}
 }	
