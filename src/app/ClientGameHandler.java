@@ -12,6 +12,7 @@ import controller.MainMenuController;
 import data.mapdata.Map;
 import gui.ErrorHandler;
 import helpers.AssetManager;
+import helpers.ScalingBounds.ScaleMode;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -50,7 +51,7 @@ public class ClientGameHandler extends GameHandler {
 				try {
 					while (true) {
 						Thread.sleep((long) (1000 / 20));
-						ActionDecoder.decode(client.read()).attach();
+						ActionDecoder.decode(client.read(String.class)).attach();
 					}
 				} catch (IOException | InterruptedException e) {
 					Platform.runLater(new Runnable() {
@@ -93,10 +94,10 @@ public class ClientGameHandler extends GameHandler {
 	public boolean loadTextures() {
 		System.out.println("[CLIENT] Loading textures.");
 		try {
-			int amount = Integer.valueOf(client.read());
+			int amount = client.read(Integer.class);
 			HashMap<Integer, Image> textures = AssetManager.textures;
 			for (int i = 0; i < amount; i++) {
-				int id = Integer.valueOf(client.read());
+				int id = client.read(Integer.class);
 				Image image = client.readImage();
 				textures.put(id, image);
 			}
@@ -108,10 +109,16 @@ public class ClientGameHandler extends GameHandler {
 	}
 
 	public boolean loadMap() {
-		System.out.println("[CLIENT] Loading map.");
+		System.out.println("[CLIENT] Loading map. ");
 		try {
-			map = Map.decode(client.read());
-			controller.currentMap = map;
+			boolean hasBackground = client.read(Boolean.class);
+			map = Map.decode(client.read(String.class));
+			if(hasBackground) {
+				String scaling = client.read(String.class);
+				map.setScaling(scaling.equals("fit") ? ScaleMode.FIT : (scaling.equals("stretch") ? ScaleMode.STRETCH : ScaleMode.EXTEND));
+				map.setBackground(client.readImage());
+			}
+			controller.setMap(map);
 			controller.drawMap();
 		} catch (IOException e) {
 			ErrorHandler.handle("The map could not be loaded. Please try again.", e);

@@ -18,7 +18,7 @@ import data.mapdata.ServerMap;
 import data.mapdata.Tile;
 import data.mapdata.Entity;
 import gui.ErrorHandler;
-import helpers.IOHandler;
+import helpers.Utils;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -89,7 +89,7 @@ public class ServerGameHandler extends GameHandler {
 	public boolean loadMap() throws IOException {
 		mapChooser.setTitle("Load map");
 		File file = mapChooser.showOpenDialog(SceneManager.getPrimaryStage());
-		Map m = IOHandler.loadMap(file);
+		Map m = Utils.loadMap(file);
 		controller.currentFile = file;
 		if (m == null) return false;
 		map = new ServerMap(m, this);
@@ -126,9 +126,9 @@ public class ServerGameHandler extends GameHandler {
 		for(Entity e : map.getEntities())
 			textures.put(e.getType(), e.getTexture());
 		try {
-			server.write(String.valueOf(textures.size()));
+			server.write(textures.size());
 			for(Entry<Integer, Image> pair : textures.entrySet()) {
-				server.write(String.valueOf(pair.getKey()));
+				server.write(pair.getKey());
 				server.write(pair.getValue());
 			}
 		} catch(IOException e) {
@@ -141,7 +141,12 @@ public class ServerGameHandler extends GameHandler {
 	public boolean sendMap() {
 		System.out.println("[SERVER] sending map.");
 		try {
+			server.write(map.getBackground()!=null);
 			server.write(map.encode());
+			if(map.getBackground()!=null) {
+				server.write(map.getScaling().name().toLowerCase());
+				server.write(map.getBackground());
+			}
 		} catch (IOException e) {
 			ErrorHandler.handle("Could not send map. Please try again", e);
 			return false;

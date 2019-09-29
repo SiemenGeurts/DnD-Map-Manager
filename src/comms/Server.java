@@ -1,18 +1,11 @@
 package comms;
 
-import java.awt.image.BufferedImage;
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 
-import javax.imageio.ImageIO;
-
-import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 
 public class Server {
@@ -20,34 +13,33 @@ public class Server {
 	public ServerSocket server;
 	private Socket socket;
 	
-	BufferedWriter out;
-	OutputStream ostream;
+	ObjectOutputStream ostream;
+	
+	long startTime;
 	
 	private Server(ServerSocket server) {
 		this.server = server;
+		startTime = System.currentTimeMillis();
 	}
 	
 	public void waitForClient() throws IOException {
 		socket = server.accept();
-		out = new BufferedWriter(new OutputStreamWriter(ostream = socket.getOutputStream()));
+		ostream = new ObjectOutputStream(socket.getOutputStream());
 	}
 	
 	public void write(String s) throws IOException {
-		System.out.println("[" + System.currentTimeMillis() + "] writing: " + s);
-		out.write(s);
-		out.newLine();
-		out.flush();
+		System.out.println("[" + (System.currentTimeMillis()-startTime) + "] writing: " + s);
+		ostream.writeObject(new Message<String>(s));
+		ostream.flush();
 	}
 	
 	public void write(Image image) throws IOException {
-		BufferedImage bimage = SwingFXUtils.fromFXImage(image, null);
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ImageIO.write(bimage, "png", baos);
-		byte[] size = ByteBuffer.allocate(4).putInt(baos.size()).array();
-		byte[] img = baos.toByteArray();
-		System.out.println("img size: " + baos.size() + " : " + img.length);
-		ostream.write(size);
-		ostream.write(img);
+		ostream.writeObject(new Message<SerializableImage>(new SerializableImage(image)));
+		ostream.flush();
+	}
+	
+	public <T extends Serializable> void write(T obj) throws IOException {
+		ostream.writeObject(new Message<T>(obj));
 		ostream.flush();
 	}
 	

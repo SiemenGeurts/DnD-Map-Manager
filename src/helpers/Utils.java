@@ -17,7 +17,7 @@ import data.mapdata.Map;
 import helpers.ScalingBounds.ScaleMode;
 import javafx.embed.swing.SwingFXUtils;
 
-public class IOHandler {
+public class Utils {
 
 	public static Map loadMap(File mapFile) throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(mapFile));
@@ -47,5 +47,14 @@ public class IOHandler {
 			writer.write(System.lineSeparator() + map.getScaling().name().toLowerCase());
 		}
 		writer.close();
+	}
+	
+	
+	public static String toBinaryString(byte[] bytes) {
+		StringBuilder sb = new StringBuilder();
+		for(byte b : bytes) {
+			sb.append(String.format("%8s", Integer.toBinaryString(b&0xFF)).replace(' ', '0')).append(' ');
+		}
+		return sb.toString();
 	}
 }

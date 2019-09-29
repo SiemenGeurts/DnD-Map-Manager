@@ -30,7 +30,7 @@ public class MapController extends SceneController {
 	//private int OFFSET_SPEED = TILE_SIZE + 10;
 	private double SCALING_FACTOR = 1.3;
 	private double offsetX, offsetY;
-	public Map currentMap;
+	protected Map currentMap;
 	
 	private Point2D lastDragCoords;
 	protected Point2D mousePressedCoords;
@@ -52,16 +52,21 @@ public class MapController extends SceneController {
     public void setMap(Map map) {
     	currentMap = map;
 		canvas.widthProperty().addListener(event -> {
-			drawBackground(); drawMap();
+			onResize();
 		});
 		canvas.heightProperty().addListener(event -> {
-			drawBackground(); drawMap();
+			onResize();
 		});
 		if(map.getBackground() != null)
 			imagebounds = ScalingBounds.getBounds(canvas.getWidth(), canvas.getHeight(), map.getBackground(), map.getScaling());
 		redraw();
     }
     
+    private void onResize() {
+    	if(currentMap.getBackground() != null)
+			imagebounds = ScalingBounds.getBounds(canvas.getWidth(), canvas.getHeight(), currentMap.getBackground(), currentMap.getScaling());
+    	redraw();
+    }
     /**
 	 * Sets the transform for the GraphicsContext to rotate around a pivot point.
 	 *
@@ -152,8 +157,21 @@ public class MapController extends SceneController {
 			}
 		}
 		for(Entity e : currentMap.getEntities())
-			if(e.getX()>minX && e.getY()>minY && e.getX()+e.getWidth()<maxX && e.getY()+e.getHeight()<maxY)
+			if(e.getX()>=minX && e.getY()>=minY && e.getX()+e.getWidth()<=maxX && e.getY()+e.getHeight()<=maxY)
 				drawImage(e.getTexture(), e.getX(), e.getY());
+		
+		double xBegin = Math.max(0, minX)*TILE_SIZE*SCALE-offsetX;
+		double xEnd = Math.min(tiles[0].length+1, maxX)*TILE_SIZE*SCALE-offsetX;
+		double yBegin = Math.max(0, minY)*TILE_SIZE*SCALE-offsetY;
+		double yEnd = Math.min(tiles.length+1, maxY)*TILE_SIZE*SCALE-offsetY;
+		
+		gc.setStroke(Color.BLACK);
+		gc.setLineWidth(1);
+		for (double x = xBegin; x<=xEnd+0.1*TILE_SIZE; x+=TILE_SIZE*SCALE)
+			gc.strokeLine(x, yBegin, x, yEnd);
+			
+		for (double y = yBegin; y <= yEnd+0.1*TILE_SIZE; y+=TILE_SIZE*SCALE)
+			gc.strokeLine(xBegin, y, xEnd, y);
 	}
 	
 	public void drawMap(Rectangle rect) {
@@ -168,7 +186,6 @@ public class MapController extends SceneController {
 		if(currentMap.getBackground() != null) {
 			gc.drawImage(currentMap.getBackground(),imagebounds.getSourceX(), imagebounds.getSourceY(), imagebounds.getSourceWidth(), imagebounds.getSourceHeight(),
 					imagebounds.getDestX(), imagebounds.getDestY(), imagebounds.getDestWidth(), imagebounds.getDestHeight());
-			System.out.println("Drawing background");
 		} else {
 			gc.setFill(Color.WHITE);
 			gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());

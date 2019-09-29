@@ -57,7 +57,7 @@ public class AssetManager {
 	}
 	
 	public static int forceAddTexture(int id, Image texture) throws IOException {
-		if(textures.put(id, texture)==null)
+		if(textures.put(id, texture)==null && texture!=null)
 			saveToFile(id, texture);
 		return id;
 	}

@@ -85,4 +85,9 @@ public class ScalingBounds {
 		}
 		return null;
 	}
+	
+	@Override
+	public String toString() {
+		return "bounds [source="+source.toString()+", dest="+destination.toString() + "]";
+	}
 }

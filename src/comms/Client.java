@@ -1,18 +1,9 @@
 package comms;
 
-import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-
-import javax.imageio.ImageIO;
-
-import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 
 public class Client {
@@ -20,36 +11,39 @@ public class Client {
 	int port;
 	String ip;
 	
-	BufferedReader in;
-	InputStream istream;
-	
+	ObjectInputStream istream;
+	long startTime;
 	private Client(Socket client, String ip, int port) throws IOException {
 		this.client = client;
 		this.ip = ip;
 		this.port = port;
-		in = new BufferedReader(new InputStreamReader(istream = client.getInputStream()));
-	}
-	
-	public String read() throws IOException {
-		String s = in.readLine();
-		System.out.println("[" + System.currentTimeMillis() + "] reading: " + s);
-		return s;
+		startTime = System.currentTimeMillis();
+		istream = new ObjectInputStream(client.getInputStream());
 	}
 	
 	public Image readImage() throws IOException {
-		byte[] size = new byte[4];
-		istream.read(size);
-		int len = ByteBuffer.wrap(size).asIntBuffer().get();
-		byte[] img = new byte[len];
-		int pos = 0;
-		do {
-			int lenreceived = istream.read(img, pos, len-pos);
-			if(lenreceived==-1) break;
-			else pos+=lenreceived;
-		} while(pos<len);
-		System.out.println("img size: " + len + " : " + pos);
-		BufferedImage image = ImageIO.read(new ByteArrayInputStream(img));
-		return SwingFXUtils.toFXImage(image, null);
+		System.out.println("[" + (System.currentTimeMillis()-startTime) + "] reading image");
+		try {
+		Message<?> m = (Message<?>) istream.readObject();
+		if(m.getMessage() instanceof SerializableImage)
+			return ((SerializableImage) m.getMessage()).getImage();
+		}catch(ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		throw new CommsException("Message did not contain an image.");
+	}
+	
+	public <T extends Object> T read(Class<T> c) throws IOException {
+		if(c == Image.class)
+			return c.cast(readImage());
+		try {
+			Message<?> m = (Message<?>) istream.readObject();
+			if(c.isInstance(m.getMessage()))
+				return c.cast(m.getMessage());
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		throw new CommsException("Received message was not of type " + c.getSimpleName());
 	}
 	
 	public static Client create(String ip, int port) throws UnknownHostException, IOException {

@@ -13,7 +13,7 @@ import data.mapdata.prefabs.EntityPrefab;
 import data.mapdata.prefabs.Prefab;
 import data.mapdata.prefabs.TilePrefab;
 import gui.ErrorHandler;
-import helpers.IOHandler;
+import helpers.Utils;
 import javafx.fxml.FXML;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.input.MouseButton;
@@ -77,6 +77,7 @@ public class MapEditorController extends MapController {
 		    				currentMap.removeEntity(e);
 		    			}
 		    			currentMap.addEntity(((EntityPrefab)toBePlaced).getInstance(p.x, p.y));
+		    			
 		    			if(this instanceof ServerController)
 		    				toBePlaced = null;
 		    		}
@@ -111,7 +112,7 @@ public class MapEditorController extends MapController {
 	void saveMap(){
 		if(currentFile != null)
 			try {
-				IOHandler.saveMap(currentFile, currentMap);
+				Utils.saveMap(currentFile, currentMap);
 			} catch(IOException e) {
 				ErrorHandler.handle("Map could not be saved!", e);				
 			}
@@ -124,7 +125,7 @@ public class MapEditorController extends MapController {
 		mapChooser.setTitle("Save map");
 		currentFile = mapChooser.showSaveDialog(SceneManager.getPrimaryStage());
 		try {
-			IOHandler.saveMap(currentFile, currentMap);
+			Utils.saveMap(currentFile, currentMap);
 		} catch(IOException e) {
 			ErrorHandler.handle("Map could not be saved!", e);
 		}
@@ -134,7 +135,7 @@ public class MapEditorController extends MapController {
 	void loadMap() throws IOException {
 		mapChooser.setTitle("Load map");
 		currentFile = mapChooser.showOpenDialog(SceneManager.getPrimaryStage());
-		Map map = IOHandler.loadMap(currentFile);
+		Map map = Utils.loadMap(currentFile);
 		if(map != null)
 			setMap(map);
 		redraw();

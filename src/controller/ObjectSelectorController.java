@@ -32,7 +32,7 @@ public class ObjectSelectorController {
 	@FXML
 	void initialize() {
 		tilePane = new GridSelectionPane(5);
-		tilePane.add(createButton(new TilePrefab(PresetTile.EMPTY), AssetManager.textures.get(PresetTile.EMPTY)));
+		//tilePane.add(createButton(new TilePrefab(PresetTile.EMPTY), AssetManager.textures.get(PresetTile.EMPTY)));
 		tilePane.add(createButton(new TilePrefab(PresetTile.FLOOR), AssetManager.textures.get(PresetTile.FLOOR)));
 		tilePane.add(createButton(new TilePrefab(PresetTile.WALL), AssetManager.textures.get(PresetTile.WALL)));
 		tilePane.add(createButton(new TilePrefab(PresetTile.BUSHES), AssetManager.textures.get(PresetTile.BUSHES)));
