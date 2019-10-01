@@ -8,6 +8,7 @@ import actions.ActionEncoder;
 import app.MapManagerApp;
 import app.ServerGameHandler;
 import data.mapdata.Entity;
+import data.mapdata.Map;
 import gui.ErrorHandler;
 import helpers.JSONManager;
 import javafx.event.ActionEvent;
@@ -36,6 +37,16 @@ public class ServerController extends MapEditorController {
     @FXML
     private Button btnPush;
 	
+    //Preview stuff
+    @FXML
+    private Button btnTogglePreview;
+    @FXML
+    private Button btnDeclinePreview;
+    @FXML
+    private Button btnAcceptPreview;
+    public Map previewMap;
+    public boolean inPreview = false;
+    
 	private ServerGameHandler gameHandler;
 	private ObjectSelectorController osController;
 	
@@ -134,6 +145,18 @@ public class ServerController extends MapEditorController {
 		}
 	}
 
+	@FXML
+	public void onBtnTogglePreviewClicked(ActionEvent e) {
+		
+	}
+	@FXML
+	public void onBtnAcceptPreviewClicked(ActionEvent e) {
+		
+	}
+	@FXML
+	public void onBtnDeclinePreviewClicked(ActionEvent e) {
+		
+	}
 	
 	public void reconnectClicked(ActionEvent e) {
 		try {

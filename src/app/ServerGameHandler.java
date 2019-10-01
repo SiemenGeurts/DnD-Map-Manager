@@ -40,13 +40,13 @@ public class ServerGameHandler extends GameHandler {
 	private Stack<String> undo;
 	private boolean bufferUpdates = false;
 
-
 	//for serverlistener
 	Thread serverListener;
 	private Object pauseLock = new Object();
 	private boolean running = false, paused = false;
 	
 	public ServerGameHandler(Server _server) {
+		super();
 		server = _server;
 		updates = new StringBuilder();
 		undo = new Stack<>();
@@ -105,19 +105,29 @@ public class ServerGameHandler extends GameHandler {
 						try {
 							Thread.sleep((long) (1000 / 20));
 							System.out.println("listening...");
-							ActionDecoder.decodeRequest(server.read(String.class)).update(0);
+							ActionDecoder.decodeRequest(server.read(String.class)).attach();
 						} catch (IOException | InterruptedException e) {
 							Platform.runLater(new Runnable() {
 								public void run() {
 									ErrorHandler.handle("Communication was lost, please reconnect.", e);
 								}
 							});
+							break;
 						}
 					}
 				}
 			}
 		});
 		serverListener.setDaemon(true);
+	}
+	
+	public void preview(String action) {
+		controller.inPreview = true;
+		Map old = map;
+		map = map.copy();
+		
+		controller.previewMap = map;
+		map = old;
 	}
 	
 	public void pauseServerListener() {

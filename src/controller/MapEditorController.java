@@ -77,13 +77,8 @@ public class MapEditorController extends MapController {
     	return true;
     }
 
-    @FXML
-    void onMouseClicked(MouseEvent event) {
-    	if(mousePressedCoords != null && mousePressedCoords.distance(event.getX(), event.getY())>TILE_SIZE*SCALE/2) return;
-    	handleClick(getTileOnPosition(event.getX(), event.getY()), event);
-    }
-
-    public void handleClick(Point p, MouseEvent event) {
+    @Override
+    protected void handleClick(Point p, MouseEvent event) {
     	System.out.println(" mouse clicked [touch=" + event.isSynthesized() + "; x=" + event.getX() + ", y=" + event.getY() + "]" + event.isControlDown());
     	if(entityMenu.isShowing())
     		entityMenu.hide();

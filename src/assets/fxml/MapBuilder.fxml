@@ -39,11 +39,11 @@
         </Menu>
       </menus>
     </MenuBar>
-      <SplitPane dividerPositions="0.7212121212121212" prefHeight="160.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
+      <SplitPane dividerPositions="0.8" prefHeight="160.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
         <items>
-          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0"  style="-fx-background-color:#fff">
                <children>
-                  <Canvas fx:id="canvas" height="593.0" onMouseClicked="#onMouseClicked" onMouseDragged="#onDragHandler" onMouseMoved="#hoverTile" onMousePressed="#onMousePressed" onScroll="#onScroll" onScrollStarted="#onScrollStarted" onZoom="#onZoom" onZoomFinished="#onZoomFinished" onZoomStarted="#onZoomStarted" width="657.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  <Canvas fx:id="canvas" height="593.0" onMouseClicked="#onMouseClicked" onMouseDragged="#onDragHandler" onMouseMoved="#hoverTile" onMousePressed="#onMousePressed" onScroll="#onScroll" onScrollStarted="#onScrollStarted" onZoom="#onZoom" onZoomFinished="#onZoomFinished" onZoomStarted="#onZoomStarted" onRotate="#onRotate" width="657.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                </children>
             </AnchorPane>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">

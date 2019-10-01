@@ -17,6 +17,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.RotateEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.ZoomEvent;
 import javafx.scene.layout.AnchorPane;
@@ -70,8 +71,6 @@ public class MapController extends SceneController {
     /**
 	 * Sets the transform for the GraphicsContext to rotate around a pivot point.
 	 *
-	 * @param gc
-	 *            the graphics context the transform to applied to.
 	 * @param angle
 	 *            the angle of rotation.
 	 * @param px
@@ -79,47 +78,18 @@ public class MapController extends SceneController {
 	 * @param py
 	 *            the y pivot co-ordinate for the rotation (in canvas co-ordinates).
 	 */
-	private void rotate(GraphicsContext gc, double angle, double px, double py) {
+	protected void rotate(double angle, double px, double py) {
 		Rotate r = new Rotate(angle, px, py);
 		gc.setTransform(r.getMxx(), r.getMyx(), r.getMxy(), r.getMyy(), r.getTx(), r.getTy());
-	}
-    
-    /**
-	 * Draws an image on a graphics context.
-	 *
-	 * The image is drawn at (tlpx, tlpy) rotated by angle pivoted around the point:
-	 * (tlpx + image.getWidth() / 2, tlpy + image.getHeight() / 2)
-	 *
-	 * @param gc
-	 *            the graphics context the image is to be drawn on.
-	 * @param angle
-	 *            the angle of rotation.
-	 * @param tlpx
-	 *            the top left x co-ordinate where the image will be plotted (in
-	 *            canvas co-ordinates).
-	 * @param tlpy
-	 *            the top left y co-ordinate where the image will be plotted (in
-	 *            canvas co-ordinates).
-	 */
-	private void drawRotatedImage(GraphicsContext gc, Image image, double angle, double tlpx, double tlpy, double width,
-			double height) {
-		gc.save(); // saves the current state on stack, including the current transform
-		rotate(gc, angle, tlpx + width / 2, tlpy + height / 2);
-		gc.drawImage(image, tlpx, tlpy, width, height);
-		gc.restore(); // back to original state (before rotation)
 	}
 	
 	private void drawImage(Image texture, double tileX,double tileY) {
 		drawImage(texture, tileX, tileY, 1, 1);
 	}
 	
-	private void drawImage(Image texture, double tileX, double tileY, double width, double height, int... rotation) {
-		double x = tileX * TILE_SIZE * SCALE - offsetX;
-		double y = tileY * TILE_SIZE * SCALE - offsetY;
-		if (rotation.length > 0 && rotation[0] != 0) {
-			drawRotatedImage(gc, texture, rotation[0], x, y, width*TILE_SIZE * SCALE, height*TILE_SIZE * SCALE);
-		} else
-			gc.drawImage(texture, x, y, width*TILE_SIZE * SCALE, height*TILE_SIZE * SCALE);
+	private void drawImage(Image texture, double tileX, double tileY, double width, double height) {
+		double factor = TILE_SIZE*SCALE;
+		gc.drawImage(texture, tileX*factor-offsetX, tileY*factor-offsetY, width*factor, height*factor);
 	}
 	
 	void moveScreen(double dx, double dy) {
@@ -223,6 +193,16 @@ public class MapController extends SceneController {
 		return new Rectangle((int)(rect.getMinX()*TILE_SIZE*SCALE-offsetX),(int) (rect.getMinY()*TILE_SIZE*SCALE-offsetY), (int) (rect.getWidth()*TILE_SIZE*SCALE), (int) (rect.getHeight()*TILE_SIZE*SCALE));
 	}
 	
+    @FXML
+    void onMouseClicked(MouseEvent event) {
+    	if(mousePressedCoords != null && mousePressedCoords.distance(event.getX(), event.getY())>TILE_SIZE*SCALE/2) return;
+    	handleClick(getTileOnPosition(event.getX(), event.getY()), event);
+    }
+    
+    protected void handleClick(Point position, MouseEvent event) {
+    	
+    }
+	
 	//The zoom events are only called for touchscreen/-pad zooming
 	@FXML
 	void onZoomStarted(ZoomEvent event) {
@@ -280,6 +260,11 @@ public class MapController extends SceneController {
     public void onScrollStarted(ScrollEvent e) {
     	lastDragCoords = new Point2D(e.getX(), e.getY());
     }
+    
+	@FXML
+	void onRotate(RotateEvent e) {
+		canvas.setRotate(e.getAngle()+canvas.getRotate());
+	}
 	
 	@FXML
 	void keyDown(KeyEvent keyEvent) throws IOException {

@@ -7,6 +7,7 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.ToolBar?>
@@ -31,9 +32,9 @@
       </MenuBar>
       <SplitPane dividerPositions="0.85" prefHeight="363.0" prefWidth="600.0" VBox.vgrow="ALWAYS">
         <items>
-          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="382.0" prefWidth="446.0">
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="382.0" prefWidth="446.0" style="-fx-background-color: #fff;">
                <children>
-                  <Canvas fx:id="canvas" height="363.0" onKeyPressed="#keyDown" onMouseClicked="#onMouseClicked" onMouseDragged="#onDragHandler" onMousePressed="#onMousePressed" onScroll="#onScroll" onScrollStarted="#onScrollStarted" onZoom="#onZoom" onZoomFinished="#onZoomFinished" onZoomStarted="#onZoomStarted" width="505.0" AnchorPane.bottomAnchor="-2.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  <Canvas fx:id="canvas" height="363.0" onKeyPressed="#keyDown" onMouseClicked="#onMouseClicked" onMouseDragged="#onDragHandler" onMousePressed="#onMousePressed" onRotate="#onRotate" onScroll="#onScroll" onScrollStarted="#onScrollStarted" onZoom="#onZoom" onZoomFinished="#onZoomFinished" onZoomStarted="#onZoomStarted" width="505.0" AnchorPane.bottomAnchor="-2.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                </children>
             </AnchorPane>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
@@ -46,18 +47,28 @@
         <items>
           <Button fx:id="resync" mnemonicParsing="false" onAction="#beginClicked" text="begin" />
             <Button fx:id="reconnect" disable="true" mnemonicParsing="false" onAction="#reconnectClicked" text="reconnect" />
-            <HBox alignment="CENTER" spacing="10.0">
-               <children>
-                  <CheckBox fx:id="chkbxBuffer" mnemonicParsing="false" text="Buffer changes">
-                     <opaqueInsets>
-                        <Insets />
-                     </opaqueInsets>
-                  </CheckBox>
-                  <Button fx:id="btnPush" disable="true" mnemonicParsing="false" onAction="#pushClicked" text="push changes" />
-               </children>
+            <Separator orientation="VERTICAL">
                <padding>
-                  <Insets left="50.0" />
+                  <Insets left="10.0" right="10.0" />
                </padding>
+            </Separator>
+            <CheckBox fx:id="chkbxBuffer" mnemonicParsing="false" text="Buffer changes">
+               <opaqueInsets>
+                  <Insets />
+               </opaqueInsets>
+            </CheckBox>
+            <Button fx:id="btnPush" disable="true" mnemonicParsing="false" onAction="#pushClicked" text="push changes" />
+            <Separator orientation="VERTICAL">
+               <padding>
+                  <Insets left="10.0" right="10.0" />
+               </padding>
+            </Separator>
+            <HBox fx:id="hboxPreviewTools" spacing="4.0">
+               <children>
+                  <Button fx:id="btnTogglePreview" mnemonicParsing="false" onAction="#onBtnTogglePreviewClicked" text="Show preview" />
+                  <Button fx:id="btnDeclinePreview" mnemonicParsing="false" onAction="#onBtnDeclinePreviewClicked" text="Decline" />
+                  <Button fx:id="btnAcceptPreview" mnemonicParsing="false" onAction="#onBtnAcceptPreviewClicked" text="Accept" />
+               </children>
             </HBox>
         </items>
       </ToolBar>

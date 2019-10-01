@@ -13,6 +13,12 @@ import helpers.AssetManager;
 
 public class ActionDecoder {
 	
+	static GameHandler handler;
+	
+	public static void setGameHandler(GameHandler _handler) {
+		handler = _handler;
+	}
+	
 	public static Action decode(String s) {
 		return decode(s, false);
 	}
@@ -37,7 +43,7 @@ public class ActionDecoder {
 				return new Action(0) {
 				@Override
 				protected void execute() {
-					ClientGameHandler.instance.loadMap();
+					((ClientGameHandler)handler).loadMap();
 				}
 			};
 			} else
@@ -51,10 +57,10 @@ public class ActionDecoder {
 					protected void execute() {
 						Point p = (Point) arg.get(0);
 						int type = (Integer) arg.get(1);
-						GameHandler.map.getTile(p).setType(type);
+						handler.map.getTile(p).setType(type);
 						if(!isServer && type>=0 && AssetManager.textures.get(type)==null)
 							ClientGameHandler.instance.requestTexture(type);
-						(isServer ? ServerGameHandler.instance : ClientGameHandler.instance).getController().redraw();
+						handler.getController().redraw();
 					}
 				};
 			case "move":
@@ -64,24 +70,24 @@ public class ActionDecoder {
 					return new Action(0) {
 						@Override
 						protected void execute() {
-							GameHandler.map.getEntity(p).setLocation(p2);
-							ServerGameHandler.instance.getController().redraw();
+							handler.map.getEntity(p).setLocation(p2);
+							handler.getController().redraw();
 						}
 					};
 				} else
-					return new MovementAction(new GuideLine(new Point[] {p, p2}), GameHandler.map.getEntity(p), 0.5f) {
+					return new MovementAction(new GuideLine(new Point[] {p, p2}), handler.map.getEntity(p), 0.5f) {
 						@Override
 						public void execute() {
-							ClientGameHandler.instance.getController().redraw();
+							handler.getController().redraw();
 						}
 					};
 			case "bloodied":
 				return new Action(isServer ? 0 : 0.5f) {
 					@Override
 					protected void execute() {
-						Entity entity = GameHandler.map.getEntity((Point) arg.get(0));
+						Entity entity = handler.map.getEntity((Point) arg.get(0));
 						entity.setBloodied(true);
-						(isServer ? ServerGameHandler.instance : ClientGameHandler.instance).getController().redraw();
+						handler.getController().redraw();
 					}
 				};
 			case "clear":
@@ -89,9 +95,9 @@ public class ActionDecoder {
 					@Override
 					protected void execute() {
 						Point p = (Point) arg.get(0);
-						Map map = isServer? ServerGameHandler.map : ClientGameHandler.map;
+						Map map = handler.map;
 						map.getTile(p).setType(PresetTile.EMPTY);
-						(isServer ? ServerGameHandler.instance : ClientGameHandler.instance).getController().redraw();
+						handler.getController().redraw();
 					}
 				};
 			case "remove":
@@ -99,8 +105,8 @@ public class ActionDecoder {
 					@Override
 					protected void execute() {
 						Point p = (Point) arg.get(0);
-						GameHandler.map.getTile(p).setType(PresetTile.EMPTY);
-						Entity e = GameHandler.map.removeEntity(p);
+						handler.map.getTile(p).setType(PresetTile.EMPTY);
+						Entity e = handler.map.removeEntity(p);
 						if(e!= null)
 							(isServer ? ServerGameHandler.instance : ClientGameHandler.instance).getController().redraw();
 					}
@@ -110,7 +116,7 @@ public class ActionDecoder {
 					@Override
 					protected void execute() {
 						Entity e = Entity.decode((String) arg.get(0));
-						GameHandler.map.addEntity(e);
+						handler.map.addEntity(e);
 						(isServer ? ServerGameHandler.instance : ClientGameHandler.instance).getController().redraw();
 					}
 				};
@@ -128,6 +134,13 @@ public class ActionDecoder {
 				@Override
 				protected void execute() {
 					ServerGameHandler.instance.sendTexture((Integer) arg.get(0));
+				}
+			};
+		case "movement":
+			return new Action(0) {
+				@Override
+				protected void execute() {
+					ServerGameHandler.instance.preview(s);
 				}
 			};
 		}

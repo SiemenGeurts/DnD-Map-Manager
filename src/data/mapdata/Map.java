@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import helpers.ScalingBounds;
 import javafx.scene.image.Image;
@@ -110,6 +111,18 @@ public class Map {
 	protected ArrayList<Entity> getAllEntities() {
 		return entities;
 	}
+
+	public Map copy() {
+		Tile[][] copiedTiles = new Tile[height][width];
+		for(int i = 0; i < height; i++)
+			for(int j = 0; j < width; j++)
+				copiedTiles[i][j] = tiles[i][j].copy();
+		Map copy = new Map(copiedTiles);
+		copy.entities = new ArrayList<Entity>(entities.stream().map(entity -> entity.copy()).collect(Collectors.toList()));
+		copy.setBackground(background);
+		copy.setScaling(mode);
+		return copy;
+	}
 	
 	public String encode(boolean includeEntityData) {
 		StringBuilder builder = new StringBuilder();
@@ -152,5 +165,6 @@ public class Map {
 			}
 		}
 		return map;
-	}	
+	}
+
 }

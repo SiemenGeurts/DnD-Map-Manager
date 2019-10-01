@@ -1,8 +1,8 @@
-/helpers/
-/comms/
+/actions/
 /app/
+/assets/
+/comms/
 /controller/
 /data/
-/actions/
 /gui/
-/assets/
+/helpers/

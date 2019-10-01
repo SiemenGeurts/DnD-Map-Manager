@@ -1,7 +1,7 @@
 package app;
 
+import java.awt.Point;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import actions.Action;
@@ -12,6 +12,7 @@ import comms.Message;
 import comms.SerializableImage;
 import controller.ClientController;
 import controller.MainMenuController;
+import data.mapdata.Entity;
 import data.mapdata.Map;
 import gui.ErrorHandler;
 import helpers.AssetManager;
@@ -24,8 +25,6 @@ import javafx.scene.image.Image;
 public class ClientGameHandler extends GameHandler {
 
 	private Client client;
-	public ArrayList<Action> actions;
-	private Action currentAction;
 	public static ClientGameHandler instance;
 
 	ClientController controller;
@@ -36,9 +35,9 @@ public class ClientGameHandler extends GameHandler {
 	private Object pauseLock = new Object();
 
 	public ClientGameHandler(Client client) {
+		super();
 		this.client = client;
 		instance = this;
-		actions = new ArrayList<>();
 		try {
 			FXMLLoader loader = new FXMLLoader(
 					ClientGameHandler.class.getResource("/assets/fxml/ClientPlayScreen.fxml"));
@@ -97,23 +96,6 @@ public class ClientGameHandler extends GameHandler {
 		clientListener.setDaemon(true);
 		running = true;
 		clientListener.start();
-		Thread updating = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				long time = System.currentTimeMillis();
-				do {
-					try {
-						Thread.sleep((long) (1000 / 20));
-						update(System.currentTimeMillis() - time);
-						time = System.currentTimeMillis();
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				} while (true);
-			}
-		});
-		updating.setDaemon(true);
-		updating.start();
 	}
 	
 	public void pauseClientListener() {
@@ -125,14 +107,6 @@ public class ClientGameHandler extends GameHandler {
 			paused = false;
 			pauseLock.notifyAll();
 		}
-	}
-
-	public void update(float dt) {
-		for (int i = 0; i < actions.size(); i++) {
-			currentAction = actions.get(i);
-			currentAction.update(dt);
-		}
-		currentAction = null;
 	}
 
 	public boolean loadTextures() {
@@ -170,6 +144,14 @@ public class ClientGameHandler extends GameHandler {
 		}
 		return true;
 	}
+	
+	public void move(Entity entity, Point target) {
+		try {
+			client.write(ActionEncoder.movement(entity.getTileX(), entity.getTileY(), target.x, target.y));
+		} catch (IOException e) {
+			ErrorHandler.handle("Could not send updates, please resync with the DM.", e);
+		}
+	}
 
 	public void requestTexture(int id) {
 		try {
@@ -178,7 +160,7 @@ public class ClientGameHandler extends GameHandler {
 			ErrorHandler.handle("Could not send texture request or receive an answer.", e);
 		}
 	}
-
+	
 	public ClientController getController() {
 		return controller;
 	}
