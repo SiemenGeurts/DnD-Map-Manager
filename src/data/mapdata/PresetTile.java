@@ -14,7 +14,7 @@ public class PresetTile {
 	private static HashMap<Integer, Image> presetTextures = new HashMap<>();
 	
 	static {
-		presetTextures.put(EMPTY, null);//new Image("assets/images/tiles/floor.png"));
+		presetTextures.put(EMPTY, null);
 		presetTextures.put(FLOOR, new Image("assets/images/tiles/dirt.png"));
 		presetTextures.put(WALL, new Image("assets/images/tiles/wall.png"));
 		presetTextures.put(BUSHES, new Image("assets/images/tiles/bushes.png"));		

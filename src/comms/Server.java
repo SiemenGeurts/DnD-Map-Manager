@@ -1,6 +1,7 @@
 package comms;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.ServerSocket;
@@ -14,7 +15,7 @@ public class Server {
 	private Socket socket;
 	
 	ObjectOutputStream ostream;
-	
+	ObjectInputStream istream;
 	long startTime;
 	
 	private Server(ServerSocket server) {
@@ -25,22 +26,36 @@ public class Server {
 	public void waitForClient() throws IOException {
 		socket = server.accept();
 		ostream = new ObjectOutputStream(socket.getOutputStream());
+		istream = new ObjectInputStream(socket.getInputStream());
 	}
 	
-	public void write(String s) throws IOException {
-		System.out.println("[" + (System.currentTimeMillis()-startTime) + "] writing: " + s);
-		ostream.writeObject(new Message<String>(s));
-		ostream.flush();
-	}
-	
-	public void write(Image image) throws IOException {
-		ostream.writeObject(new Message<SerializableImage>(new SerializableImage(image)));
+	public void write(Image image, int id) throws IOException {
+		System.out.println(getTimeStamp() + " writing image");
+		ostream.writeObject(new Message<SerializableImage>(new SerializableImage(image, id)));
 		ostream.flush();
 	}
 	
 	public <T extends Serializable> void write(T obj) throws IOException {
+		System.out.println(getTimeStamp() + "writing: " + obj.toString());
 		ostream.writeObject(new Message<T>(obj));
 		ostream.flush();
+	}
+	
+	public <T extends Object> T read(Class<T> c) throws IOException {
+		try {
+			Message<?> m = (Message<?>) istream.readObject();
+			if(c.isInstance(m.getMessage())) {
+				System.out.println(getTimeStamp() + " reading: " + m.getMessage());
+				return c.cast(m.getMessage());
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		throw new CommsException("Received message was not of type " + c.getSimpleName());
+	}
+	
+	private String getTimeStamp() {
+		return "["  + (System.currentTimeMillis() - startTime) + "] ";
 	}
 	
 	public static Server create(int port) throws IOException {

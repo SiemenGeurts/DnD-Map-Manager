@@ -2,6 +2,8 @@ package comms;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import javafx.scene.image.Image;
@@ -12,6 +14,8 @@ public class Client {
 	String ip;
 	
 	ObjectInputStream istream;
+	ObjectOutputStream ostream;
+	
 	long startTime;
 	private Client(Socket client, String ip, int port) throws IOException {
 		this.client = client;
@@ -19,10 +23,11 @@ public class Client {
 		this.port = port;
 		startTime = System.currentTimeMillis();
 		istream = new ObjectInputStream(client.getInputStream());
+		ostream = new ObjectOutputStream(client.getOutputStream());
 	}
 	
 	public Image readImage() throws IOException {
-		System.out.println("[" + (System.currentTimeMillis()-startTime) + "] reading image");
+		System.out.println(getTimeStamp() + "reading image");
 		try {
 		Message<?> m = (Message<?>) istream.readObject();
 		if(m.getMessage() instanceof SerializableImage)
@@ -38,12 +43,33 @@ public class Client {
 			return c.cast(readImage());
 		try {
 			Message<?> m = (Message<?>) istream.readObject();
-			if(c.isInstance(m.getMessage()))
+			if(c.isInstance(m.getMessage())) {
+				System.out.println(getTimeStamp() + " reading: " + m.getMessage());
 				return c.cast(m.getMessage());
+			}
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
 		throw new CommsException("Received message was not of type " + c.getSimpleName());
+	}
+	
+	public Message<?> readMessage() throws IOException {
+		try {
+		return (Message<?>) istream.readObject();
+		} catch(ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		throw new CommsException("Could not receive message.");
+	}
+	
+	public <T extends Serializable> void write(T obj) throws IOException {
+		System.out.println(getTimeStamp() +"writing: " + obj.toString());
+		ostream.writeObject(new Message<T>(obj));
+		ostream.flush();
+	}
+	
+	private String getTimeStamp() {
+		return "["  + (System.currentTimeMillis() - startTime) + "] ";
 	}
 	
 	public static Client create(String ip, int port) throws UnknownHostException, IOException {

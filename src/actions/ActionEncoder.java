@@ -41,4 +41,8 @@ public class ActionEncoder {
 	public static String addEntity(Entity e) {
 		return "add <" + e.encode() + ">";
 	}
+	
+	public static String requestTexture(int id) {
+		return "texture (" + id + ")";
+	}
 }

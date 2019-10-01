@@ -1,5 +1,6 @@
 package controller;
 
+import helpers.Utils;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -49,7 +50,7 @@ public class IPDialogController {
 		if(e.getSource() == btnOk) {
 			if(toggleGroup.getSelectedToggle() == rbServer) {
 				portField.setText(portField.getText().replaceAll("\\s+", ""));
-				if(isValidPort(portField.getText())) {
+				if(Utils.isValidPort(portField.getText())) {
 					port = Integer.parseInt(portField.getText());
 					option = OK;
 					isServer = true;
@@ -58,7 +59,7 @@ public class IPDialogController {
 					portField.pseudoClassStateChanged(INVALID, true);
 			} else {
 				ipField.setText(ipField.getText().trim().replaceAll("\\s+", ""));
-				if(isValidIP(ipField.getText())) {
+				if(Utils.isValidIP(ipField.getText())) {
 					int index = ipField.getText().indexOf(':');
 					if(index!=-1) {
 						ip = ipField.getText().substring(0, index);
@@ -76,44 +77,6 @@ public class IPDialogController {
 			option = CANCEL;
 			closeStage(e);
 		}
-	}
-	
-	private boolean isValidIP(String ip) {
-		if(!ip.matches("\\A(?:(?:[0-9]{1,3}\\.){3}([0-9]{1,3})(:[0-9]*)?|localhost(:[0-9]*)?)\\z"))
-			return false;
-		int index = ip.indexOf(':');
-		if(index!=-1) {
-			if(isValidPort(ip.substring(index+1)))
-				ip = ip.substring(0, index);
-			else
-				return false;
-		}
-		if(ip.equals("localhost"))
-			return true;
-		if(ip.indexOf('.')==-1) return false;
-		String[] sections = ip.split("\\.");
-		for(String s : sections) {
-			try {
-				if(s.length()>3 || s.length()==0) return false;
-				int i = Integer.parseInt(s);
-				if(i > 255 || i<0)
-					return false;
-			} catch(NumberFormatException e) {
-				return false;
-			}
-		}
-		return true;
-	}
-	
-	private boolean isValidPort(String s) {
-		try {
-			int port = Integer.parseInt(s);
-			if(!(port>0 && port < 65535))
-				return false;
-		} catch(NumberFormatException e) {
-			return false;
-		}
-		return true;
 	}
 	
 	private void closeStage(ActionEvent e) {

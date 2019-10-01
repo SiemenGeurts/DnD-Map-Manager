@@ -1,7 +1,6 @@
 package actions;
 
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.util.ArrayList;
 
 import app.ClientGameHandler;
@@ -10,7 +9,7 @@ import app.ServerGameHandler;
 import data.mapdata.Entity;
 import data.mapdata.Map;
 import data.mapdata.PresetTile;
-import helpers.Calculator;
+import helpers.AssetManager;
 
 public class ActionDecoder {
 	
@@ -45,13 +44,16 @@ public class ActionDecoder {
 				throw new IllegalArgumentException("command " + s + " could not be parsed.");
 		}
 		ArrayList<Object> arg = parseArgs(s.substring(index).trim());
-		switch(s.substring(0, s.indexOf(" "))) {
+		switch(s.substring(0, index)) {
 			case "set":
 				return new Action(isServer ? 0 : 0.5f) {
 					@Override
 					protected void execute() {
 						Point p = (Point) arg.get(0);
-						GameHandler.map.getTile(p).setType((Integer) arg.get(1));
+						int type = (Integer) arg.get(1);
+						GameHandler.map.getTile(p).setType(type);
+						if(!isServer && type>=0 && AssetManager.textures.get(type)==null)
+							ClientGameHandler.instance.requestTexture(type);
 						(isServer ? ServerGameHandler.instance : ClientGameHandler.instance).getController().redraw();
 					}
 				};
@@ -63,8 +65,6 @@ public class ActionDecoder {
 						@Override
 						protected void execute() {
 							GameHandler.map.getEntity(p).setLocation(p2);
-							Rectangle rect = Calculator.getRectangle(p, p2);
-							//ServerGameHandler.instance.getController().drawMap(rect);
 							ServerGameHandler.instance.getController().redraw();
 						}
 					};
@@ -72,7 +72,6 @@ public class ActionDecoder {
 					return new MovementAction(new GuideLine(new Point[] {p, p2}), GameHandler.map.getEntity(p), 0.5f) {
 						@Override
 						public void execute() {
-							Rectangle rect = Calculator.getRectangle(p, p2);
 							ClientGameHandler.instance.getController().redraw();
 						}
 					};
@@ -92,7 +91,6 @@ public class ActionDecoder {
 						Point p = (Point) arg.get(0);
 						Map map = isServer? ServerGameHandler.map : ClientGameHandler.map;
 						map.getTile(p).setType(PresetTile.EMPTY);
-						Entity e = map.removeEntity(p);
 						(isServer ? ServerGameHandler.instance : ClientGameHandler.instance).getController().redraw();
 					}
 				};
@@ -119,6 +117,21 @@ public class ActionDecoder {
 			default:
 				return null;
 		}
+	}
+	
+	public static Action decodeRequest(String s) {
+		int index = s.indexOf(" ");
+		ArrayList<Object> arg = parseArgs(s.substring(index).trim());
+		switch(s.substring(0, index)) {
+		case "texture":
+			return new Action(0) {
+				@Override
+				protected void execute() {
+					ServerGameHandler.instance.sendTexture((Integer) arg.get(0));
+				}
+			};
+		}
+		return null;
 	}
 	
 	private static ArrayList<Object> parseArgs(String s) {

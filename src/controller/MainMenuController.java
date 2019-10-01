@@ -7,6 +7,7 @@ import app.ServerGameHandler;
 import comms.Client;
 import comms.Server;
 import gui.ErrorHandler;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -20,7 +21,7 @@ public class MainMenuController {
 	
     @FXML
     void exit(ActionEvent event) {
-    	System.exit(0);
+    	Platform.exit();
     }
 
     @FXML

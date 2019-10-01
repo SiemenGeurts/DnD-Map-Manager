@@ -16,13 +16,23 @@ import javafx.scene.image.Image;
 public class SerializableImage implements Serializable {
 	private static final long serialVersionUID = -5903801998352885750L;
 	transient Image image;
+	int id;
 	
 	public SerializableImage(Image image) {
 		this.image = image;
 	}
 	
+	public SerializableImage(Image image, int id) {
+		this.image = image;
+		this.id = id;
+	}
+	
 	public Image getImage() {
 		return image;
+	}
+	
+	public int getId() {
+		return id;
 	}
 	
 	private void writeObject(ObjectOutputStream stream) throws IOException {

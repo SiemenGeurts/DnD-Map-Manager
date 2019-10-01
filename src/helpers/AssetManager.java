@@ -24,10 +24,9 @@ public class AssetManager {
 
 	private static AtomicInteger generator;
 	private static ArrayList<Integer> openSlots;
-	public static HashMap<Integer, Image> textures;
+	public static HashMap<Integer, Image> textures = new HashMap<>();
 	
 	public static void initializeManager() throws IOException, NullPointerException {
-		textures = new HashMap<>();
 		readTexturesFromDisk();
 		ArrayList<Integer> takenSlots = new ArrayList<>();
 		for (Entry<Integer, Image> entry : textures.entrySet())

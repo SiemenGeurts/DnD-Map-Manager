@@ -2,3 +2,6 @@
 /comms/
 /app/
 /controller/
+/data/
+/actions/
+/gui/
