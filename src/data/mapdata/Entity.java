@@ -3,6 +3,7 @@ package data.mapdata;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 import helpers.AssetManager;
 import javafx.scene.image.Image;
@@ -72,6 +73,14 @@ public class Entity {
 		return width;
 	}
 	
+	public void setWidth(int width) {
+		this.width = width;
+	}
+	
+	public void setHeight(int height) {
+		this.height = height;
+	}
+	
 	public int getHeight() {
 		return height;
 	}
@@ -93,12 +102,21 @@ public class Entity {
 		return properties;
 	}
 	
+	public Entity copy() {
+		Entity copy = new Entity(type, getTileX(), getTileY(), width, height);
+		copy.setBloodied(bloodied);
+		copy.setLocation(getLocation());
+		copy.setProperties(new ArrayList<Property>(properties.stream().map(prop -> prop.copy()).collect(Collectors.toList())));
+		return copy;
+	}
 	
-	public String encode() {
+	
+	public String encode(boolean includeProperties) {
 		StringBuilder builder = new StringBuilder();
 		builder.append(type).append(',').append((int) x).append(',').append((int) y).append(',').append(width).append(',').append(height);
-		for(Property p : properties)
-			builder.append(',').append(p.getKey()).append('/').append(p.getValue());
+		if(includeProperties)
+			for(Property p : properties)
+				builder.append(',').append(p.getKey()).append('/').append(p.getValue());
 		return builder.toString();
 	}
 	

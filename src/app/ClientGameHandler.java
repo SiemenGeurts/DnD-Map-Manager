@@ -152,7 +152,7 @@ public class ClientGameHandler extends GameHandler {
 	}
 
 	public boolean loadMap() {
-		System.out.println("[CLIENT] Loading map. ");
+		System.out.println("[CLIENT] Loading map.");
 		try {
 			boolean hasBackground = client.read(Boolean.class);
 			map = Map.decode(client.read(String.class));

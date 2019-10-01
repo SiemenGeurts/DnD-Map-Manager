@@ -109,13 +109,17 @@ public class MapController extends SceneController {
 		gc.restore(); // back to original state (before rotation)
 	}
 	
-	private void drawImage(Image texture, double tileX, double tileY, int... rotation) {
+	private void drawImage(Image texture, double tileX,double tileY) {
+		drawImage(texture, tileX, tileY, 1, 1);
+	}
+	
+	private void drawImage(Image texture, double tileX, double tileY, double width, double height, int... rotation) {
 		double x = tileX * TILE_SIZE * SCALE - offsetX;
 		double y = tileY * TILE_SIZE * SCALE - offsetY;
 		if (rotation.length > 0 && rotation[0] != 0) {
-			drawRotatedImage(gc, texture, rotation[0], x, y, TILE_SIZE * SCALE, TILE_SIZE * SCALE);
+			drawRotatedImage(gc, texture, rotation[0], x, y, width*TILE_SIZE * SCALE, height*TILE_SIZE * SCALE);
 		} else
-			gc.drawImage(texture, x, y, TILE_SIZE * SCALE, TILE_SIZE * SCALE);
+			gc.drawImage(texture, x, y, width*TILE_SIZE * SCALE, height*TILE_SIZE * SCALE);
 	}
 	
 	void moveScreen(double dx, double dy) {
@@ -158,7 +162,7 @@ public class MapController extends SceneController {
 		}
 		for(Entity e : currentMap.getEntities())
 			if(e.getX()>=minX && e.getY()>=minY && e.getX()+e.getWidth()<=maxX && e.getY()+e.getHeight()<=maxY)
-				drawImage(e.getTexture(), e.getX(), e.getY());
+				drawImage(e.getTexture(), e.getX(), e.getY(), e.getWidth(), e.getHeight());
 		
 		double xBegin = Math.max(0, minX)*TILE_SIZE*SCALE-offsetX;
 		double xEnd = Math.min(tiles[0].length+1, maxX)*TILE_SIZE*SCALE-offsetX;

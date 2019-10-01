@@ -42,7 +42,7 @@ public class Utils {
 	
 	public static void saveMap(File mapFile, Map map) throws IOException {
 		FileWriter writer = new FileWriter(mapFile, false);
-		writer.write(map.encode()+System.lineSeparator());
+		writer.write(map.encode(true)+System.lineSeparator());
 		if(map.getBackground() != null) {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			ImageIO.write(SwingFXUtils.fromFXImage(map.getBackground(), null), "png", baos);

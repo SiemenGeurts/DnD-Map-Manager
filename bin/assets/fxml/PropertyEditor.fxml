@@ -17,30 +17,33 @@
    <children>
       <VBox prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <GridPane prefHeight="156.0" prefWidth="303.0" vgap="2.0" VBox.vgrow="NEVER">
+            <GridPane prefWidth="303.0" vgap="4.0" VBox.vgrow="NEVER">
               <columnConstraints>
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
               </columnConstraints>
               <rowConstraints>
-                <RowConstraints minHeight="10.0" vgrow="NEVER" />
-                <RowConstraints minHeight="10.0" vgrow="NEVER" />
-                <RowConstraints minHeight="10.0" vgrow="NEVER" />
+                <RowConstraints vgrow="NEVER" />
+                <RowConstraints vgrow="NEVER" />
+                <RowConstraints vgrow="NEVER" />
               </rowConstraints>
                <children>
                   <Label text="Width" />
                   <Label text="Height" GridPane.rowIndex="1" />
-                  <Label text="Bloodied" GridPane.rowIndex="2" />
+                  <Label text="Bloodied" GridPane.rowIndex="2">
+                     <padding>
+                        <Insets top="3.0" />
+                     </padding></Label>
                   <CheckBox fx:id="chkboxBloodied" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                  <TextField fx:id="tfHeight" text="1" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                  <TextField fx:id="tfWidth" text="1" GridPane.columnIndex="1" />
+                  <TextField fx:id="tfHeight" onAction="#onDimensionChanged" text="1" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                  <TextField fx:id="tfWidth" onAction="#onDimensionChanged" text="1" GridPane.columnIndex="1" />
                </children>
                <padding>
                   <Insets bottom="5.0" left="5.0" right="5.0" />
                </padding>
             </GridPane>
-            <ListView fx:id="listView" prefHeight="225.0" prefWidth="305.0" VBox.vgrow="ALWAYS" />
-            <ToolBar prefHeight="40.0" prefWidth="200.0" VBox.vgrow="NEVER">
+            <ListView fx:id="listView" VBox.vgrow="ALWAYS" />
+            <ToolBar prefWidth="200.0" VBox.vgrow="NEVER">
               <items>
                   <Button fx:id="btnEdit" mnemonicParsing="false" onAction="#btnEditClicked" text="Edit" />
                   <Button fx:id="btnSave" disable="true" mnemonicParsing="false" onAction="#btnSaveClicked" text="Save" />

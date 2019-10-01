@@ -16,7 +16,7 @@ public class NumericFieldListener implements ChangeListener<String>  {
 	
 	@Override
 	public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-		if(allowDoubles ? !newValue.matches("\\d+(.\\d*)?") : !newValue.matches("\\d+"))
+		if(allowDoubles ? !newValue.matches("\\d*(.\\d*)?") : !newValue.matches("\\d*"))
 			field.setText(oldValue);
 			
 	}

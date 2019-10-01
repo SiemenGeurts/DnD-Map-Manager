@@ -111,7 +111,7 @@ public class Map {
 		return entities;
 	}
 	
-	public String encode() {
+	public String encode(boolean includeEntityData) {
 		StringBuilder builder = new StringBuilder();
 		builder.append(tiles.length).append(':')
 				.append(tiles[0].length);
@@ -121,7 +121,7 @@ public class Map {
 
 		builder.append(';').append(entities.size()).append(':');
 		for(Entity e : entities)
-			builder.append(e.encode()).append(':');
+			builder.append(e.encode(includeEntityData)).append(':');
 		return builder.toString();
 	}
 	

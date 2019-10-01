@@ -221,7 +221,7 @@ public class ServerGameHandler extends GameHandler {
 		System.out.println("[SERVER] sending map.");
 		try {
 			server.write(map.getBackground() != null);
-			server.write(map.encode());
+			server.write(map.encode(false));
 			if (map.getBackground() != null) {
 				server.write(map.getScaling().name().toLowerCase());
 				server.write(map.getBackground(),-6);

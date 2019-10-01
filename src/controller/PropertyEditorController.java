@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import data.mapdata.Entity;
 import data.mapdata.Property;
 import gui.NumericFieldListener;
 import javafx.beans.value.ChangeListener;
@@ -47,13 +48,33 @@ public class PropertyEditorController {
     private TextField tfHeight;
     @FXML
     private CheckBox chkboxBloodied;
-    
+    public Entity entity = null;
     public ArrayList<Property> startProperties;
     private boolean editing = false;
     
     ObservableList<Property> properties;
     
     Runnable onSaveClicked = null;
+    
+    //to redraw updates
+    private MapController controller = null;
+    
+    @FXML
+    public void initialize() {
+    	tfWidth.setEditable(false);
+    	tfHeight.setEditable(false);
+    }
+    
+    public void setEntity(Entity e) {
+    	entity = e;
+    	tfWidth.setText(String.valueOf(e.getWidth()));
+    	tfHeight.setText(String.valueOf(e.getHeight()));
+    	setProperties(e.getProperties());
+    }
+    
+    public void setController(MapController c) {
+    	controller = c;
+    }
     
     public void setProperties(ArrayList<Property> props) {
     	startProperties = props;
@@ -64,11 +85,14 @@ public class PropertyEditorController {
     		}
     	});
     	properties = FXCollections.observableArrayList();
-    	properties.addAll(props.stream().map(prop -> prop.copy()).collect(Collectors.toList()));
+    	properties.addAll(startProperties.stream().map(prop -> prop.copy()).collect(Collectors.toList()));
     	listView.setItems(properties);
     	tfWidth.textProperty().addListener(new NumericFieldListener(tfWidth, false));
     	tfHeight.textProperty().addListener(new NumericFieldListener(tfHeight, false));
+    	tfWidth.setEditable(true);
+    	tfHeight.setEditable(true);
     }
+    
 
     @FXML
     void btnEditClicked(ActionEvent event) {
@@ -77,6 +101,26 @@ public class PropertyEditorController {
     			return;
     	}
     	setEditing(!editing);
+    }
+    
+    @FXML
+    void onDimensionChanged(ActionEvent event) {
+    	if(entity == null) return;
+    	entity.setWidth(Integer.parseInt(tfWidth.getText()));
+    	entity.setHeight(Integer.parseInt(tfHeight.getText()));
+    	if(controller != null)
+    		controller.redraw();
+    }
+    
+    public boolean requestClear() {
+    	if(requestCancelEditing()) {
+    		entity = null;
+    		tfWidth.setText("1");
+    		tfHeight.setText("1");
+    		properties.clear();
+    		return true;
+    	}
+    	return false;
     }
     
     //returns true if editing is canceled.
@@ -91,6 +135,7 @@ public class PropertyEditorController {
 			if(result.orElse(no) == yes) {
 				properties.clear();
 				properties.addAll(startProperties.stream().map(prop -> prop.copy()).collect(Collectors.toList()));
+				setEditing(false);
 				return true;
 			}
 			return false;
@@ -98,7 +143,7 @@ public class PropertyEditorController {
     		return true;
     }
 
-    private void setEditing(boolean b) {
+    public void setEditing(boolean b) {
     	editing = b;
     	listView.refresh();
     	btnSave.setDisable(!editing);

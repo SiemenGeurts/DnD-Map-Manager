@@ -38,8 +38,8 @@ public class ActionEncoder {
 		return "remove [" + x + ", " + y + "]";
 	}
 	
-	public static String addEntity(Entity e) {
-		return "add <" + e.encode() + ">";
+	public static String addEntity(Entity e, boolean includeProperties) {
+		return "add <" + e.encode(includeProperties) + ">";
 	}
 	
 	public static String requestTexture(int id) {
