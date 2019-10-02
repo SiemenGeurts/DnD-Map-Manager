@@ -12,4 +12,9 @@ public class Message<T extends Serializable> implements Serializable {
 	public T getMessage() {
 		return message;
 	}
+	
+	@Override
+	public String toString() {
+		return "message[" + message.toString() + "]";
+	}
 }

@@ -23,8 +23,8 @@ public abstract class GameHandler {
 				long time = System.currentTimeMillis();
 				do {
 					try {
-						Thread.sleep((long) (1000 / 20));
-						update(System.currentTimeMillis() - time);
+						Thread.sleep((long) (1000 / 30));
+						update((System.currentTimeMillis() - time)/1000f);
 						time = System.currentTimeMillis();
 					} catch (InterruptedException e) {
 						e.printStackTrace();
@@ -37,10 +37,12 @@ public abstract class GameHandler {
 	}
 	
 	public void update(float dt) {
+		if(actions.size()==0) return;
 		for (int i = 0; i < actions.size(); i++) {
 			currentAction = actions.get(i);
 			currentAction.update(dt);
 		}
+			getController().redraw();
 		currentAction = null;
 	}
 }

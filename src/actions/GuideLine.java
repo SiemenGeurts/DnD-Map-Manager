@@ -15,8 +15,8 @@ public class GuideLine {
     public GuideLine(Point2D[] _path) {
         path = new ArrayList<Point2D>(_path.length);
         for(int i = 0; i < _path.length; i++) path.add(_path[i]);
-        location = _path[0];
-        next = _path[1];
+        location = new Point2D.Double(_path[0].getX(), _path[0].getY());
+        next = new Point2D.Double(_path[1].getX(), _path[1].getY());
     }
 
     public GuideLine(ArrayList<Point> _path) {

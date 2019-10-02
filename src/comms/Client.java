@@ -44,7 +44,7 @@ public class Client {
 		try {
 			Message<?> m = (Message<?>) istream.readObject();
 			if(c.isInstance(m.getMessage())) {
-				System.out.println(getTimeStamp() + " reading: " + m.getMessage());
+				System.out.println(getTimeStamp() + "reading: " + m.getMessage());
 				return c.cast(m.getMessage());
 			}
 		} catch (ClassNotFoundException e) {
@@ -55,7 +55,9 @@ public class Client {
 	
 	public Message<?> readMessage() throws IOException {
 		try {
-		return (Message<?>) istream.readObject();
+			Message<?> m = (Message<?>) istream.readObject();
+			System.out.println(getTimeStamp() + "reading: " + m.toString());
+			return m;
 		} catch(ClassNotFoundException e) {
 			e.printStackTrace();
 		}

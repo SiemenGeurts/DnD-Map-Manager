@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Stack;
 
 import actions.Action;
@@ -25,6 +26,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
 import javafx.stage.FileChooser;
 
@@ -122,12 +125,30 @@ public class ServerGameHandler extends GameHandler {
 	}
 	
 	public void preview(String action) {
-		controller.inPreview = true;
-		Map old = map;
-		map = map.copy();
-		
-		controller.previewMap = map;
-		map = old;
+		int count = 0;
+		for(int i = 0; i < action.length(); i++) if(action.charAt(i)==';') count++;
+		ButtonType accept = new ButtonType("Accept", ButtonData.YES);
+		ButtonType decline = new ButtonType("Decline", ButtonData.NO);
+		ButtonType preview = new ButtonType("Preview", ButtonData.OTHER);
+		Alert alert = new Alert(Alert.AlertType.INFORMATION, "The party has made " + count + " moves. Do you want to accept or decline?", accept, decline, preview);
+		alert.setTitle("Update");
+		Optional<ButtonType> result = alert.showAndWait();
+		if(result.orElse(decline)==preview) {
+			controller.inPreview = true;
+			Map old = map;
+			map = map.copy();
+			
+			controller.previewMap = map;
+			map = old;
+		} else if(result.orElse(decline)==accept) {
+			ActionDecoder.decode(action).attach();
+		} else {
+			try {
+				server.write("declined");
+			} catch(IOException e) {
+				ErrorHandler.handle("Couldn't send decline request. You should probably resync.", e);
+			}
+		}
 	}
 	
 	public void pauseServerListener() {

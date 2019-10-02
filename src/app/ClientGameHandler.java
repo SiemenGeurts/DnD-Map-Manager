@@ -1,12 +1,15 @@
 package app;
 
 import java.awt.Point;
+import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.util.HashMap;
 
 import actions.Action;
 import actions.ActionDecoder;
 import actions.ActionEncoder;
+import actions.GuideLine;
+import actions.MovementAction;
 import comms.Client;
 import comms.Message;
 import comms.SerializableImage;
@@ -33,11 +36,16 @@ public class ClientGameHandler extends GameHandler {
 	Thread clientListener;
 	private boolean running = false, paused = false;
 	private Object pauseLock = new Object();
-
+	
+	private StringBuilder undoActions;
+	private StringBuilder updates;
+	
 	public ClientGameHandler(Client client) {
 		super();
 		this.client = client;
 		instance = this;
+		undoActions = new StringBuilder();
+		updates = new StringBuilder();
 		try {
 			FXMLLoader loader = new FXMLLoader(
 					ClientGameHandler.class.getResource("/assets/fxml/ClientPlayScreen.fxml"));
@@ -146,11 +154,9 @@ public class ClientGameHandler extends GameHandler {
 	}
 	
 	public void move(Entity entity, Point target) {
-		try {
-			client.write(ActionEncoder.movement(entity.getTileX(), entity.getTileY(), target.x, target.y));
-		} catch (IOException e) {
-			ErrorHandler.handle("Could not send updates, please resync with the DM.", e);
-		}
+		updates.append(ActionEncoder.movement(entity.getTileX(), entity.getTileY(), target.x, target.y));
+		undoActions.append(ActionEncoder.movement(target.x, target.y, entity.getTileX(), entity.getTileY()));
+		new MovementAction(new GuideLine(new Point2D[] {entity.getLocation(), target}), entity, 0).attach();
 	}
 
 	public void requestTexture(int id) {
