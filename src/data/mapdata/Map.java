@@ -47,6 +47,13 @@ public class Map {
 		return getEntity(p.x, p.y);
 	}
 	
+	public Entity getEntityById(int id) {
+		for(Entity e : entities)
+			if(e.getID()==id)
+				return e;
+		return null;
+	}
+	
 	public Entity getEntity(int x, int y) {
 		for (Entity e : entities) {
 			if (x >= e.getTileX() && x < e.getTileX() + e.getWidth() && y >= e.getTileY() && y < e.getTileY() + e.getHeight())

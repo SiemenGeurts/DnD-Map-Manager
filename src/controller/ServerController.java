@@ -2,7 +2,6 @@ package controller;
 
 import java.awt.Point;
 import java.io.IOException;
-import java.util.Optional;
 
 import actions.ActionEncoder;
 import app.MapManagerApp;
@@ -15,12 +14,8 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 
@@ -57,26 +52,15 @@ public class ServerController extends MapEditorController {
 	public void initialize() {
 		super.initialize();
 		chkbxBuffer.selectedProperty().addListener((obs, oldVal, newVal) -> {
-			if(oldVal && gameHandler.getBufferedActions().length()>0) {
-				ButtonType cont = new ButtonType("continue", ButtonBar.ButtonData.OK_DONE);
-				ButtonType push = new ButtonType("push updates", ButtonBar.ButtonData.APPLY);
-				ButtonType cancel = new ButtonType("cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-
-				Alert alert = new Alert(AlertType.WARNING, "If you continue, these changes will be undone. If you click 'push updates' the updates will be send before clearing the buffer.", cont, push, cancel);
-				alert.setTitle("Are you sure?");
-				alert.setHeaderText("There are one or more changes stored in the buffer.");
-				Optional<ButtonType> result = alert.showAndWait();
-				if(result.orElse(cancel)==cont) {
-					gameHandler.undoBuffer();
-				} else if(result.orElse(cancel)==push) {
-					gameHandler.pushUpdates();
-				} else {
-					chkbxBuffer.selectedProperty().set(oldVal);
-					return;
+			if(oldVal) {
+				if(!gameHandler.requestDisableUpdateBuffer()) {
+					chkbxBuffer.setSelected(true);
+					btnPush.setDisable(true);
 				}
-			}				
-			btnPush.setDisable(!newVal);
-			gameHandler.setBufferUpdates(newVal);
+			} else {
+				btnPush.setDisable(!newVal);
+				gameHandler.enableUpdateBuffer();
+			}
 		});
 		try {
 			JSONManager.initialize();
@@ -123,8 +107,8 @@ public class ServerController extends MapEditorController {
 	}
 	
 	private void move(Entity entity, Point p) {
-		gameHandler.sendUpdate(ActionEncoder.movement(entity.getTileX(), entity.getTileY(), p.x, p.y),
-				ActionEncoder.movement(p.x, p.y, entity.getTileX(), entity.getTileY()));
+		gameHandler.sendUpdate(ActionEncoder.movement(entity.getTileX(), entity.getTileY(), p.x, p.y, entity.getID()),
+				ActionEncoder.movement(p.x, p.y, entity.getTileX(), entity.getTileY(), entity.getID()));
 		entity.setLocation(p);
 		drawMap();
 	}

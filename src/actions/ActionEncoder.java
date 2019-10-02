@@ -22,8 +22,8 @@ public class ActionEncoder {
 		return "set [" + x + "," + y + "] to (" + id + ")";
 	}
 	
-	public static String movement(int x1, int y1, int x2, int y2) {
-		return "move [" + x1 + "," + y1 + "] to [" + x2 + "," + y2 + "]";
+	public static String movement(int x1, int y1, int x2, int y2, int id) {
+		return "move (" + id + ") on [" + x1 + "," + y1 + "] to [" + x2 + "," + y2 + "]";
 	}
 	
 	public static String setTag(int x, int y, String tag) {

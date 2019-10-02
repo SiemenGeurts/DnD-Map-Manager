@@ -42,7 +42,7 @@ public abstract class GameHandler {
 			currentAction = actions.get(i);
 			currentAction.update(dt);
 		}
-			getController().redraw();
 		currentAction = null;
+		getController().redraw();
 	}
 }

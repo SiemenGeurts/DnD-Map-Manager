@@ -38,4 +38,9 @@ public class MovementAction extends Action {
             }
         }
     }
+    
+    @Override
+    public String toString() {
+    	return "MovementAction [id=" + entity.getID() + " p1=" + guideline.path.get(0) + " p2=" + guideline.path.get(guideline.path.size()-1) + "]";
+    }
 }

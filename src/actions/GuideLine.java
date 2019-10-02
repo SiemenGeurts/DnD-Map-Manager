@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import helpers.Calculator;
 
 public class GuideLine {
-    private ArrayList<Point2D> path;
+    public ArrayList<Point2D> path;
     Point2D location, next;
     int nextIndex = 1;
     boolean arrived = false;

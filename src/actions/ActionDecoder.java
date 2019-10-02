@@ -29,9 +29,13 @@ public class ActionDecoder {
 			for(String line : s.split(";")) {
 				a.addAction(decodeLine(line, isServer));
 			}
+			a.setDelay(0); //remove delay of first action
 			return a;
-		} else
-			return decodeLine(s, isServer);
+		} else {
+			Action a = decodeLine(s,isServer);
+			a.setDelay(0); //remove delay as there is only one action.
+			return a;
+		}
 	}
 	
 	private static Action decodeLine(String s, boolean isServer) {
@@ -39,15 +43,31 @@ public class ActionDecoder {
 		//extract that word first
 		int index = s.indexOf(" ");
 		if(index == -1) {
-			if(s.equals("reset")) {
+			switch(s) {
+			case "reset":
 				return new Action(0) {
-				@Override
-				protected void execute() {
-					((ClientGameHandler)handler).loadMap();
-				}
-			};
-			} else
-				throw new IllegalArgumentException("command " + s + " could not be parsed.");
+					@Override
+					protected void execute() {
+						((ClientGameHandler)handler).loadMap();
+					}
+				};
+			case "declined":
+				return new Action(0) {
+					@Override
+					protected void execute() {
+						((ClientGameHandler)handler).undoBuffer();
+					}
+				};
+			case "accepted":
+				return new Action(0) {
+					@Override
+					protected void execute() {
+						((ClientGameHandler)handler).clearBuffer();
+					}
+				};
+			default:
+				throw new IllegalArgumentException("command '" + s + "' could not be parsed.");
+			}
 		}
 		ArrayList<Object> arg = parseArgs(s.substring(index).trim());
 		switch(s.substring(0, index)) {
@@ -63,18 +83,19 @@ public class ActionDecoder {
 					}
 				};
 			case "move":
-				Point p = (Point) arg.get(0);
-				Point p2 = (Point) arg.get(1);
+				int id = (Integer) arg.get(0);
+				Point p = (Point) arg.get(1);
+				Point p2 = (Point) arg.get(2);
 				if(isServer) {
 					return new Action(0) {
 						@Override
 						protected void execute() {
-							handler.map.getEntity(p).setLocation(p2);
+							handler.map.getEntityById(id).setLocation(p2);
 							handler.getController().redraw();
 						}
 					};
 				} else
-					return new MovementAction(new GuideLine(new Point[] {p, p2}), handler.map.getEntity(p), 0.5f);
+					return new MovementAction(new GuideLine(new Point[] {p, p2}), handler.map.getEntityById(id), 0.5f);
 			case "bloodied":
 				return new Action(isServer ? 0 : 0.5f) {
 					@Override
@@ -124,7 +145,7 @@ public class ActionDecoder {
 					ServerGameHandler.instance.sendTexture((Integer) arg.get(0));
 				}
 			};
-		case "movement":
+		case "move":
 			return new Action(0) {
 				@Override
 				protected void execute() {

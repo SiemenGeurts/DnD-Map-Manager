@@ -3,14 +3,17 @@ package data.mapdata;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import helpers.AssetManager;
 import javafx.scene.image.Image;
 
 public class Entity {
-
+	private static final AtomicInteger idGenerator = new AtomicInteger();
+	
 	private int type;
+	private int id;
 	private double x, y;
 	private int width, height;
 	private boolean bloodied = false;
@@ -23,6 +26,7 @@ public class Entity {
 		width = _width;
 		height = _height;
 		properties = new ArrayList<>();
+		id = idGenerator.getAndIncrement();
 	}
 	
 	public Integer getType() {
@@ -43,6 +47,14 @@ public class Entity {
 	
 	public void setProperties(ArrayList<Property> properties) {
 		this.properties = properties;
+	}
+	
+	public int getID() {
+		return id;
+	}
+	
+	private void setID(int i) {
+		id = i;
 	}
 
 	public double getX() {
@@ -110,10 +122,9 @@ public class Entity {
 		return copy;
 	}
 	
-	
 	public String encode(boolean includeProperties) {
 		StringBuilder builder = new StringBuilder();
-		builder.append(type).append(',').append((int) x).append(',').append((int) y).append(',').append(width).append(',').append(height);
+		builder.append(type).append(',').append((int) x).append(',').append((int) y).append(',').append(width).append(',').append(height).append(',').append(id);
 		if(includeProperties)
 			for(Property p : properties)
 				builder.append(',').append(p.getKey()).append('/').append(p.getValue());
@@ -122,8 +133,10 @@ public class Entity {
 	
 	public static Entity decode(String s) {
 		String[] arr = s.split(",");
-		Entity entity = new Entity(Integer.valueOf(arr[0]), Integer.valueOf(arr[1]), Integer.valueOf(arr[2]), Integer.valueOf(arr[3]), Integer.valueOf(arr[4]));
-		for(int i = 5; i < arr.length; i++) {
+		int i = 0;
+		Entity entity = new Entity(Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]));
+		entity.setID(Integer.valueOf(arr[i++]));
+		for(;i < arr.length; i++) {
 			int index = arr[i].indexOf("/");
 			entity.properties.add(new Property(arr[i].substring(0, index), arr[i].substring(index+1)));
 		}

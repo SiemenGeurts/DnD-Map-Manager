@@ -25,6 +25,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
@@ -127,28 +128,38 @@ public class ServerGameHandler extends GameHandler {
 	public void preview(String action) {
 		int count = 0;
 		for(int i = 0; i < action.length(); i++) if(action.charAt(i)==';') count++;
-		ButtonType accept = new ButtonType("Accept", ButtonData.YES);
-		ButtonType decline = new ButtonType("Decline", ButtonData.NO);
-		ButtonType preview = new ButtonType("Preview", ButtonData.OTHER);
-		Alert alert = new Alert(Alert.AlertType.INFORMATION, "The party has made " + count + " moves. Do you want to accept or decline?", accept, decline, preview);
-		alert.setTitle("Update");
-		Optional<ButtonType> result = alert.showAndWait();
-		if(result.orElse(decline)==preview) {
-			controller.inPreview = true;
-			Map old = map;
-			map = map.copy();
-			
-			controller.previewMap = map;
-			map = old;
-		} else if(result.orElse(decline)==accept) {
-			ActionDecoder.decode(action).attach();
-		} else {
-			try {
-				server.write("declined");
-			} catch(IOException e) {
-				ErrorHandler.handle("Couldn't send decline request. You should probably resync.", e);
+		final int count2 = count;
+		Platform.runLater(new Runnable() {
+			public void run() {
+				ButtonType accept = new ButtonType("Accept", ButtonData.YES);
+				ButtonType decline = new ButtonType("Decline", ButtonData.NO);
+				ButtonType preview = new ButtonType("Preview", ButtonData.OTHER);
+				Alert alert = new Alert(Alert.AlertType.INFORMATION, "The party has made " + count2 + " moves. Do you want to accept or decline?", accept, decline, preview);
+				alert.setTitle("Update");
+				Optional<ButtonType> result = alert.showAndWait();
+				if(result.orElse(decline)==preview) {
+					controller.inPreview = true;
+					Map old = map;
+					map = map.copy();
+					
+					controller.previewMap = map;
+					map = old;
+				} else if(result.orElse(decline)==accept) {
+					ActionDecoder.decode(action).attach();
+					try {
+						server.write("accepted");
+					} catch(IOException e) {
+						ErrorHandler.handle("Couldn't send confirmation of acceptance. You should probably resync." , e);
+					}
+				} else {
+					try {
+						server.write("declined");
+					} catch(IOException e) {
+						ErrorHandler.handle("Couldn't send decline command. You should probably resync.", e);
+					}
+				}	
 			}
-		}
+		});
 	}
 	
 	public void pauseServerListener() {
@@ -297,15 +308,42 @@ public class ServerGameHandler extends GameHandler {
 		}
 	}
 
-	public void undoBuffer() {
+	private void undoBuffer() {
 		long count = updates.chars().filter(ch -> ch == ';').count();
 		for (int i = 0; i < count; i++)
 			undo();
 		updates = new StringBuilder();
 	}
 
-	public void setBufferUpdates(boolean buffer) {
-		bufferUpdates = buffer;
+	public boolean requestDisableUpdateBuffer() {
+		if(!bufferUpdates)
+			return true;
+		if(updates.length()==0) {
+			bufferUpdates = false;
+			return true;
+		}
+		ButtonType cont = new ButtonType("continue", ButtonBar.ButtonData.OK_DONE);
+		ButtonType push = new ButtonType("push updates", ButtonBar.ButtonData.APPLY);
+		ButtonType cancel = new ButtonType("cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+		Alert alert = new Alert(AlertType.WARNING, "If you continue, these changes will be undone. If you click 'push updates' the updates will be send before clearing the buffer.", cont, push, cancel);
+		alert.setTitle("Are you sure?");
+		alert.setHeaderText("There are one or more changes stored in the buffer.");
+		Optional<ButtonType> result = alert.showAndWait();
+		
+		if(result.orElse(cancel)==cancel)
+			return false;
+		else if(result.orElse(cancel)==cont)
+			undoBuffer();
+		else if(result.orElse(cancel)==push) {
+			pushUpdates();
+		}
+		bufferUpdates = false;
+		return true;		
+	}
+	
+	public void enableUpdateBuffer() {
+		bufferUpdates = true;
 	}
 
 	public String getBufferedActions() {

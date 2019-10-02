@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Optional;
 
 import actions.Action;
 import actions.ActionDecoder;
@@ -23,6 +24,10 @@ import helpers.ScalingBounds.ScaleMode;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 
 public class ClientGameHandler extends GameHandler {
@@ -37,14 +42,15 @@ public class ClientGameHandler extends GameHandler {
 	private boolean running = false, paused = false;
 	private Object pauseLock = new Object();
 	
-	private StringBuilder undoActions;
+	private Action undoAction;
 	private StringBuilder updates;
+	private boolean bufferUpdates = true;
 	
 	public ClientGameHandler(Client client) {
 		super();
 		this.client = client;
 		instance = this;
-		undoActions = new StringBuilder();
+		undoAction = Action.empty();
 		updates = new StringBuilder();
 		try {
 			FXMLLoader loader = new FXMLLoader(
@@ -57,6 +63,7 @@ public class ClientGameHandler extends GameHandler {
 		} catch (IOException e) {
 			ErrorHandler.handle("Well, something went horribly wrong...", e);
 		}
+		
 		loadTextures();
 		loadMap();
 
@@ -154,8 +161,8 @@ public class ClientGameHandler extends GameHandler {
 	}
 	
 	public void move(Entity entity, Point target) {
-		updates.append(ActionEncoder.movement(entity.getTileX(), entity.getTileY(), target.x, target.y));
-		undoActions.append(ActionEncoder.movement(target.x, target.y, entity.getTileX(), entity.getTileY()));
+		updates.append(ActionEncoder.movement(entity.getTileX(), entity.getTileY(), target.x, target.y, entity.getID())).append(';');
+		undoAction = new MovementAction(new GuideLine(new Point2D[] {target, entity.getLocation()}), entity, 0).addAction(undoAction);
 		new MovementAction(new GuideLine(new Point2D[] {entity.getLocation(), target}), entity, 0).attach();
 	}
 
@@ -177,5 +184,59 @@ public class ClientGameHandler extends GameHandler {
 			return action;
 		} else
 			return currentAction.insertAction(action);
+	}
+	
+	public boolean pushUpdates() {
+		try {
+			client.write(updates.toString());
+			return true;
+		} catch(IOException e) {
+			ErrorHandler.handle("Could not send updates. Please try again.", e);
+			return false;
+		}
+	}
+	
+	public boolean requestDisableUpdateBuffer() {
+		if(!bufferUpdates)
+			return true;
+		if(updates.length()==0) {
+			bufferUpdates = false;
+			return true;
+		}
+		ButtonType cont = new ButtonType("continue", ButtonBar.ButtonData.OK_DONE);
+		ButtonType push = new ButtonType("push updates", ButtonBar.ButtonData.APPLY);
+		ButtonType cancel = new ButtonType("cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+		Alert alert = new Alert(AlertType.WARNING, "If you continue, these changes will be undone. If you click 'push updates' the updates will be send before clearing the buffer.", cont, push, cancel);
+		alert.setTitle("Are you sure?");
+		alert.setHeaderText("There are one or more changes stored in the buffer.");
+		Optional<ButtonType> result = alert.showAndWait();
+		
+		if(result.orElse(cancel) == cancel) {
+			return false;
+		} else if(result.orElse(cancel)==cont) {
+			bufferUpdates = false;
+			undoBuffer();
+			return true;
+		} else if(result.orElse(cancel)==push) {
+			bufferUpdates = false;
+			return pushUpdates();
+		}
+		return false;
+	}
+	
+	public void enableUpdateBuffer() {
+		bufferUpdates = true;
+	}
+	
+	public void clearBuffer() {
+		updates = new StringBuilder();
+		undoAction = Action.empty();
+	}
+	
+	public void undoBuffer() {
+		undoAction.attach();
+		updates = new StringBuilder();
+		undoAction = Action.empty();
 	}
 }
