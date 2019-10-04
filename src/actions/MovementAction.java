@@ -22,6 +22,12 @@ public class MovementAction extends Action {
 
     @Override
     public void execute() {}
+    
+    @Override
+    public void executeNow() {
+    	entity.setLocation(guideline.getDestination());
+    	super.executeNow();
+    }
 
     @Override
     public void update(float dt) {
@@ -41,6 +47,6 @@ public class MovementAction extends Action {
     
     @Override
     public String toString() {
-    	return "MovementAction [id=" + entity.getID() + " p1=" + guideline.path.get(0) + " p2=" + guideline.path.get(guideline.path.size()-1) + "]";
+    	return "MovementAction [id=" + entity.getID() + " p1=" + guideline.path.get(0) + " p2=" + guideline.getDestination() + "]";
     }
 }

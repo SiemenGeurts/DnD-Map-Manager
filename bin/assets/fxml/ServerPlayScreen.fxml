@@ -63,9 +63,9 @@
                   <Insets left="10.0" right="10.0" />
                </padding>
             </Separator>
-            <HBox fx:id="hboxPreviewTools" spacing="4.0">
+            <HBox fx:id="hboxPreviewTools" spacing="4.0" visible="false">
                <children>
-                  <Button fx:id="btnTogglePreview" mnemonicParsing="false" onAction="#onBtnTogglePreviewClicked" text="Show preview" />
+                  <Button fx:id="btnTogglePreview" mnemonicParsing="false" onAction="#onBtnTogglePreviewClicked" text="Hide preview" />
                   <Button fx:id="btnDeclinePreview" mnemonicParsing="false" onAction="#onBtnDeclinePreviewClicked" text="Decline" />
                   <Button fx:id="btnAcceptPreview" mnemonicParsing="false" onAction="#onBtnAcceptPreviewClicked" text="Accept" />
                </children>

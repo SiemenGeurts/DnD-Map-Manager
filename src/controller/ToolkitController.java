@@ -84,12 +84,12 @@ public class ToolkitController {
 			Prefab<?> prefab;
 			switch(current) {
 				case ENTITY:
-					prefab = new EntityPrefab(id, propertyEditorController.getWidth(), propertyEditorController.getHeight(), propertyEditorController.getPropertyList(), propertyEditorController.getBloodied());
+					prefab = new EntityPrefab(id, propertyEditorController.getWidth(), propertyEditorController.getHeight(), propertyEditorController.getPropertyList(), propertyEditorController.getBloodied(), false);
 					osController.addEntity((EntityPrefab) prefab, imgView.getImage());
 					JSONManager.addEntity((EntityPrefab) prefab);
 					break;
 				case PLAYER:
-					prefab = new EntityPrefab(id, 1, 1, null, false);
+					prefab = new EntityPrefab(id, 1, 1, null, false, true);
 					osController.addPlayer((EntityPrefab) prefab, imgView.getImage());
 					JSONManager.addPlayer((EntityPrefab) prefab);
 					break;

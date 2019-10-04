@@ -17,6 +17,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 public class ServerController extends MapEditorController {
@@ -39,7 +40,10 @@ public class ServerController extends MapEditorController {
     private Button btnDeclinePreview;
     @FXML
     private Button btnAcceptPreview;
-    public Map previewMap;
+    @FXML
+    private HBox hboxPreviewTools;
+    
+    public Map previewMap, oldMap;
     public boolean inPreview = false;
     
 	private ServerGameHandler gameHandler;
@@ -93,6 +97,7 @@ public class ServerController extends MapEditorController {
 	
 	@Override
 	public void handleClick(Point p, MouseEvent event) {
+		if(inPreview) return;
 		Entity entity = null;
 		if((entity = currentMap.getEntity(getTileOnPosition(event.getX(), event.getY()))) != null) {
 			selected = entity;
@@ -131,15 +136,45 @@ public class ServerController extends MapEditorController {
 
 	@FXML
 	public void onBtnTogglePreviewClicked(ActionEvent e) {
-		
+		togglePreview();
 	}
 	@FXML
 	public void onBtnAcceptPreviewClicked(ActionEvent e) {
-		
+		gameHandler.previewAccepted();
+		disablePreview();
 	}
 	@FXML
 	public void onBtnDeclinePreviewClicked(ActionEvent e) {
-		
+		gameHandler.previewDeclined();
+		disablePreview();
+	}
+	
+	public void togglePreview() {
+		inPreview = !inPreview;
+		if(inPreview) {
+			btnTogglePreview.setText("Hide Preview");
+			currentMap = previewMap;
+		} else {
+			currentMap = oldMap;
+			btnTogglePreview.setText("Show Preview");
+		}
+		redraw();
+	}
+	
+	public void showPreview(Map previewMap) {
+		if(!inPreview) {
+			oldMap = currentMap;
+			this.previewMap = previewMap;
+			togglePreview();
+			hboxPreviewTools.setVisible(true);
+		}
+	}
+	
+	public void disablePreview() {
+		inPreview = false;
+		currentMap = oldMap;
+		hboxPreviewTools.setVisible(false);
+		redraw();
 	}
 	
 	public void reconnectClicked(ActionEvent e) {

@@ -48,4 +48,8 @@ public class GuideLine {
     public boolean hasArrived() {
         return arrived;
     }
+    
+    public Point2D getDestination() {
+    	return path.get(path.size()-1);
+    }
 }

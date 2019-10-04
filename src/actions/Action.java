@@ -50,6 +50,13 @@ public abstract class Action {
 
     protected abstract void execute();
 
+    public void executeNow() {
+    	detach();
+    	execute();
+    	if(next!=null)
+    		next.executeNow();
+    }
+    
     public void update(float dt) {
         delay -= dt;
         if(delay > 0 || finished) return;

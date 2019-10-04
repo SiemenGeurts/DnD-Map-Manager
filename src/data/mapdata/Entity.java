@@ -17,15 +17,17 @@ public class Entity {
 	private double x, y;
 	private int width, height;
 	private boolean bloodied = false;
+	private boolean isNPC = false;
 	private ArrayList<Property> properties;
 	
-	public Entity(Integer _type, int _x, int _y, int _width, int _height) {
+	public Entity(Integer _type, int _x, int _y, int _width, int _height, boolean _isNPC) {
 		type = _type;
 		x = _x;
 		y = _y;
 		width = _width;
 		height = _height;
 		properties = new ArrayList<>();
+		isNPC = _isNPC;
 		id = idGenerator.getAndIncrement();
 	}
 	
@@ -55,6 +57,10 @@ public class Entity {
 	
 	private void setID(int i) {
 		id = i;
+	}
+	
+	public boolean isNPC() {
+		return true;
 	}
 
 	public double getX() {
@@ -115,16 +121,22 @@ public class Entity {
 	}
 	
 	public Entity copy() {
-		Entity copy = new Entity(type, getTileX(), getTileY(), width, height);
+		Entity copy = new Entity(type, getTileX(), getTileY(), width, height, isNPC);
 		copy.setBloodied(bloodied);
 		copy.setLocation(getLocation());
 		copy.setProperties(new ArrayList<Property>(properties.stream().map(prop -> prop.copy()).collect(Collectors.toList())));
 		return copy;
 	}
 	
+	public Entity copyWidthId(int id) {
+		Entity copy = copy();
+		copy.setID(id);
+		return copy;
+	}
+	
 	public String encode(boolean includeProperties) {
 		StringBuilder builder = new StringBuilder();
-		builder.append(type).append(',').append((int) x).append(',').append((int) y).append(',').append(width).append(',').append(height).append(',').append(id);
+		builder.append(type).append(',').append((int) x).append(',').append((int) y).append(',').append(width).append(',').append(height).append(',').append(id).append(',').append(isNPC);
 		if(includeProperties)
 			for(Property p : properties)
 				builder.append(',').append(p.getKey()).append('/').append(p.getValue());
@@ -134,7 +146,7 @@ public class Entity {
 	public static Entity decode(String s) {
 		String[] arr = s.split(",");
 		int i = 0;
-		Entity entity = new Entity(Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]));
+		Entity entity = new Entity(Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]), Boolean.valueOf(arr[i++]));
 		entity.setID(Integer.valueOf(arr[i++]));
 		for(;i < arr.length; i++) {
 			int index = arr[i].indexOf("/");

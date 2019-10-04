@@ -138,28 +138,40 @@ public class ServerGameHandler extends GameHandler {
 				alert.setTitle("Update");
 				Optional<ButtonType> result = alert.showAndWait();
 				if(result.orElse(decline)==preview) {
-					controller.inPreview = true;
-					Map old = map;
+					final Map old = map;
 					map = map.copy();
-					
-					controller.previewMap = map;
+					ActionDecoder.decode(action, false).executeNow();
+					controller.showPreview(map);
 					map = old;
 				} else if(result.orElse(decline)==accept) {
-					ActionDecoder.decode(action).attach();
+					ActionDecoder.decode(action, false).attach();
 					try {
 						server.write("accepted");
 					} catch(IOException e) {
 						ErrorHandler.handle("Couldn't send confirmation of acceptance. You should probably resync." , e);
 					}
 				} else {
-					try {
-						server.write("declined");
-					} catch(IOException e) {
-						ErrorHandler.handle("Couldn't send decline command. You should probably resync.", e);
-					}
+					previewDeclined();
 				}	
 			}
 		});
+	}
+	
+	public void previewAccepted() {
+		map = controller.previewMap;
+		try {
+			server.write("accepted");
+		} catch(IOException e) {
+			ErrorHandler.handle("Couldn't send confirmation of acceptance. You should probably resync." , e);
+		}
+	}
+	
+	public void previewDeclined() {
+		try {
+			server.write("declined");
+		} catch(IOException e) {
+			ErrorHandler.handle("Couldn't send decline command. You should probably resync.", e);
+		}
 	}
 	
 	public void pauseServerListener() {

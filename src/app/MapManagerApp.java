@@ -9,7 +9,7 @@ import controller.MainMenuController;
 import controller.MapBuilderController;
 import controller.SceneManager;
 import data.mapdata.PresetTile;
-import gui.ErrorHandler;
+import gui.Dialogs;
 import helpers.AssetManager;
 import helpers.Utils;
 import javafx.application.Application;
@@ -70,11 +70,11 @@ public class MapManagerApp extends Application{
 					if(Utils.isValidPort(portString))
 						port = Integer.parseInt(portString);
 					else
-						ErrorHandler.warning("Port " + portString + " is not valid, using port 5000 instead.", true);
+						Dialogs.warning("Port " + portString + " is not valid, using port 5000 instead.", true);
 				}
 				new ClientGameHandler(Client.create(ip, port));
         	} else {
-        		ErrorHandler.warning("No valid ip given, application will exit.", true);
+        		Dialogs.warning("No valid ip given, application will exit.", true);
         		Platform.exit();
         	}
         }

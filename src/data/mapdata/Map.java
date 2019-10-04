@@ -125,7 +125,7 @@ public class Map {
 			for(int j = 0; j < width; j++)
 				copiedTiles[i][j] = tiles[i][j].copy();
 		Map copy = new Map(copiedTiles);
-		copy.entities = new ArrayList<Entity>(entities.stream().map(entity -> entity.copy()).collect(Collectors.toList()));
+		copy.entities = new ArrayList<Entity>(entities.stream().map(entity -> entity.copyWidthId(entity.getID())).collect(Collectors.toList()));
 		copy.setBackground(background);
 		copy.setScaling(mode);
 		return copy;

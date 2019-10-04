@@ -55,14 +55,14 @@ public class ActionDecoder {
 				return new Action(0) {
 					@Override
 					protected void execute() {
-						((ClientGameHandler)handler).undoBuffer();
+						((ClientGameHandler)handler).onActionDeclined();
 					}
 				};
 			case "accepted":
 				return new Action(0) {
 					@Override
 					protected void execute() {
-						((ClientGameHandler)handler).clearBuffer();
+						((ClientGameHandler)handler).onActionAccepted();
 					}
 				};
 			default:

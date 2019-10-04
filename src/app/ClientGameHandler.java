@@ -18,6 +18,7 @@ import controller.ClientController;
 import controller.MainMenuController;
 import data.mapdata.Entity;
 import data.mapdata.Map;
+import gui.Dialogs;
 import gui.ErrorHandler;
 import helpers.AssetManager;
 import helpers.ScalingBounds.ScaleMode;
@@ -44,7 +45,7 @@ public class ClientGameHandler extends GameHandler {
 	
 	private Action undoAction;
 	private StringBuilder updates;
-	private boolean bufferUpdates = true;
+	private boolean bufferUpdates = true, awaitingResponse = false;
 	
 	public ClientGameHandler(Client client) {
 		super();
@@ -161,6 +162,7 @@ public class ClientGameHandler extends GameHandler {
 	}
 	
 	public void move(Entity entity, Point target) {
+		if(awaitingResponse) return;
 		updates.append(ActionEncoder.movement(entity.getTileX(), entity.getTileY(), target.x, target.y, entity.getID())).append(';');
 		undoAction = new MovementAction(new GuideLine(new Point2D[] {target, entity.getLocation()}), entity, 0).addAction(undoAction);
 		new MovementAction(new GuideLine(new Point2D[] {entity.getLocation(), target}), entity, 0).attach();
@@ -188,6 +190,7 @@ public class ClientGameHandler extends GameHandler {
 	
 	public boolean pushUpdates() {
 		try {
+			awaitingResponse=true;
 			client.write(updates.toString());
 			return true;
 		} catch(IOException e) {
@@ -227,6 +230,18 @@ public class ClientGameHandler extends GameHandler {
 	
 	public void enableUpdateBuffer() {
 		bufferUpdates = true;
+	}
+	
+	public void onActionDeclined() {
+		undoBuffer();
+		awaitingResponse=false;
+		Dialogs.info("The DM declined your movements!", false);
+	}
+	
+	public void onActionAccepted() {
+		clearBuffer();
+		awaitingResponse=false;
+		Dialogs.info("The DM accepted your movements!", false);
 	}
 	
 	public void clearBuffer() {

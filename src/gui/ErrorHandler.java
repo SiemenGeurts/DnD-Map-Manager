@@ -43,15 +43,4 @@ public class ErrorHandler {
 		}
 		alert.showAndWait();
 	}
-	
-	public static void warning(String msg, boolean wait) {
-		Alert alert = new Alert(AlertType.WARNING);
-		alert.setTitle("Warning");
-		alert.setHeaderText("Something did not go as planned.");
-		alert.setContentText(msg);
-		if(wait)
-			alert.showAndWait();
-		else
-			alert.show();
-	}
 }

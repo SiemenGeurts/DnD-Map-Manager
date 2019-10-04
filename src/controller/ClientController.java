@@ -57,7 +57,7 @@ public class ClientController extends MapController {
     		if(e == null && selected != null) {
     			gameHandler.move(selected, p);
     			selected = null;
-    		} else if(selected == null) {
+    		} else if(selected == null && !e.isNPC()) {
     			selected = e;
     		}
     	}

@@ -61,7 +61,7 @@ public class JSONManager {
 				ArrayList<Property> propertylist = new ArrayList<>(properties.length());
 				for(String pkey : properties.keySet())
 					propertylist.add(new Property(pkey, properties.getString(pkey)));
-				entityList.add(new EntityPrefab(Integer.valueOf(key), entity.getInt("width"), entity.getInt("height"), propertylist, entity.getBoolean("bloodied")));
+				entityList.add(new EntityPrefab(Integer.valueOf(key), entity.getInt("width"), entity.getInt("height"), propertylist, entity.getBoolean("bloodied"), false));
 			}
 			return entityList;
 		} catch(JSONException e) {
@@ -74,7 +74,7 @@ public class JSONManager {
 			JSONArray players = json.getJSONArray("players");
 			ArrayList<EntityPrefab> playerList = new ArrayList<>(players.length());
 			for(int i = 0; i < players.length(); i++)
-				playerList.add(new EntityPrefab(players.getInt(i), 1, 1, null, false));
+				playerList.add(new EntityPrefab(players.getInt(i), 1, 1, null, false, true));
 			return playerList;
 		} catch(JSONException e) {
 			return null;
