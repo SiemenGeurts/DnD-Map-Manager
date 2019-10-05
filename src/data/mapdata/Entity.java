@@ -3,6 +3,9 @@ package data.mapdata;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Base64.Decoder;
+import java.util.Base64.Encoder;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -19,6 +22,14 @@ public class Entity {
 	private boolean bloodied = false;
 	private boolean isNPC = false;
 	private ArrayList<Property> properties;
+	private String description, name;
+	private static final Encoder encoder = Base64.getEncoder();
+	private static final Decoder decoder = Base64.getDecoder();
+	
+	public Entity(Integer _type, int _x, int _y, int _width, int _height, boolean _isNPC, String name) {
+		this(_type, _x, _y, _width, _height, _isNPC);
+		setName(name);
+	}
 	
 	public Entity(Integer _type, int _x, int _y, int _width, int _height, boolean _isNPC) {
 		type = _type;
@@ -29,6 +40,14 @@ public class Entity {
 		properties = new ArrayList<>();
 		isNPC = _isNPC;
 		id = idGenerator.getAndIncrement();
+	}
+	
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	public String getName() {
+		return name;
 	}
 	
 	public Integer getType() {
@@ -60,7 +79,7 @@ public class Entity {
 	}
 	
 	public boolean isNPC() {
-		return true;
+		return isNPC;
 	}
 
 	public double getX() {
@@ -120,9 +139,18 @@ public class Entity {
 		return properties;
 	}
 	
+	public String getDescription() {
+		return description;
+	}
+	
+	public void setDescription(String s) {
+		description = s;
+	}
+	
 	public Entity copy() {
 		Entity copy = new Entity(type, getTileX(), getTileY(), width, height, isNPC);
 		copy.setBloodied(bloodied);
+		copy.setDescription(description);
 		copy.setLocation(getLocation());
 		copy.setProperties(new ArrayList<Property>(properties.stream().map(prop -> prop.copy()).collect(Collectors.toList())));
 		return copy;
@@ -136,10 +164,11 @@ public class Entity {
 	
 	public String encode(boolean includeProperties) {
 		StringBuilder builder = new StringBuilder();
-		builder.append(type).append(',').append((int) x).append(',').append((int) y).append(',').append(width).append(',').append(height).append(',').append(id).append(',').append(isNPC);
+		builder.append(type).append(',').append((int) x).append(',').append((int) y).append(',').append(width).append(',').append(height);
+		builder.append(',').append(isNPC).append(',').append(id).append(',').append(encoder.encodeToString(description.getBytes())).append(',').append(name);
 		if(includeProperties)
 			for(Property p : properties)
-				builder.append(',').append(p.getKey()).append('/').append(p.getValue());
+				builder.append(',').append(p.getKey()).append('/').append(encoder.encodeToString(p.getValue().getBytes()));
 		return builder.toString();
 	}
 	
@@ -148,9 +177,11 @@ public class Entity {
 		int i = 0;
 		Entity entity = new Entity(Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]), Boolean.valueOf(arr[i++]));
 		entity.setID(Integer.valueOf(arr[i++]));
+		entity.setDescription(new String(decoder.decode(arr[i++])));
+		entity.setName(new String(arr[i++]));
 		for(;i < arr.length; i++) {
 			int index = arr[i].indexOf("/");
-			entity.properties.add(new Property(arr[i].substring(0, index), arr[i].substring(index+1)));
+			entity.properties.add(new Property(arr[i].substring(0, index), new String(decoder.decode(arr[i].substring(index+1)))));
 		}
 		return entity;
 	}

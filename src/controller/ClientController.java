@@ -54,10 +54,12 @@ public class ClientController extends MapController {
 		System.out.println("Mouse clicked: " + p + " : " + event.isPrimaryButtonDown());
     	if(event.getButton() == MouseButton.PRIMARY || event.isSynthesized()) {
     		Entity e = currentMap.getEntity(p);
+    		if(e != null)
+    			System.out.println("Clicked on entity: " + e.getName() + " NPC: " + e.isNPC());
     		if(e == null && selected != null) {
     			gameHandler.move(selected, p);
     			selected = null;
-    		} else if(selected == null && !e.isNPC()) {
+    		} else if(selected == null && (e != null && !e.isNPC())) {
     			selected = e;
     		}
     	}

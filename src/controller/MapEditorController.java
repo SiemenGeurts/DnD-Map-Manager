@@ -32,6 +32,7 @@ public class MapEditorController extends MapController {
 	protected PropertyEditorController propeditor;
 	private Entity currentlyEdited;
 	private EntityMenu entityMenu;
+	
 	@Override
 	public void initialize() {
 		super.initialize();
@@ -46,7 +47,6 @@ public class MapEditorController extends MapController {
 	
 	public void setPropertyEditor(PropertyEditorController editor) {
 		propeditor = editor;
-		propeditor.setController(this);
 	}
     
     private boolean showProperties(Entity entity) {

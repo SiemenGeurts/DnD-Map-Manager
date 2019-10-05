@@ -55,14 +55,8 @@ public class JSONManager {
 		try {
 			JSONObject entities = json.getJSONObject("entities");
 			ArrayList<EntityPrefab> entityList = new ArrayList<>(entities.length());
-			for(String key : entities.keySet()) {
-				JSONObject entity = entities.getJSONObject(key);
-				JSONObject properties = entity.getJSONObject("properties");
-				ArrayList<Property> propertylist = new ArrayList<>(properties.length());
-				for(String pkey : properties.keySet())
-					propertylist.add(new Property(pkey, properties.getString(pkey)));
-				entityList.add(new EntityPrefab(Integer.valueOf(key), entity.getInt("width"), entity.getInt("height"), propertylist, entity.getBoolean("bloodied"), false));
-			}
+			for(String key : entities.keySet())
+				entityList.add(getEntity(entities.getJSONObject(key)));
 			return entityList;
 		} catch(JSONException e) {
 			return null;
@@ -71,25 +65,42 @@ public class JSONManager {
 	
 	public static ArrayList<EntityPrefab> getPlayers() {
 		try {
-			JSONArray players = json.getJSONArray("players");
+			JSONObject players = json.getJSONObject("players");
 			ArrayList<EntityPrefab> playerList = new ArrayList<>(players.length());
-			for(int i = 0; i < players.length(); i++)
-				playerList.add(new EntityPrefab(players.getInt(i), 1, 1, null, false, true));
+			for(String key : players.keySet())
+				playerList.add(getEntity(players.getJSONObject(key)));
 			return playerList;
 		} catch(JSONException e) {
 			return null;
 		}
 	}
 	
-	public static void addEntity(EntityPrefab prefab) {
+	private static EntityPrefab getEntity(JSONObject json) {
+		JSONObject properties = json.getJSONObject("properties");
+		ArrayList<Property> propertylist = new ArrayList<>(properties.length());
+		for(String pkey : properties.keySet())
+			propertylist.add(new Property(pkey, properties.getString(pkey)));
+		return new EntityPrefab(json.getInt("type"), json.getInt("width"), json.getInt("height"), propertylist, json.getBoolean("bloodied"), false, json.getString("description"), json.getString("name"));
+
+	}
+	
+	private static JSONObject createEntity(EntityPrefab prefab) {
 		JSONObject entity = new JSONObject();
 		entity.put("width", prefab.width);
 		entity.put("height", prefab.height);
 		entity.put("bloodied", prefab.bloodied);
+		entity.put("type", prefab.getID());
+		entity.put("description", prefab.description);
+		entity.put("name", prefab.name);
 		JSONObject properties = new JSONObject();
 		for(Property p : prefab.getProperties())
 			properties.put(p.getKey(), p.getValue());
 		entity.put("properties", properties);
+		return entity;
+	}
+	
+	public static void addEntity(EntityPrefab prefab) {
+		JSONObject entity = createEntity(prefab);
 		JSONObject entities;
 		try {
 			entities = json.getJSONObject("entities");
@@ -103,13 +114,14 @@ public class JSONManager {
 	}
 	
 	public static void addPlayer(EntityPrefab prefab) {
-		JSONArray players;
+		JSONObject player = createEntity(prefab);
+		JSONObject players;
 		try {
-			players = json.getJSONArray("players");
-			players.put(prefab.getID());
+			players = json.getJSONObject("players");
+			players.put(String.valueOf(prefab.getID()), player);
 		} catch(JSONException e) {
-			players = new JSONArray();
-			players.put(prefab.getID());
+			players = new JSONObject();
+			players.put(String.valueOf(prefab.getID()), player);
 			json.put("players", players);
 		}
 		save();

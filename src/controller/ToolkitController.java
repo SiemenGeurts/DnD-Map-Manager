@@ -14,14 +14,12 @@ import data.mapdata.prefabs.TilePrefab;
 import gui.ErrorHandler;
 import helpers.AssetManager;
 import helpers.JSONManager;
-import javafx.css.PseudoClass;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -42,14 +40,9 @@ public class ToolkitController {
 	VBox vbox;
 	@FXML
 	AnchorPane propertyEditor;
-	@FXML
-	TextField nameField;
 	
 	ObjectSelectorController osController;
 	PropertyEditorController propertyEditorController;
-	
-	
-	private static final PseudoClass ERROR_BORDER = PseudoClass.getPseudoClass("invalid");
 	
 	TextureType current;
 	static FileChooser fc = new FileChooser();
@@ -71,11 +64,6 @@ public class ToolkitController {
 	
 	@FXML
 	public void addBtnClicked(ActionEvent e) {
-		if(nameField.getText().equals("")) {
-			nameField.pseudoClassStateChanged(ERROR_BORDER, true);
-			return;
-		}
-		nameField.pseudoClassStateChanged(ERROR_BORDER, false);
 		try {
 			//1. save the image to the images directory.
 			int id = AssetManager.addTexture(imgView.getImage());
@@ -84,12 +72,14 @@ public class ToolkitController {
 			Prefab<?> prefab;
 			switch(current) {
 				case ENTITY:
-					prefab = new EntityPrefab(id, propertyEditorController.getWidth(), propertyEditorController.getHeight(), propertyEditorController.getPropertyList(), propertyEditorController.getBloodied(), false);
+					prefab = new EntityPrefab(id, propertyEditorController.getWidth(), propertyEditorController.getHeight(), propertyEditorController.getPropertyList(), propertyEditorController.getBloodied(), false, propertyEditorController.getDescription());
+					((EntityPrefab)prefab).setName(propertyEditorController.getName());
 					osController.addEntity((EntityPrefab) prefab, imgView.getImage());
 					JSONManager.addEntity((EntityPrefab) prefab);
 					break;
 				case PLAYER:
-					prefab = new EntityPrefab(id, 1, 1, null, false, true);
+					prefab = new EntityPrefab(id, propertyEditorController.getWidth(), propertyEditorController.getHeight(), propertyEditorController.getPropertyList(), propertyEditorController.getBloodied(), true, propertyEditorController.getDescription());
+					((EntityPrefab)prefab).setName(propertyEditorController.getName());
 					osController.addPlayer((EntityPrefab) prefab, imgView.getImage());
 					JSONManager.addPlayer((EntityPrefab) prefab);
 					break;
@@ -141,7 +131,9 @@ public class ToolkitController {
 				imgView.setImage(image);
 				current = TextureType.ENTITY;
 				btnAdd.setDisable(false);
-				propertyEditorController.setProperties(Entity.getDefaultProperties());
+				Entity temp = new Entity(0, 0,0,1,1, false);
+				temp.setProperties(Entity.getDefaultProperties());
+				propertyEditorController.setEntity(temp);
 				propertyEditor.setVisible(true);
 			}
 		} catch (IOException ex) {
@@ -157,7 +149,10 @@ public class ToolkitController {
 				imgView.setImage(image);
 				current = TextureType.PLAYER;
 				btnAdd.setDisable(false);
-				propertyEditor.setVisible(false);
+				Entity temp = new Entity(0, 0,0,1,1, false);
+				temp.setProperties(Entity.getDefaultProperties());
+				propertyEditorController.setEntity(temp);
+				propertyEditor.setVisible(true);
 			}
 		} catch (IOException ex) {
 			ErrorHandler.handle("Could not read image file", ex);

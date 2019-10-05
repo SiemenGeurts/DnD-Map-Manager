@@ -5,6 +5,7 @@
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -13,36 +14,40 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="265.0" prefWidth="303.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.PropertyEditorController">
+<AnchorPane prefHeight="400.0" prefWidth="303.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.PropertyEditorController">
    <children>
       <VBox prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <GridPane prefWidth="303.0" vgap="4.0" VBox.vgrow="NEVER">
+            <GridPane fx:id="gpEntityProps" prefWidth="303.0" vgap="4.0" VBox.vgrow="NEVER">
               <columnConstraints>
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
               </columnConstraints>
               <rowConstraints>
+                <RowConstraints />
                 <RowConstraints vgrow="NEVER" />
                 <RowConstraints vgrow="NEVER" />
-                <RowConstraints vgrow="NEVER" />
+                  <RowConstraints vgrow="NEVER" />
               </rowConstraints>
                <children>
-                  <Label text="Width" />
-                  <Label text="Height" GridPane.rowIndex="1" />
-                  <Label text="Bloodied" GridPane.rowIndex="2">
+                  <Label text="Width" GridPane.rowIndex="1" />
+                  <Label text="Height" GridPane.rowIndex="2" />
+                  <Label text="Bloodied" GridPane.rowIndex="3">
                      <padding>
                         <Insets top="3.0" />
                      </padding></Label>
-                  <CheckBox fx:id="chkboxBloodied" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                  <TextField fx:id="tfHeight" onAction="#onDimensionChanged" text="1" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                  <TextField fx:id="tfWidth" onAction="#onDimensionChanged" text="1" GridPane.columnIndex="1" />
+                  <CheckBox fx:id="chkboxBloodied" disable="true" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                  <TextField fx:id="tfHeight" editable="false" text="1" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                  <TextField fx:id="tfWidth" editable="false" text="1" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                  <Label text="Name" />
+                  <TextField fx:id="tfName" editable="false" promptText="Name" GridPane.columnIndex="1" />
                </children>
                <padding>
                   <Insets bottom="5.0" left="5.0" right="5.0" />
                </padding>
             </GridPane>
-            <ListView fx:id="listView" VBox.vgrow="ALWAYS" />
+            <TextArea fx:id="taDescription" editable="false" prefHeight="250.0" promptText="Description" wrapText="true" VBox.vgrow="SOMETIMES" />
+            <ListView fx:id="listView" VBox.vgrow="SOMETIMES" />
             <ToolBar prefWidth="200.0" VBox.vgrow="NEVER">
               <items>
                   <Button fx:id="btnEdit" mnemonicParsing="false" onAction="#btnEditClicked" text="Edit" />
@@ -53,7 +58,7 @@
             </ToolBar>
          </children>
          <padding>
-            <Insets bottom="10.0" top="10.0" />
+            <Insets top="10.0" />
          </padding>
       </VBox>
    </children>

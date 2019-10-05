@@ -24,8 +24,10 @@ import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.util.Callback;
@@ -43,11 +45,18 @@ public class PropertyEditorController {
     @FXML
     private Button btnRemove;
     @FXML
+    private TextField tfName;
+    @FXML
     private TextField tfWidth;
     @FXML
     private TextField tfHeight;
     @FXML
+    private TextArea taDescription;
+    @FXML
     private CheckBox chkboxBloodied;
+    @FXML
+    private GridPane gpEntityProps;
+    
     public Entity entity = null;
     public ArrayList<Property> startProperties;
     private boolean editing = false;
@@ -56,24 +65,21 @@ public class PropertyEditorController {
     
     Runnable onSaveClicked = null;
     
-    //to redraw updates
-    private MapController controller = null;
-    
     @FXML
-    public void initialize() {
-    	tfWidth.setEditable(false);
-    	tfHeight.setEditable(false);
+    public void initialize() {    	
+    	tfWidth.textProperty().addListener(new NumericFieldListener(tfWidth, false));
+    	tfHeight.textProperty().addListener(new NumericFieldListener(tfHeight, false));
     }
     
     public void setEntity(Entity e) {
+    	setProperties(e.getProperties());
     	entity = e;
     	tfWidth.setText(String.valueOf(e.getWidth()));
     	tfHeight.setText(String.valueOf(e.getHeight()));
-    	setProperties(e.getProperties());
-    }
-    
-    public void setController(MapController c) {
-    	controller = c;
+    	tfName.setText(e.getName());
+    	taDescription.setText(e.getDescription());
+    	chkboxBloodied.setSelected(e.isBloodied());
+    	gpEntityProps.setVisible(true);
     }
     
     public void setProperties(ArrayList<Property> props) {
@@ -87,10 +93,13 @@ public class PropertyEditorController {
     	properties = FXCollections.observableArrayList();
     	properties.addAll(startProperties.stream().map(prop -> prop.copy()).collect(Collectors.toList()));
     	listView.setItems(properties);
-    	tfWidth.textProperty().addListener(new NumericFieldListener(tfWidth, false));
-    	tfHeight.textProperty().addListener(new NumericFieldListener(tfHeight, false));
-    	tfWidth.setEditable(true);
-    	tfHeight.setEditable(true);
+    	taDescription.setText("");
+    	tfWidth.setText("1");
+    	tfHeight.setText("1" );
+    	tfName.setText("");
+    	taDescription.setText("");
+    	chkboxBloodied.setSelected(false);
+    	gpEntityProps.setVisible(false);    	
     }
     
 
@@ -103,20 +112,11 @@ public class PropertyEditorController {
     	setEditing(!editing);
     }
     
-    @FXML
-    void onDimensionChanged(ActionEvent event) {
-    	if(entity == null) return;
-    	entity.setWidth(Integer.parseInt(tfWidth.getText()));
-    	entity.setHeight(Integer.parseInt(tfHeight.getText()));
-    	if(controller != null)
-    		controller.redraw();
-    }
-    
     public boolean requestClear() {
     	if(requestCancelEditing()) {
     		entity = null;
-    		tfWidth.setText("1");
-    		tfHeight.setText("1");
+    		gpEntityProps.setVisible(false);
+    		taDescription.setVisible(false);
     		properties.clear();
     		return true;
     	}
@@ -145,6 +145,11 @@ public class PropertyEditorController {
 
     public void setEditing(boolean b) {
     	editing = b;
+    	tfName.setEditable(editing);
+    	taDescription.setEditable(editing);
+    	chkboxBloodied.setDisable(!editing);
+    	tfWidth.setEditable(editing);
+    	tfHeight.setEditable(editing);
     	listView.refresh();
     	btnSave.setDisable(!editing);
     	btnAdd.setDisable(!editing);
@@ -156,6 +161,13 @@ public class PropertyEditorController {
     void btnSaveClicked(ActionEvent event) {
     	startProperties.clear();
     	startProperties.addAll(listView.getItems());
+    	if(entity != null) {
+    		entity.setWidth(Integer.valueOf(tfWidth.getText()));
+    		entity.setHeight(Integer.valueOf(tfHeight.getText()));
+    		entity.setBloodied(chkboxBloodied.isSelected());
+    		entity.setDescription(taDescription.getText());
+    		entity.setName(tfName.getText());
+    	}
     	if(onSaveClicked != null)
     		onSaveClicked.run();
     	setEditing(false);
@@ -191,6 +203,14 @@ public class PropertyEditorController {
     
     public boolean getBloodied() {
     	return chkboxBloodied.isSelected();
+    }
+    
+    public String getDescription() {
+    	return taDescription.getText();
+    }
+    
+    public String getName() {
+    	return tfName.getText();
     }
     
     class PropertyCell extends ListCell<Property> {

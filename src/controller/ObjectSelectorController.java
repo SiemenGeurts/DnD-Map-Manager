@@ -52,7 +52,7 @@ public class ObjectSelectorController {
 		entities = JSONManager.getPlayers();
 		if(entities != null)
 			for(EntityPrefab ep : entities)
-				createButton(ep, AssetManager.textures.get(ep.getID()));
+				playerPane.add(createButton(ep, AssetManager.textures.get(ep.getID())));
 	}
 	
 	private <T> BuilderButton<T> createButton(Prefab<T> prefab, Image image) {

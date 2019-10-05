@@ -79,7 +79,7 @@ public class MapBuilderController extends MapEditorController {
 		super.initialize();
 		try {
 			JSONManager.initialize();
-			currentMap = Map.emptyMap(20, 20);
+			setMap(Map.emptyMap(20, 20));
 			
 			FXMLLoader loader = new FXMLLoader(MainMenuController.class.getResource("/assets/fxml/Toolkit.fxml"));
 			Node root = new Scene(loader.load()).getRoot();

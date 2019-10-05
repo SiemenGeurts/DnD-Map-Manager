@@ -46,8 +46,12 @@ public class MapController extends SceneController {
     @Override
 	public void initialize() {
 		gc = canvas.getGraphicsContext2D();
-		canvas.widthProperty().bind(((AnchorPane) canvas.getParent()).widthProperty());
-		canvas.heightProperty().bind(((AnchorPane) canvas.getParent()).heightProperty());
+		((AnchorPane)canvas.getParent()).widthProperty().addListener((obs, oldVal, newVal) -> {
+			canvas.widthProperty().setValue(newVal);
+		});
+		((AnchorPane)canvas.getParent()).heightProperty().addListener((obs, oldVal, newVal) -> {
+			canvas.heightProperty().setValue(newVal);
+		});
     }
     
     public void setMap(Map map) {
@@ -263,7 +267,8 @@ public class MapController extends SceneController {
     
 	@FXML
 	void onRotate(RotateEvent e) {
-		canvas.setRotate(e.getAngle()+canvas.getRotate());
+		//Works perfectly, but is very annoying.
+		//canvas.setRotate(e.getAngle()+canvas.getRotate());
 	}
 	
 	@FXML

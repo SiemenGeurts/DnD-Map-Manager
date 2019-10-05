@@ -3,7 +3,6 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
@@ -24,10 +23,8 @@
          </children>
       </HBox>
       <ImageView fx:id="imgView" fitHeight="150.0" fitWidth="239.0" pickOnBounds="true" preserveRatio="true" />
-      <HBox alignment="CENTER_RIGHT" spacing="10.0" VBox.vgrow="NEVER">
+      <HBox alignment="CENTER" spacing="10.0" VBox.vgrow="NEVER">
          <children>
-            <Label text="Name:" HBox.hgrow="NEVER" />
-            <TextField fx:id="nameField" prefHeight="25.0" prefWidth="126.0" styleClass="button" stylesheets="@../css/text-fields.css" HBox.hgrow="ALWAYS" />
 			          <Button fx:id="btnAdd" disable="true" mnemonicParsing="false" onAction="#addBtnClicked" text="Add" HBox.hgrow="NEVER" />
          </children>
          <padding>
