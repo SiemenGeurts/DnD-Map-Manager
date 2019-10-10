@@ -47,6 +47,7 @@ public class JSONManager {
 				tileList.add(new TilePrefab(tiles.getInt(i)));
 			return tileList;
 		} catch(JSONException e) {
+			ErrorHandler.handle("Could not load tiles.", e);
 			return null;
 		}
 	}
@@ -59,6 +60,7 @@ public class JSONManager {
 				entityList.add(getEntity(entities.getJSONObject(key)));
 			return entityList;
 		} catch(JSONException e) {
+			ErrorHandler.handle("Could not load enemies.", e);
 			return null;
 		}
 	}
@@ -71,6 +73,7 @@ public class JSONManager {
 				playerList.add(getEntity(players.getJSONObject(key)));
 			return playerList;
 		} catch(JSONException e) {
+			ErrorHandler.handle("Could not load players.", e);
 			return null;
 		}
 	}
@@ -80,8 +83,9 @@ public class JSONManager {
 		ArrayList<Property> propertylist = new ArrayList<>(properties.length());
 		for(String pkey : properties.keySet())
 			propertylist.add(new Property(pkey, properties.getString(pkey)));
-		return new EntityPrefab(json.getInt("type"), json.getInt("width"), json.getInt("height"), propertylist, json.getBoolean("bloodied"), false, json.getString("description"), json.getString("name"));
-
+		EntityPrefab ep = new EntityPrefab(json.getInt("type"), json.getInt("width"), json.getInt("height"), propertylist, json.getBoolean("bloodied"), false, (json.has("description") ? json.getString("description") : ""), json.getString("name"));
+		System.out.println("Loaded entity: " + ep);
+		return ep;
 	}
 	
 	private static JSONObject createEntity(EntityPrefab prefab) {

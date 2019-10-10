@@ -32,6 +32,7 @@ public class ObjectSelectorController {
 	@FXML
 	void initialize() {
 		tilePane = new GridSelectionPane(5);
+		tilePane.setNames(false);
 		//tilePane.add(createButton(new TilePrefab(PresetTile.EMPTY), AssetManager.textures.get(PresetTile.EMPTY)));
 		tilePane.add(createButton(new TilePrefab(PresetTile.FLOOR), AssetManager.textures.get(PresetTile.FLOOR)));
 		tilePane.add(createButton(new TilePrefab(PresetTile.WALL), AssetManager.textures.get(PresetTile.WALL)));
@@ -48,11 +49,11 @@ public class ObjectSelectorController {
 		ArrayList<EntityPrefab> entities = JSONManager.getEntities();
 		if(entities != null)
 			for(EntityPrefab ep : entities)
-				entityPane.add(createButton(ep, AssetManager.textures.get(ep.getID())));
+				entityPane.add(createButton(ep, AssetManager.textures.get(ep.getID())), ep.getName());
 		entities = JSONManager.getPlayers();
 		if(entities != null)
 			for(EntityPrefab ep : entities)
-				playerPane.add(createButton(ep, AssetManager.textures.get(ep.getID())));
+				playerPane.add(createButton(ep, AssetManager.textures.get(ep.getID())), ep.getName());
 	}
 	
 	private <T> BuilderButton<T> createButton(Prefab<T> prefab, Image image) {
@@ -66,11 +67,11 @@ public class ObjectSelectorController {
 	}
 	
 	public void addEntity(EntityPrefab prefab, Image image) {
-		entityPane.add(createButton(prefab, image));
+		entityPane.add(createButton(prefab, image), prefab.getName());
 	}
 	
 	public void addPlayer(EntityPrefab prefab, Image image) {
-		playerPane.add(createButton(prefab, image));
+		playerPane.add(createButton(prefab, image), prefab.getName());
 	}
 	
 	public void addTile(TilePrefab prefab, Image image) {

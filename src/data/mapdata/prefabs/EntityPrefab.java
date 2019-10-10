@@ -11,7 +11,7 @@ public class EntityPrefab extends Prefab<Entity> {
 	public int width=1, height=1;
 	ArrayList<Property> properties;
 	public boolean bloodied, isPlayer;
-	public String description;
+	public String description = "";
 	public String name = "";
 	
 	public EntityPrefab(int type, int width, int height, ArrayList<Property> properties, boolean bloodied, boolean isPlayer, String description, String name) {
@@ -39,6 +39,11 @@ public class EntityPrefab extends Prefab<Entity> {
 	
 	public ArrayList<Property> getProperties() {
 		return properties;
+	}
+	
+	@Override
+	public String toString() {
+		return "EntityPrefab[type=" + id + ", name="+name + ", isPlayer="+isPlayer+"]";
 	}
 	
 	@Override
