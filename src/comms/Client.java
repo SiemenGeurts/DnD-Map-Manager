@@ -6,6 +6,8 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.Socket;
 import java.net.UnknownHostException;
+
+import helpers.Logger;
 import javafx.scene.image.Image;
 
 public class Client {
@@ -27,7 +29,7 @@ public class Client {
 	}
 	
 	public Image readImage() throws IOException {
-		System.out.println(getTimeStamp() + "reading image");
+		Logger.println(getTimeStamp() + "reading image");
 		try {
 		Message<?> m = (Message<?>) istream.readObject();
 		if(m.getMessage() instanceof SerializableImage)
@@ -44,7 +46,7 @@ public class Client {
 		try {
 			Message<?> m = (Message<?>) istream.readObject();
 			if(c.isInstance(m.getMessage())) {
-				System.out.println(getTimeStamp() + "reading: " + m.getMessage());
+				Logger.println(getTimeStamp() + "reading: " + m.getMessage());
 				return c.cast(m.getMessage());
 			}
 		} catch (ClassNotFoundException e) {
@@ -56,7 +58,7 @@ public class Client {
 	public Message<?> readMessage() throws IOException {
 		try {
 			Message<?> m = (Message<?>) istream.readObject();
-			System.out.println(getTimeStamp() + "reading: " + m.toString());
+			Logger.println(getTimeStamp() + "reading: " + m.toString());
 			return m;
 		} catch(ClassNotFoundException e) {
 			e.printStackTrace();
@@ -65,7 +67,7 @@ public class Client {
 	}
 	
 	public <T extends Serializable> void write(T obj) throws IOException {
-		System.out.println(getTimeStamp() +"writing: " + obj.toString());
+		Logger.println(getTimeStamp() +"writing: " + obj.toString());
 		ostream.writeObject(new Message<T>(obj));
 		ostream.flush();
 	}

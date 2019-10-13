@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import helpers.Logger;
 import javafx.scene.image.Image;
 
 public class Server {
@@ -30,13 +31,13 @@ public class Server {
 	}
 	
 	public void write(Image image, int id) throws IOException {
-		System.out.println(getTimeStamp() + " writing image");
+		Logger.println(getTimeStamp() + " writing image");
 		ostream.writeObject(new Message<SerializableImage>(new SerializableImage(image, id)));
 		ostream.flush();
 	}
 	
 	public <T extends Serializable> void write(T obj) throws IOException {
-		System.out.println(getTimeStamp() + "writing: " + obj.toString());
+		Logger.println(getTimeStamp() + "writing: " + obj.toString());
 		ostream.writeObject(new Message<T>(obj));
 		ostream.flush();
 	}
@@ -45,7 +46,7 @@ public class Server {
 		try {
 			Message<?> m = (Message<?>) istream.readObject();
 			if(c.isInstance(m.getMessage())) {
-				System.out.println(getTimeStamp() + " reading: " + m.getMessage());
+				Logger.println(getTimeStamp() + " reading: " + m.getMessage());
 				return c.cast(m.getMessage());
 			}
 		} catch (ClassNotFoundException e) {

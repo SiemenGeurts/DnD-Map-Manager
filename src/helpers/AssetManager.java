@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.imageio.ImageIO;
 import javax.swing.filechooser.FileSystemView;
 
+import app.MapManagerApp;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 
@@ -70,8 +71,8 @@ public class AssetManager {
 	}
 	
 	private static boolean removeFile(int id) {
-		String defaultDirectory = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
-		new File(defaultDirectory + "/DnD Map Manager/Textures/" + id + ".png").delete();
+		
+		new File(MapManagerApp.defaultDirectory + "/DnD Map Manager/Textures/" + id + ".png").delete();
 		try {
 			writeTexturesToDisk();			
 		} catch(IOException e) {
@@ -81,8 +82,7 @@ public class AssetManager {
 	}
 
 	private static void saveToFile(int id, Image image) throws IOException {
-		String defaultDirectory = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
-		File outputFile = new File(defaultDirectory + "/DnD Map Manager/Textures/" + id + ".png");
+		File outputFile = new File(MapManagerApp.defaultDirectory + "/DnD Map Manager/Textures/" + id + ".png");
 		outputFile.mkdirs();
 		BufferedImage bImage = SwingFXUtils.fromFXImage(image, null);
 		ImageIO.write(bImage, "png", outputFile);
@@ -90,8 +90,7 @@ public class AssetManager {
 	}
 	
 	private static void writeTexturesToDisk() throws IOException {
-		String defaultDirectory = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
-		FileWriter writer = new FileWriter(new File(defaultDirectory + "/DnD Map Manager/Textures/textureInfo.txt"), false);
+		FileWriter writer = new FileWriter(new File(MapManagerApp.defaultDirectory + "/DnD Map Manager/Textures/textureInfo.txt"), false);
 		StringBuilder s = new StringBuilder();
 		for (Integer i : textures.keySet()) {
 			if(i>=0)
@@ -102,21 +101,21 @@ public class AssetManager {
 	}
 
 	private static void readTexturesFromDisk() throws IOException {
-		String defaultDirectory = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
-		File f = new File(defaultDirectory + "/DnD Map Manager/Textures/textureInfo.txt");
+		String defaultDir = MapManagerApp.defaultDirectory;
+		File f = new File(defaultDir + "/DnD Map Manager/Textures/textureInfo.txt");
 		if (!f.exists())
 			return;
 		InputStream is = new FileInputStream(f);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 		String line = reader.readLine();
-		if(!isWindows() && defaultDirectory.charAt(0)=='/')
-			defaultDirectory=defaultDirectory.substring(1);
+		if(!isWindows() && defaultDir.charAt(0)=='/')
+			defaultDir=defaultDir.substring(1);
 		while (line != null) {
 			int id = Integer.valueOf(line);
 			if(id>=0) {
-				System.out.println("file:/" + defaultDirectory + "/DnD Map Manager/Textures/" + id + ".png");
-				textures.put(id, new Image("file:/" + defaultDirectory + "/DnD Map Manager/Textures/" + id + ".png"));
-				System.out.println("Loading image: " + id + ", success: " + !textures.get(id).isError());
+				Logger.println("file:/" + defaultDir + "/DnD Map Manager/Textures/" + id + ".png");
+				textures.put(id, new Image("file:/" + defaultDir + "/DnD Map Manager/Textures/" + id + ".png"));
+				Logger.println("Loading image: " + id + ", success: " + !textures.get(id).isError());
 			}
 			line = reader.readLine();
 		}

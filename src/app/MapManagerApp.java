@@ -3,6 +3,8 @@ package app;
 import java.io.IOException;
 import java.util.Map;
 
+import javax.swing.filechooser.FileSystemView;
+
 import comms.Client;
 import comms.Server;
 import controller.MainMenuController;
@@ -10,7 +12,9 @@ import controller.MapBuilderController;
 import controller.SceneManager;
 import data.mapdata.PresetTile;
 import gui.Dialogs;
+import gui.ErrorHandler;
 import helpers.AssetManager;
+import helpers.Logger;
 import helpers.Utils;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -20,9 +24,12 @@ import javafx.stage.Stage;
 
 public class MapManagerApp extends Application{
 	
+	public static final long VERSION_ID=1L;
+	
 	private SceneManager sceneManager;
 	
 	public static Stage stage;
+	public final static String defaultDirectory = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
 	
 	@Override
 	public void start(Stage stage) throws Exception {
@@ -55,7 +62,7 @@ public class MapManagerApp extends Application{
         	if(portString != null && Utils.isValidPort(portString))
         		port = Integer.parseInt(portString);
         	else
-        		System.out.println("No valid port given, using 5000");
+        		Logger.println("No valid port given, using 5000");
         	new ServerGameHandler(Server.create(port));
         } else if(playMode.equals("party")) {
         	String ip = namedArgs.get("ip");
@@ -79,11 +86,20 @@ public class MapManagerApp extends Application{
         	}
         }
 	}
+	
+	private static void setupLogFile() {
+		new Logger(defaultDirectory +"/DnD Map Manager/log.txt");
+	}
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
+    	try {
+    	setupLogFile();
     	AssetManager.initializeManager();
 		PresetTile.setupPresetTiles();
         launch(args);
+    	} catch(Exception e) {
+    		ErrorHandler.handle("Something went wrong...", e);
+    	}
     }
 
 

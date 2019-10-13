@@ -5,6 +5,7 @@ import java.awt.Point;
 import app.ClientGameHandler;
 import app.MapManagerApp;
 import data.mapdata.Entity;
+import helpers.Logger;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -51,11 +52,11 @@ public class ClientController extends MapController {
 	
 	@Override
 	protected void handleClick(Point p, MouseEvent event) {
-		System.out.println("Mouse clicked: " + p + " : " + event.isPrimaryButtonDown());
+		Logger.println("Mouse clicked: " + p + " : " + event.isPrimaryButtonDown());
     	if(event.getButton() == MouseButton.PRIMARY || event.isSynthesized()) {
     		Entity e = currentMap.getEntity(p);
     		if(e != null)
-    			System.out.println("Clicked on entity: " + e.getName() + " NPC: " + e.isNPC());
+    			Logger.println("Clicked on entity: " + e.getName() + " NPC: " + e.isNPC());
     		if(e == null && selected != null) {
     			gameHandler.move(selected, p);
     			selected = null;

@@ -20,6 +20,7 @@ import data.mapdata.Tile;
 import data.mapdata.Entity;
 import gui.ErrorHandler;
 import helpers.AssetManager;
+import helpers.Logger;
 import helpers.Utils;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -95,7 +96,7 @@ public class ServerGameHandler extends GameHandler {
 				while (running) {
 					synchronized (pauseLock) {
 						if (paused) {
-							System.out.println("Listener paused");
+							Logger.println("Listener paused");
 							try {
 								synchronized (pauseLock) {
 									pauseLock.wait();
@@ -108,7 +109,7 @@ public class ServerGameHandler extends GameHandler {
 							break;
 						try {
 							Thread.sleep((long) (1000 / 20));
-							System.out.println("listening...");
+							Logger.println("listening...");
 							ActionDecoder.decodeRequest(server.read(String.class)).attach();
 						} catch (IOException | InterruptedException e) {
 							Platform.runLater(new Runnable() {
@@ -238,7 +239,7 @@ public class ServerGameHandler extends GameHandler {
 	}
 
 	public boolean sendTextures() {
-		System.out.println("[SERVER] sending textures.");
+		Logger.println("[SERVER] sending textures.");
 		HashMap<Integer, Image> textures = new HashMap<>();
 		for (int i = 0; i < map.getWidth(); i++)
 			for (int j = 0; j < map.getHeight(); j++) {
@@ -261,7 +262,7 @@ public class ServerGameHandler extends GameHandler {
 	}
 	
 	public boolean sendTexture(int id) {
-		System.out.println("[SERVER] sending texture " + id);
+		Logger.println("[SERVER] sending texture " + id);
 		try {
 			server.write(AssetManager.textures.get(id), id);
 		} catch (IOException e) {
@@ -272,7 +273,7 @@ public class ServerGameHandler extends GameHandler {
 	}
 
 	public boolean sendMap() {
-		System.out.println("[SERVER] sending map.");
+		Logger.println("[SERVER] sending map.");
 		try {
 			server.write(map.getBackground() != null);
 			server.write(map.encode(false));

@@ -21,6 +21,7 @@ import data.mapdata.Map;
 import gui.Dialogs;
 import gui.ErrorHandler;
 import helpers.AssetManager;
+import helpers.Logger;
 import helpers.ScalingBounds.ScaleMode;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -74,7 +75,7 @@ public class ClientGameHandler extends GameHandler {
 				while (running) {
 					synchronized (pauseLock) {
 						if (paused) {
-							System.out.println("Listener paused");
+							Logger.println("Listener paused");
 							try {
 								synchronized (pauseLock) {
 									pauseLock.wait();
@@ -126,7 +127,7 @@ public class ClientGameHandler extends GameHandler {
 	}
 
 	public boolean loadTextures() {
-		System.out.println("[CLIENT] Loading textures.");
+		Logger.println("[CLIENT] Loading textures.");
 		try {
 			int amount = client.read(Integer.class);
 			HashMap<Integer, Image> textures = AssetManager.textures;
@@ -142,7 +143,7 @@ public class ClientGameHandler extends GameHandler {
 	}
 
 	public boolean loadMap() {
-		System.out.println("[CLIENT] Loading map.");
+		Logger.println("[CLIENT] Loading map.");
 		try {
 			boolean hasBackground = client.read(Boolean.class);
 			map = Map.decode(client.read(String.class));

@@ -8,6 +8,7 @@ import data.mapdata.Entity;
 import data.mapdata.Map;
 import data.mapdata.Tile;
 import helpers.Calculator;
+import helpers.Logger;
 import helpers.ScalingBounds;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
@@ -254,9 +255,9 @@ public class MapController extends SceneController {
     
     @FXML
     public void onMousePressed(MouseEvent e) {
-    	System.out.println("Mouse Pressed");
+    	Logger.println("Mouse Pressed");
     	mousePressedCoords = lastDragCoords = new Point2D(e.getX(), e.getY());
-    	System.out.println(mousePressedCoords);
+    	Logger.println(mousePressedCoords);
     }
     
     //Only called if the event is triggered by a touchscreen.

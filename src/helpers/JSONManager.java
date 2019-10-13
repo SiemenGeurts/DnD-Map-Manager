@@ -9,12 +9,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
-import javax.swing.filechooser.FileSystemView;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import app.MapManagerApp;
 import data.mapdata.Property;
 import data.mapdata.prefabs.EntityPrefab;
 import data.mapdata.prefabs.TilePrefab;
@@ -23,11 +22,9 @@ import gui.ErrorHandler;
 public class JSONManager {
 	
 	public static JSONObject json;
-	public static String defaultDirectory;
 	
 	public static void initialize() throws IOException {
-		defaultDirectory = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
-		File f = new File(defaultDirectory + "/DnD Map Manager/data.json");
+		File f = new File(MapManagerApp.defaultDirectory + "/DnD Map Manager/data.json");
 		if(!f.exists())
 			json = new JSONObject();
 		else
@@ -84,7 +81,7 @@ public class JSONManager {
 		for(String pkey : properties.keySet())
 			propertylist.add(new Property(pkey, properties.getString(pkey)));
 		EntityPrefab ep = new EntityPrefab(json.getInt("type"), json.getInt("width"), json.getInt("height"), propertylist, json.getBoolean("bloodied"), false, (json.has("description") ? json.getString("description") : ""), json.getString("name"));
-		System.out.println("Loaded entity: " + ep);
+		Logger.println("Loaded entity: " + ep);
 		return ep;
 	}
 	
@@ -146,7 +143,8 @@ public class JSONManager {
 	
 	public static void save() {
 		try {
-			FileWriter writer = new FileWriter(new File(defaultDirectory + "/DnD Map Manager/data.json"), false);
+			json.put("version_id", MapManagerApp.VERSION_ID);
+			FileWriter writer = new FileWriter(new File(MapManagerApp.defaultDirectory + "/DnD Map Manager/data.json"), false);
 			writer.write(json.toString());
 			writer.close();
 		} catch (IOException e) {

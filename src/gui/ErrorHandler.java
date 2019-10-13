@@ -3,6 +3,7 @@ package gui;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import helpers.Logger;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Label;
@@ -14,7 +15,7 @@ public class ErrorHandler {
 
 	public static void handle(String msg, Exception ex) {
 		if(ex != null)
-			ex.printStackTrace();
+			Logger.error(ex);
 		Alert alert = new Alert(AlertType.ERROR);
 		alert.setTitle("Something went wrong");
 		alert.setHeaderText("An exception occured");
