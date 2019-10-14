@@ -131,7 +131,7 @@ public class MapEditorController extends MapController {
 	}
 	
 	@FXML
-	void saveMap(){
+	void onSave(){
 		if(currentFile != null)
 			try {
 				Utils.saveMap(currentFile, currentMap);
@@ -139,11 +139,11 @@ public class MapEditorController extends MapController {
 				ErrorHandler.handle("Map could not be saved!", e);				
 			}
 		else
-			saveAsMap();
+			onSaveAs();
 	}
 
 	@FXML
-	void saveAsMap() {
+	void onSaveAs() {
 		mapChooser.setTitle("Save map");
 		currentFile = mapChooser.showSaveDialog(SceneManager.getPrimaryStage());
 		try {
@@ -154,13 +154,18 @@ public class MapEditorController extends MapController {
 	}
 
 	@FXML
-	void loadMap() throws IOException {
+	void onOpen() throws IOException {
 		mapChooser.setTitle("Load map");
 		currentFile = mapChooser.showOpenDialog(SceneManager.getPrimaryStage());
 		Map map = Utils.loadMap(currentFile);
 		if(map != null)
 			setMap(map);
 		redraw();
+	}
+	
+	@FXML
+	void onQuit() {
+		MainMenuController.sceneManager.popScene();
 	}
 	
 	class EntityMenu extends ContextMenu {

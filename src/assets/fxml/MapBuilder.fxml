@@ -30,11 +30,11 @@
         <Menu mnemonicParsing="false" text="File">
           <items>
             <MenuItem mnemonicParsing="false" text="New" />
-            <MenuItem mnemonicParsing="false" onAction="#loadMap" text="Open…" />
+            <MenuItem mnemonicParsing="false" onAction="#onOpen" text="Open…" />
             <SeparatorMenuItem mnemonicParsing="false" />
-            <MenuItem mnemonicParsing="false" onAction="#saveMap" text="Save" />
-            <MenuItem mnemonicParsing="false" onAction="#saveAsMap" text="Save As…" />
-            <MenuItem mnemonicParsing="false" text="Quit" />
+            <MenuItem mnemonicParsing="false" onAction="#onSave" text="Save" />
+            <MenuItem mnemonicParsing="false" onAction="#onSaveAs" text="Save As…" />
+            <MenuItem mnemonicParsing="false" onAction="onQuit" text="Quit" />
           </items>
         </Menu>
       </menus>

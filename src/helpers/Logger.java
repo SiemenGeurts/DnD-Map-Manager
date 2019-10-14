@@ -21,13 +21,13 @@ public class Logger {
 	}
 	
 	public static void println(String s) {
-		System.out.println(s);
+		Logger.println(s);
 		if(printer != null)
 			printer.println(s);
 	}
 	
 	public static void println(Object obj) {
-		System.out.println(obj);
+		Logger.println(obj);
 		if(printer != null)
 			printer.println(obj);
 	}

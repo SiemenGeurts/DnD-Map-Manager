@@ -127,6 +127,8 @@ public class ActionDecoder {
 					protected void execute() {
 						Entity e = Entity.decode((String) arg.get(0));
 						handler.map.addEntity(e);
+						if(!isServer && e.getType()>=0 && AssetManager.textures.get(e.getType())==null)
+							ClientGameHandler.instance.requestTexture(e.getType());
 					}
 				};
 			default:

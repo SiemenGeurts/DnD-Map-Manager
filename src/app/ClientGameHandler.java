@@ -93,6 +93,7 @@ public class ClientGameHandler extends GameHandler {
 								if(m.getMessage() instanceof SerializableImage) {
 									SerializableImage si = (SerializableImage) m.getMessage();
 									AssetManager.textures.put(si.getId(), si.getImage());
+									controller.redraw();
 								} else if(m.getMessage() instanceof String)
 									ActionDecoder.decode((String) m.getMessage()).attach();
 								else

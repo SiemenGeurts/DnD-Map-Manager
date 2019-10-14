@@ -66,8 +66,11 @@ public class JSONManager {
 		try {
 			JSONObject players = json.getJSONObject("players");
 			ArrayList<EntityPrefab> playerList = new ArrayList<>(players.length());
-			for(String key : players.keySet())
+			for(String key : players.keySet()) {
+				EntityPrefab p = getEntity(players.getJSONObject(key));
+				p.isPlayer = true;
 				playerList.add(getEntity(players.getJSONObject(key)));
+			}
 			return playerList;
 		} catch(JSONException e) {
 			ErrorHandler.handle("Could not load players.", e);
