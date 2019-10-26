@@ -34,7 +34,7 @@
             <SeparatorMenuItem mnemonicParsing="false" />
             <MenuItem mnemonicParsing="false" onAction="#onSave" text="Save" />
             <MenuItem mnemonicParsing="false" onAction="#onSaveAs" text="Save As…" />
-            <MenuItem mnemonicParsing="false" onAction="onQuit" text="Quit" />
+            <MenuItem mnemonicParsing="false" onAction="#onQuit" text="Quit" />
           </items>
         </Menu>
       </menus>

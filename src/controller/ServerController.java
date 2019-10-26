@@ -99,7 +99,7 @@ public class ServerController extends MapEditorController {
 	public void handleClick(Point p, MouseEvent event) {
 		if(inPreview) return;
 		Entity entity = null;
-		if((entity = currentMap.getEntity(getTileOnPosition(event.getX(), event.getY()))) != null) {
+		if((entity = getMap().getEntity(getTileOnPosition(event.getX(), event.getY()))) != null) {
 			selected = entity;
 			propeditor.setProperties(entity.getProperties());
 		} else {
@@ -153,17 +153,16 @@ public class ServerController extends MapEditorController {
 		inPreview = !inPreview;
 		if(inPreview) {
 			btnTogglePreview.setText("Hide Preview");
-			currentMap = previewMap;
+			setMap(previewMap);
 		} else {
-			currentMap = oldMap;
+			setMap(oldMap);
 			btnTogglePreview.setText("Show Preview");
 		}
-		redraw();
 	}
 	
 	public void showPreview(Map previewMap) {
 		if(!inPreview) {
-			oldMap = currentMap;
+			oldMap = getMap();
 			this.previewMap = previewMap;
 			togglePreview();
 			hboxPreviewTools.setVisible(true);
@@ -172,9 +171,8 @@ public class ServerController extends MapEditorController {
 	
 	public void disablePreview() {
 		inPreview = false;
-		currentMap = oldMap;
+		setMap(oldMap);
 		hboxPreviewTools.setVisible(false);
-		redraw();
 	}
 	
 	public void reconnectClicked(ActionEvent e) {

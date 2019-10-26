@@ -14,20 +14,20 @@ public class Logger {
 		try {
 			printer = new PrintStream(new FileOutputStream(logPath), true);
 			oldSysErr = System.err;
-			System.setErr(printer);
+			//System.setErr(printer);
 		} catch (FileNotFoundException e) {
 			Dialogs.warning("Could not create log file.", false);
 		}
 	}
 	
 	public static void println(String s) {
-		Logger.println(s);
+		System.out.println(s);
 		if(printer != null)
 			printer.println(s);
 	}
 	
 	public static void println(Object obj) {
-		Logger.println(obj);
+		System.out.println(obj);
 		if(printer != null)
 			printer.println(obj);
 	}

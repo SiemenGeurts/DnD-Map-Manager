@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import data.mapdata.Map;
 import helpers.Logger;
 import javafx.scene.image.Image;
 
@@ -31,8 +32,14 @@ public class Server {
 	}
 	
 	public void write(Image image, int id) throws IOException {
-		Logger.println(getTimeStamp() + " writing image");
+		Logger.println(getTimeStamp() + "writing image");
 		ostream.writeObject(new Message<SerializableImage>(new SerializableImage(image, id)));
+		ostream.flush();
+	}
+	
+	public void write(Map map) throws IOException {
+		Logger.println(getTimeStamp() + "writing map");
+		ostream.writeObject(new Message<SerializableMap>(new SerializableMap(map)));
 		ostream.flush();
 	}
 	
@@ -46,7 +53,7 @@ public class Server {
 		try {
 			Message<?> m = (Message<?>) istream.readObject();
 			if(c.isInstance(m.getMessage())) {
-				Logger.println(getTimeStamp() + " reading: " + m.getMessage());
+				Logger.println(getTimeStamp() + "reading: " + m.getMessage());
 				return c.cast(m.getMessage());
 			}
 		} catch (ClassNotFoundException e) {

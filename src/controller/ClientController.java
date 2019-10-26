@@ -54,7 +54,7 @@ public class ClientController extends MapController {
 	protected void handleClick(Point p, MouseEvent event) {
 		Logger.println("Mouse clicked: " + p + " : " + event.isPrimaryButtonDown());
     	if(event.getButton() == MouseButton.PRIMARY || event.isSynthesized()) {
-    		Entity e = currentMap.getEntity(p);
+    		Entity e = getMap().getEntity(p);
     		if(e != null)
     			Logger.println("Clicked on entity: " + e.getName() + " NPC: " + e.isNPC());
     		if(e == null && selected != null) {

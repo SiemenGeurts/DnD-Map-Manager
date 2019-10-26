@@ -9,7 +9,6 @@ import java.util.Stack;
 
 import actions.Action;
 import actions.ActionDecoder;
-import actions.ActionEncoder;
 import comms.Server;
 import controller.MainMenuController;
 import controller.SceneManager;
@@ -200,8 +199,7 @@ public class ServerGameHandler extends GameHandler {
 
 	public void resync() {
 		try {
-			server.write(ActionEncoder.reset());
-			sendMap();
+			server.write(map);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -275,12 +273,7 @@ public class ServerGameHandler extends GameHandler {
 	public boolean sendMap() {
 		Logger.println("[SERVER] sending map.");
 		try {
-			server.write(map.getBackground() != null);
-			server.write(map.encode(false));
-			if (map.getBackground() != null) {
-				server.write(map.getScaling().name().toLowerCase());
-				server.write(map.getBackground(),-6);
-			}
+			server.write(map);
 		} catch (IOException e) {
 			ErrorHandler.handle("Could not send map. Please try again", e);
 			return false;

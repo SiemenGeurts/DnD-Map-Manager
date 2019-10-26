@@ -32,7 +32,7 @@ public class MapController extends SceneController {
 	//private int OFFSET_SPEED = TILE_SIZE + 10;
 	private double SCALING_FACTOR = 1.3;
 	private double offsetX, offsetY;
-	protected Map currentMap;
+	private Map currentMap;
 	
 	private Point2D lastDragCoords;
 	protected Point2D mousePressedCoords;
@@ -53,24 +53,30 @@ public class MapController extends SceneController {
 		((AnchorPane)canvas.getParent()).heightProperty().addListener((obs, oldVal, newVal) -> {
 			canvas.heightProperty().setValue(newVal);
 		});
-    }
-    
-    public void setMap(Map map) {
-    	currentMap = map;
 		canvas.widthProperty().addListener(event -> {
 			onResize();
 		});
 		canvas.heightProperty().addListener(event -> {
 			onResize();
 		});
-		if(map.getBackground() != null)
-			imagebounds = ScalingBounds.getBounds(canvas.getWidth(), canvas.getHeight(), map.getBackground(), map.getScaling());
+    }
+    
+    public Map getMap() {
+    	return currentMap;
+    }
+    
+    public void setMap(Map map) {
+    	currentMap = map;
+    	calculateBackgroundBounds();
 		redraw();
     }
     
-    private void onResize() {
+    public void calculateBackgroundBounds() {    	
     	if(currentMap.getBackground() != null)
-			imagebounds = ScalingBounds.getBounds(canvas.getWidth(), canvas.getHeight(), currentMap.getBackground(), currentMap.getScaling());
+    		imagebounds = ScalingBounds.getBounds(currentMap.getWidth()*TILE_SIZE*SCALE, currentMap.getHeight()*TILE_SIZE*SCALE, currentMap.getBackground(), currentMap.getScaling());
+    }
+    
+    private void onResize() {
     	redraw();
     }
     /**
@@ -162,13 +168,11 @@ public class MapController extends SceneController {
 	}
 	
 	void drawBackground() {
-		if(currentMap.getBackground() != null) {
+		gc.setFill(Color.WHITE);
+		gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+		if(currentMap.getBackground() != null)
 			gc.drawImage(currentMap.getBackground(),imagebounds.getSourceX(), imagebounds.getSourceY(), imagebounds.getSourceWidth(), imagebounds.getSourceHeight(),
-					imagebounds.getDestX(), imagebounds.getDestY(), imagebounds.getDestWidth(), imagebounds.getDestHeight());
-		} else {
-			gc.setFill(Color.WHITE);
-			gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-		}
+					imagebounds.getDestX()-offsetX, imagebounds.getDestY()-offsetY, imagebounds.getDestWidth(), imagebounds.getDestHeight());
 	}
 	
 	public void redraw() {

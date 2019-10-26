@@ -15,7 +15,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.imageio.ImageIO;
-import javax.swing.filechooser.FileSystemView;
 
 import app.MapManagerApp;
 import javafx.embed.swing.SwingFXUtils;
@@ -71,7 +70,6 @@ public class AssetManager {
 	}
 	
 	private static boolean removeFile(int id) {
-		
 		new File(MapManagerApp.defaultDirectory + "/DnD Map Manager/Textures/" + id + ".png").delete();
 		try {
 			writeTexturesToDisk();			
@@ -125,7 +123,4 @@ public class AssetManager {
 	private static boolean isWindows() {
 		return System.getProperty("os.name").startsWith("Windows");
 	}
-
-	
-	
 }

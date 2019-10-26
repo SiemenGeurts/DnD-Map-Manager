@@ -1,6 +1,10 @@
 package actions;
 
+import java.beans.Encoder;
+import java.util.Base64;
+
 import data.mapdata.Entity;
+import data.mapdata.Map;
 
 /**
  * Possible actions:

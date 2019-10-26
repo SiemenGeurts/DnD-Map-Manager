@@ -12,6 +12,7 @@ import data.mapdata.Tile;
 import data.mapdata.prefabs.EntityPrefab;
 import data.mapdata.prefabs.Prefab;
 import data.mapdata.prefabs.TilePrefab;
+import gui.Dialogs;
 import gui.ErrorHandler;
 import helpers.Logger;
 import helpers.Utils;
@@ -28,7 +29,7 @@ public class MapEditorController extends MapController {
 	private Prefab<?> toBePlaced;
 	
 	public File currentFile = null;
-	private FileChooser mapChooser;
+	protected FileChooser mapChooser;
 	
 	protected PropertyEditorController propeditor;
 	private Entity currentlyEdited;
@@ -85,20 +86,20 @@ public class MapEditorController extends MapController {
     		entityMenu.hide();
     	if(event.getButton() == MouseButton.PRIMARY) {
     		if(event.isControlDown()) {
-    			currentMap.setTile(p.x, p.y, new Tile(PresetTile.EMPTY));
+    			getMap().setTile(p.x, p.y, new Tile(PresetTile.EMPTY));
     		} else {
     			//check if the clicked tile contains an entity
     			//if it does: set the editorpane to the entity
     			//if it doesn't: place an instance of toBePlaced on this tile.
     			Entity e;
-    			if((e=currentMap.getEntity(p))!=null)
+    			if((e=getMap().getEntity(p))!=null)
     				showProperties(e);
     			else if(toBePlaced != null) {
 		    		if(toBePlaced instanceof TilePrefab) {
-		    			currentMap.setTile(p.x, p.y, ((TilePrefab) toBePlaced).getInstance(p.x, p.y));
+		    			getMap().setTile(p.x, p.y, ((TilePrefab) toBePlaced).getInstance(p.x, p.y));
 		    		} else if(toBePlaced instanceof EntityPrefab) {
 		    			Entity entity;
-		    			currentMap.addEntity(entity=((EntityPrefab)toBePlaced).getInstance(p.x, p.y));
+		    			getMap().addEntity(entity=((EntityPrefab)toBePlaced).getInstance(p.x, p.y));
 		    			showProperties(entity);
 		    			if(this instanceof ServerController)
 		    				toBePlaced = null;
@@ -134,7 +135,7 @@ public class MapEditorController extends MapController {
 	void onSave(){
 		if(currentFile != null)
 			try {
-				Utils.saveMap(currentFile, currentMap);
+				Utils.saveMap(currentFile, getMap());
 			} catch(IOException e) {
 				ErrorHandler.handle("Map could not be saved!", e);				
 			}
@@ -146,8 +147,11 @@ public class MapEditorController extends MapController {
 	void onSaveAs() {
 		mapChooser.setTitle("Save map");
 		currentFile = mapChooser.showSaveDialog(SceneManager.getPrimaryStage());
+		if(currentFile == null) {
+			Dialogs.warning("Map was not saved.", true);
+		}
 		try {
-			Utils.saveMap(currentFile, currentMap);
+			Utils.saveMap(currentFile, getMap());
 		} catch(IOException e) {
 			ErrorHandler.handle("Map could not be saved!", e);
 		}
@@ -157,6 +161,7 @@ public class MapEditorController extends MapController {
 	void onOpen() throws IOException {
 		mapChooser.setTitle("Load map");
 		currentFile = mapChooser.showOpenDialog(SceneManager.getPrimaryStage());
+		if(currentFile == null) return;
 		Map map = Utils.loadMap(currentFile);
 		if(map != null)
 			setMap(map);
@@ -186,19 +191,19 @@ public class MapEditorController extends MapController {
 			cut.setOnAction(event -> {
 				if(hideProperties()) {
 					copied = selected;
-					currentMap.removeEntity(selected);
+					getMap().removeEntity(selected);
 				}
 			});
 			copy.setOnAction(event -> copied = selected);
 			paste.setOnAction(event -> {
 				Entity e = copied.copy();
 				e.setLocation(selectedTile);
-				currentMap.addEntity(e);
+				getMap().addEntity(e);
 				showProperties(e);
 			});
 			delete.setOnAction(event -> {
 				if(hideProperties())
-					currentMap.removeEntity(selected);
+					getMap().removeEntity(selected);
 			});
 			save.setOnAction(event -> {});
 			setOnHidden(event -> redraw());
@@ -214,7 +219,7 @@ public class MapEditorController extends MapController {
 		
 		public void show(double canvasX, double canvasY, double screenX, double screenY) {
 			selectedTile = getTileOnPosition(canvasX, canvasY);
-			Entity e = currentMap.getEntity(selectedTile);
+			Entity e = getMap().getEntity(selectedTile);
 			if(e!= null) {
 				show(e, screenX, screenY);
 			} else {

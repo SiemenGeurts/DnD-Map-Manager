@@ -14,7 +14,7 @@ import data.mapdata.Tile;
 import gui.ErrorHandler;
 import gui.NumericFieldListener;
 import helpers.JSONManager;
-import helpers.ScalingBounds;
+import helpers.Logger;
 import helpers.ScalingBounds.ScaleMode;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
@@ -120,24 +120,24 @@ public class MapBuilderController extends MapEditorController {
 			}	
 			anchor = new Point(1, 1);
 			setSelectedAnchor(1, 1);
-			tfWidth.setText(""+currentMap.getWidth());
-			tfHeight.setText(""+currentMap.getHeight());
+			tfWidth.setText(""+getMap().getWidth());
+			tfHeight.setText(""+getMap().getHeight());
 			tfWidth.textProperty().addListener(new NumericFieldListener(tfWidth, false));
 			tfHeight.textProperty().addListener(new NumericFieldListener(tfHeight, true));
 			
 			//Background image stuff
 			imgChooser = new FileChooser();
-			imgChooser.setTitle("Choose background image");
-			imgChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files (*.png, *.jpg)", "*.png", "*.jpg"));
+			//imgChooser.setTitle("Choose background image");
+			//imgChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files (*.png, *.jpg)", "*.png", "*.jpg"));
 			tgScaling.selectedToggleProperty().addListener((obs, oldVal, newVal) -> {
 				if(oldVal==newVal) return;
 				if(newVal==rbFit)
-					currentMap.setScaling(ScaleMode.FIT);
+					getMap().setScaling(ScaleMode.FIT);
 				else if(newVal==rbExtend)
-					currentMap.setScaling(ScaleMode.EXTEND);
+					getMap().setScaling(ScaleMode.EXTEND);
 				else
-					currentMap.setScaling(ScaleMode.STRETCH);
-				imagebounds = ScalingBounds.getBounds(canvas.getWidth(), canvas.getHeight(), currentMap.getBackground(), currentMap.getScaling());
+					getMap().setScaling(ScaleMode.STRETCH);
+				calculateBackgroundBounds();
 				redraw();
 			});
 			
@@ -159,13 +159,15 @@ public class MapBuilderController extends MapEditorController {
 	
 	@FXML
 	void onBtnChooseImageClicked(ActionEvent e) {
+		Logger.println("Opening file dialog");
 		File f = imgChooser.showOpenDialog(SceneManager.getPrimaryStage());
+		Logger.println("Selected file " + f);
 		if(f == null) return;
 		imgChooser.setInitialDirectory(new File(f.getParent()));
 		try {
 			Image img = SwingFXUtils.toFXImage(ImageIO.read(f), null);
-			imagebounds = ScalingBounds.getBounds(canvas.getWidth(), canvas.getHeight(), img, currentMap.getScaling());
-			currentMap.setBackground(img);
+			getMap().setBackground(img);
+			calculateBackgroundBounds();
 		} catch (IOException e1) {
 			ErrorHandler.handle("Could not read image.", e1);
 			e1.printStackTrace();
@@ -193,8 +195,8 @@ public class MapBuilderController extends MapEditorController {
 	
 	@FXML
 	public void onApplyExpansion(ActionEvent e) {
-		int width = currentMap.getWidth();
-		int height = currentMap.getHeight();
+		int width = getMap().getWidth();
+		int height = getMap().getHeight();
 		int newWidth = Integer.parseInt(tfWidth.getText());
 		int newHeight = Integer.parseInt(tfHeight.getText());
 		if(newWidth<width || newHeight<height) {
@@ -243,7 +245,7 @@ public class MapBuilderController extends MapEditorController {
 		
 		for(int i = y1; i<y2; i++)
 			for(int j = x1; j<x2; j++)
-				tiles[i-yStart][j-xStart] = currentMap.getTile(j, i);
+				tiles[i-yStart][j-xStart] = getMap().getTile(j, i);
 
 		if(newWidth>width) {
 			xStart = -xStart;
@@ -263,8 +265,8 @@ public class MapBuilderController extends MapEditorController {
 				for(int x = xStart; x < width+xStart; x++)
 					tiles[y][x] = new Tile(PresetTile.EMPTY);
 		}
-		
-		currentMap.setTiles(tiles);
+		getMap().setTiles(tiles);
+		calculateBackgroundBounds();
 		redraw();
 	}
 	
