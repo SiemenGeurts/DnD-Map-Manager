@@ -22,6 +22,7 @@ import gui.Dialogs;
 import gui.ErrorHandler;
 import helpers.AssetManager;
 import helpers.Logger;
+import helpers.codecs.Encoder;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -65,6 +66,17 @@ public class ClientGameHandler extends GameHandler {
 			ErrorHandler.handle("Well, something went horribly wrong...", e);
 		}
 		
+		try {
+			ActionDecoder.setVersion(client.read(Integer.class));
+		} catch (IOException e1) {
+			ActionDecoder.setVersion(Encoder.VERSION_ID);
+			ErrorHandler.handle("Couldn't receive version id, using current.", e1);
+		}
+		try {
+			client.write(Encoder.VERSION_ID);
+		} catch(IOException e) {
+			ErrorHandler.handle("Couldn't send version id.", e);
+		}
 		loadTextures();
 		loadMap();
 

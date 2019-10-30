@@ -118,6 +118,10 @@ public class Map {
 	protected ArrayList<Entity> getAllEntities() {
 		return entities;
 	}
+	
+	public void setEntities(ArrayList<Entity> entities) {
+		this.entities = entities;
+	}
 
 	public Map copy() {
 		Tile[][] copiedTiles = new Tile[height][width];
@@ -129,39 +133,6 @@ public class Map {
 		copy.setBackground(background);
 		copy.setScaling(mode);
 		return copy;
-	}
-	
-	public String encode(boolean includeEntityData) {
-		StringBuilder builder = new StringBuilder();
-		builder.append(tiles.length).append(':')
-				.append(tiles[0].length);
-		for(int i = 0; i < tiles.length; i++)
-			for(int j = 0; j < tiles[0].length; j++)
-				builder.append(':').append(tiles[i][j].getType());
-
-		builder.append(';').append(entities.size()).append(':');
-		for(Entity e : entities)
-			builder.append(e.encode(includeEntityData)).append(':');
-		return builder.toString();
-	}
-	
-	public static Map decode(String string) {
-		int index = string.indexOf(";");
-		String[] s = string.substring(0, index).split(":");
-		Tile[][] tiles = new Tile[Integer.valueOf(s[0])][Integer.valueOf(s[1])];
-		int rowlen = tiles[0].length;
-		for(int i = 0; i < tiles.length; i++)
-			for(int j = 0; j < rowlen; j++)
-				tiles[i][j] = new Tile(Integer.valueOf(s[i*rowlen+j+2]));
-		Map map = new Map(tiles);
-		
-		s = string.substring(index+1).split(":");
-		ArrayList<Entity> entities = new ArrayList<>(Integer.valueOf(s[0]));
-		for(int i = 1; i < s.length; i++) {
-			entities.add(Entity.decode(s[i]));
-		}
-		map.entities = entities;
-		return map;
 	}
 	
 	public static Map emptyMap(int width, int height) {

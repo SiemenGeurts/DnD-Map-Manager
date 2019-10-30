@@ -21,6 +21,7 @@ import gui.ErrorHandler;
 import helpers.AssetManager;
 import helpers.Logger;
 import helpers.Utils;
+import helpers.codecs.Encoder;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -226,6 +227,8 @@ public class ServerGameHandler extends GameHandler {
 	public void acceptClient() {
 		try {
 			server.waitForClient();
+			server.write(Encoder.VERSION_ID);
+			ActionDecoder.setVersion(server.read(Integer.class));
 			Alert alert = new Alert(AlertType.INFORMATION);
 			alert.setTitle("Connection established.");
 			alert.setHeaderText("A client connected to the game.");

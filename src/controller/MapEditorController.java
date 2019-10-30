@@ -78,6 +78,10 @@ public class MapEditorController extends MapController {
     	}
     	return true;
     }
+    
+    protected Entity getEditedEntity() {
+    	return currentlyEdited;
+    }
 
     @Override
     protected void handleClick(Point p, MouseEvent event) {

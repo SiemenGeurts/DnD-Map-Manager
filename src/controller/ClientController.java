@@ -21,6 +21,8 @@ public class ClientController extends MapController {
 	private CheckBox chkboxBuffer;
 	@FXML
 	private Button btnPush;
+	@FXML
+	private CheckBox chkboxViewGrid;
 	
 	public void setGameHandler(ClientGameHandler _gameHandler) {
 		gameHandler = _gameHandler;
@@ -43,6 +45,7 @@ public class ClientController extends MapController {
 				gameHandler.enableUpdateBuffer();
 			}
 		});
+		chkboxViewGrid.selectedProperty().addListener((obs, oldVal, newVal) -> setViewGrid(newVal));
 	}
 	
 	@FXML

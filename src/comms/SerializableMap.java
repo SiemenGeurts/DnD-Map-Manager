@@ -7,11 +7,14 @@ import java.io.Serializable;
 
 import data.mapdata.Map;
 import helpers.ScalingBounds.ScaleMode;
+import helpers.codecs.Decoder;
+import helpers.codecs.Encoder;
 
 public class SerializableMap implements Serializable {
 	private static final long serialVersionUID = 7313703191129654465L;
 	transient Map map;
 	boolean hasBackground;
+	int encodingVersion;
 	ScaleMode scaling;
 	SerializableImage background;
 	
@@ -23,6 +26,7 @@ public class SerializableMap implements Serializable {
 			scaling = map.getScaling();
 		} else
 			hasBackground = false;
+		encodingVersion = Encoder.VERSION_ID;
 	}
 	
 	public Map getMap() {
@@ -31,7 +35,7 @@ public class SerializableMap implements Serializable {
 	
 	private void writeObject(ObjectOutputStream stream) throws IOException {
 		stream.defaultWriteObject();
-		String s = map.encode(false);
+		String s = Encoder.encode(map, false);
 		System.out.println("encoded map: " + s);
 		stream.writeObject(s.getBytes());
 	}
@@ -40,7 +44,7 @@ public class SerializableMap implements Serializable {
 		stream.defaultReadObject();
 		String s = new String((byte[])stream.readObject());
 		System.out.println("map: " + s);
-		map = Map.decode(s);
+		map = Decoder.getDecoder(encodingVersion).decodeMap(s);
 		if(hasBackground)  {
 			map.setBackground(background.getImage());
 			map.setScaling(scaling);

@@ -25,6 +25,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
@@ -68,6 +69,8 @@ public class MapBuilderController extends MapEditorController {
 	private RadioButton rbStretch;
 	@FXML
 	private ToggleGroup tgScaling;
+	@FXML
+	private CheckMenuItem chkboxViewGrid;
 	
 	ToolkitController tkController;
 	ObjectSelectorController osController;
@@ -140,6 +143,8 @@ public class MapBuilderController extends MapEditorController {
 				calculateBackgroundBounds();
 				redraw();
 			});
+			
+			chkboxViewGrid.selectedProperty().addListener((obs, oldVal, newVal) -> setViewGrid(newVal));
 			
 		} catch (IOException e) {
 			e.printStackTrace();

@@ -14,15 +14,20 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import app.MapManagerApp;
-import data.mapdata.Property;
 import data.mapdata.prefabs.EntityPrefab;
 import data.mapdata.prefabs.TilePrefab;
 import gui.ErrorHandler;
+import helpers.codecs.JSONDecoder;
+import helpers.codecs.JSONEncoder;
 
 public class JSONManager {
 
 	public static JSONObject json;
-
+	public static final int VERSION_ID = 1;
+	private static JSONEncoder encoder = new JSONEncoder();
+	private static JSONDecoder decoder = JSONDecoder.get(VERSION_ID);
+	
+	
 	public static void initialize() throws IOException {
 		File f = new File(MapManagerApp.defaultDirectory + "/DnD Map Manager/data.json");
 		if (!f.exists())
@@ -65,7 +70,7 @@ public class JSONManager {
 		ArrayList<EntityPrefab> entityList = new ArrayList<>(entities.length());
 		for (String key : entities.keySet())
 			try {
-				entityList.add(getEntity(entities.getJSONObject(key)));
+				entityList.add(decoder.decodeEntity(entities.getJSONObject(key)));
 			} catch (JSONException e) {
 				ErrorHandler.handle("Could not load enemy " + key + ".", e);
 				// return null;
@@ -84,9 +89,9 @@ public class JSONManager {
 		ArrayList<EntityPrefab> playerList = new ArrayList<>(players.length());
 		for (String key : players.keySet()) {
 			try {
-				EntityPrefab p = getEntity(players.getJSONObject(key));
+				EntityPrefab p = decoder.decodeEntity(players.getJSONObject(key));
 				p.isPlayer = true;
-				playerList.add(getEntity(players.getJSONObject(key)));
+				playerList.add(p);
 			} catch (JSONException e) {
 				ErrorHandler.handle("Could not load players.", e);
 			}
@@ -94,35 +99,8 @@ public class JSONManager {
 		return playerList.size() > 0 ? playerList : null;
 	}
 
-	private static EntityPrefab getEntity(JSONObject json) {
-		JSONObject properties = json.getJSONObject("properties");
-		ArrayList<Property> propertylist = new ArrayList<>(properties.length());
-		for (String pkey : properties.keySet())
-			propertylist.add(new Property(pkey, properties.getString(pkey)));
-		EntityPrefab ep = new EntityPrefab(json.getInt("type"), json.getInt("width"), json.getInt("height"),
-				propertylist, json.getBoolean("bloodied"), false,
-				(json.has("description") ? json.getString("description") : ""), json.getString("name"));
-		Logger.println("Loaded entity: " + ep);
-		return ep;
-	}
-
-	private static JSONObject createEntity(EntityPrefab prefab) {
-		JSONObject entity = new JSONObject();
-		entity.put("width", prefab.width);
-		entity.put("height", prefab.height);
-		entity.put("bloodied", prefab.bloodied);
-		entity.put("type", prefab.getID());
-		entity.put("description", prefab.description);
-		entity.put("name", prefab.name);
-		JSONObject properties = new JSONObject();
-		for (Property p : prefab.getProperties())
-			properties.put(p.getKey(), p.getValue());
-		entity.put("properties", properties);
-		return entity;
-	}
-
 	public static void addEntity(EntityPrefab prefab) {
-		JSONObject entity = createEntity(prefab);
+		JSONObject entity = encoder.encode(prefab);
 		JSONObject entities;
 		try {
 			entities = json.getJSONObject("entities");
@@ -136,7 +114,7 @@ public class JSONManager {
 	}
 
 	public static void addPlayer(EntityPrefab prefab) {
-		JSONObject player = createEntity(prefab);
+		JSONObject player = encoder.encode(prefab);
 		JSONObject players;
 		try {
 			players = json.getJSONObject("players");
@@ -164,7 +142,7 @@ public class JSONManager {
 
 	public static void save() {
 		try {
-			json.put("version_id", MapManagerApp.VERSION_ID);
+			json.put("version_id", VERSION_ID);
 			FileWriter writer = new FileWriter(new File(MapManagerApp.defaultDirectory + "/DnD Map Manager/data.json"),
 					false);
 			writer.write(json.toString());

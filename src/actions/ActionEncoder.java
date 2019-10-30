@@ -1,10 +1,7 @@
 package actions;
 
-import java.beans.Encoder;
-import java.util.Base64;
-
 import data.mapdata.Entity;
-import data.mapdata.Map;
+import helpers.codecs.Encoder;
 
 /**
  * Possible actions:
@@ -43,7 +40,7 @@ public class ActionEncoder {
 	}
 	
 	public static String addEntity(Entity e, boolean includeProperties) {
-		return "add <" + e.encode(includeProperties) + ">";
+		return "add <" + Encoder.encode(e,includeProperties) + ">";
 	}
 	
 	public static String requestTexture(int id) {

@@ -49,7 +49,7 @@ public class ToolkitController {
 	
 	public void initialize() {
 		List<FileChooser.ExtensionFilter> extensionFilters = fc.getExtensionFilters();
-		extensionFilters.add(new FileChooser.ExtensionFilter("Image files (*.png)", "*.png"));
+		extensionFilters.add(new FileChooser.ExtensionFilter("Image files (*.png, *.jpg)", "*.png", "*.jpg"));
 		try {
 			FXMLLoader loader = new FXMLLoader(ServerGameHandler.class.getResource("/assets/fxml/PropertyEditor.fxml"));
 			propertyEditor = (AnchorPane) new Scene(loader.load()).getRoot();

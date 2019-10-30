@@ -54,6 +54,7 @@ public class EntityPrefab extends Prefab<Entity> {
 		entity.setName(name);
 		if(properties != null)
 			entity.setProperties(new ArrayList<>(properties.stream().map(prop -> prop.copy()).collect(Collectors.toList())));
+		System.out.println("Created instance " + entity);
 		return entity;
 	}
 }	

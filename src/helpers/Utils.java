@@ -15,6 +15,8 @@ import javax.imageio.ImageIO;
 
 import data.mapdata.Map;
 import helpers.ScalingBounds.ScaleMode;
+import helpers.codecs.Decoder;
+import helpers.codecs.Encoder;
 import javafx.application.Application.Parameters;
 import javafx.embed.swing.SwingFXUtils;
 
@@ -30,7 +32,14 @@ public class Utils {
 			lines.add(line);
 		}
 		br.close();
-		Map m = Map.decode(lines.get(0));
+		int encodingVersion = 1;
+		try {
+			encodingVersion = Integer.valueOf(lines.get(0));
+		} catch(NumberFormatException e) {
+			encodingVersion = 1;
+		}
+		Decoder decoder = Decoder.getDecoder(encodingVersion);
+		Map m = decoder.decodeMap(lines.get(0));
 		if(lines.size()>1) {
 			byte[] imgbytes = Base64.getDecoder().decode(lines.get(1).getBytes());
 			BufferedImage image = ImageIO.read(new ByteArrayInputStream(imgbytes));
@@ -42,7 +51,8 @@ public class Utils {
 	
 	public static void saveMap(File mapFile, Map map) throws IOException {
 		FileWriter writer = new FileWriter(mapFile, false);
-		writer.write(map.encode(true)+System.lineSeparator());
+		writer.write(Encoder.VERSION_ID);
+		writer.write(Encoder.encode(map, true)+System.lineSeparator());
 		if(map.getBackground() != null) {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			ImageIO.write(SwingFXUtils.fromFXImage(map.getBackground(), null), "png", baos);
@@ -62,6 +72,7 @@ public class Utils {
 	}
 	
 	public static boolean isValidIP(String ip) {
+		if(ip == null) return false;
 		if(!ip.matches("\\A(?:(?:[0-9]{1,3}\\.){3}([0-9]{1,3})(:[0-9]*)?|localhost(:[0-9]*)?)\\z"))
 			return false;
 		int index = ip.indexOf(':');

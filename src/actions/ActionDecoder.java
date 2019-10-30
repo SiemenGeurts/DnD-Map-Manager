@@ -10,10 +10,16 @@ import data.mapdata.Entity;
 import data.mapdata.Map;
 import data.mapdata.PresetTile;
 import helpers.AssetManager;
+import helpers.codecs.Decoder;
 
 public class ActionDecoder {
 	
 	static GameHandler handler;
+	private static Decoder decoder;
+	
+	public static void setVersion(int version) {
+		decoder = Decoder.getDecoder(version);
+	}
 	
 	public static void setGameHandler(GameHandler _handler) {
 		handler = _handler;
@@ -125,7 +131,7 @@ public class ActionDecoder {
 				return new Action(0f) {
 					@Override
 					protected void execute() {
-						Entity e = Entity.decode((String) arg.get(0));
+						Entity e = decoder.decodeEntity((String) arg.get(0));
 						handler.map.addEntity(e);
 						if(!isServer && e.getType()>=0 && AssetManager.textures.get(e.getType())==null)
 							ClientGameHandler.instance.requestTexture(e.getType());

@@ -3,9 +3,6 @@ package data.mapdata;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Base64.Decoder;
-import java.util.Base64.Encoder;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -22,9 +19,7 @@ public class Entity {
 	private boolean bloodied = false;
 	private boolean isNPC = false;
 	private ArrayList<Property> properties;
-	private String description, name;
-	private static final Encoder encoder = Base64.getEncoder();
-	private static final Decoder decoder = Base64.getDecoder();
+	private String description = "", name;
 	
 	public Entity(Integer _type, int _x, int _y, int _width, int _height, boolean _isNPC, String name) {
 		this(_type, _x, _y, _width, _height, _isNPC);
@@ -74,7 +69,7 @@ public class Entity {
 		return id;
 	}
 	
-	private void setID(int i) {
+	public void setID(int i) {
 		id = i;
 	}
 	
@@ -162,28 +157,9 @@ public class Entity {
 		return copy;
 	}
 	
-	public String encode(boolean includeProperties) {
-		StringBuilder builder = new StringBuilder();
-		builder.append(type).append(',').append((int) x).append(',').append((int) y).append(',').append(width).append(',').append(height);
-		builder.append(',').append(isNPC).append(',').append(id).append(',').append(encoder.encodeToString(description.getBytes())).append(',').append(name);
-		if(includeProperties)
-			for(Property p : properties)
-				builder.append(',').append(p.getKey()).append('/').append(encoder.encodeToString(p.getValue().getBytes()));
-		return builder.toString();
-	}
-	
-	public static Entity decode(String s) {
-		String[] arr = s.split(",");
-		int i = 0;
-		Entity entity = new Entity(Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]), Boolean.valueOf(arr[i++]));
-		entity.setID(Integer.valueOf(arr[i++]));
-		entity.setDescription(new String(decoder.decode(arr[i++])));
-		entity.setName(new String(arr[i++]));
-		for(;i < arr.length; i++) {
-			int index = arr[i].indexOf("/");
-			entity.properties.add(new Property(arr[i].substring(0, index), new String(decoder.decode(arr[i].substring(index+1)))));
-		}
-		return entity;
+	@Override
+	public String toString() {
+		return "Entity[name=" +  name + ", x=" + x + ", y=" + y + ", isNPC="+ isNPC + "]";
 	}
 	
 	public static ArrayList<Property> getDefaultProperties() {

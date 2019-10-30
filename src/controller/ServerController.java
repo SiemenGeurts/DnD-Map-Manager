@@ -16,6 +16,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.CheckMenuItem;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -42,6 +44,8 @@ public class ServerController extends MapEditorController {
     private Button btnAcceptPreview;
     @FXML
     private HBox hboxPreviewTools;
+    @FXML
+    private CheckMenuItem chkboxViewGrid;
     
     public Map previewMap, oldMap;
     public boolean inPreview = false;
@@ -66,6 +70,9 @@ public class ServerController extends MapEditorController {
 				gameHandler.enableUpdateBuffer();
 			}
 		});
+		
+		chkboxViewGrid.selectedProperty().addListener((obs, oldVal, newVal) -> setViewGrid(newVal));
+		
 		try {
 			JSONManager.initialize();
 		} catch (IOException e) {
@@ -98,16 +105,15 @@ public class ServerController extends MapEditorController {
 	@Override
 	public void handleClick(Point p, MouseEvent event) {
 		if(inPreview) return;
-		Entity entity = null;
-		if((entity = getMap().getEntity(getTileOnPosition(event.getX(), event.getY()))) != null) {
-			selected = entity;
-			propeditor.setProperties(entity.getProperties());
-		} else {
-			if(selected != null) {
-				move(selected, getTileOnPosition(event.getX(), event.getY()));
+		super.handleClick(p, event);
+		if(event.getButton() == MouseButton.PRIMARY) {
+			Entity e;
+			if((e=getMap().getEntity(p)) != null) {
+				selected = e;
+			} else if(selected != null){
+				move(selected, p);
 				selected = null;
-			} else
-				super.handleClick(p, event);
+			}
 		}
 	}
 	
@@ -115,7 +121,7 @@ public class ServerController extends MapEditorController {
 		gameHandler.sendUpdate(ActionEncoder.movement(entity.getTileX(), entity.getTileY(), p.x, p.y, entity.getID()),
 				ActionEncoder.movement(p.x, p.y, entity.getTileX(), entity.getTileY(), entity.getID()));
 		entity.setLocation(p);
-		drawMap();
+		redraw();
 	}
 	
 	@FXML

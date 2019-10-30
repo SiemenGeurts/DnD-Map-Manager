@@ -7,7 +7,6 @@ import controller.InitClassStructure.SceneController;
 import data.mapdata.Entity;
 import data.mapdata.Map;
 import data.mapdata.Tile;
-import helpers.Calculator;
 import helpers.Logger;
 import helpers.ScalingBounds;
 import javafx.fxml.FXML;
@@ -29,7 +28,7 @@ public class MapController extends SceneController {
 
 	protected int TILE_SIZE = 50;
 	protected double SCALE = 1;
-	//private int OFFSET_SPEED = TILE_SIZE + 10;
+	
 	private double SCALING_FACTOR = 1.3;
 	private double offsetX, offsetY;
 	private Map currentMap;
@@ -40,6 +39,7 @@ public class MapController extends SceneController {
 	private boolean zooming = false;
 	protected GraphicsContext gc;
 	protected ScalingBounds imagebounds;
+	protected boolean gridOn = true;
 	
     @FXML
     protected Canvas canvas;
@@ -53,12 +53,8 @@ public class MapController extends SceneController {
 		((AnchorPane)canvas.getParent()).heightProperty().addListener((obs, oldVal, newVal) -> {
 			canvas.heightProperty().setValue(newVal);
 		});
-		canvas.widthProperty().addListener(event -> {
-			onResize();
-		});
-		canvas.heightProperty().addListener(event -> {
-			onResize();
-		});
+		canvas.widthProperty().addListener(event -> onResize());
+		canvas.heightProperty().addListener(event -> onResize());
     }
     
     public Map getMap() {
@@ -79,6 +75,7 @@ public class MapController extends SceneController {
     private void onResize() {
     	redraw();
     }
+    
     /**
 	 * Sets the transform for the GraphicsContext to rotate around a pivot point.
 	 *
@@ -124,13 +121,17 @@ public class MapController extends SceneController {
 	private void zoom(double zoom, double x, double y) {
 		double oldScale = SCALE;
 		double factor=zoom;//(zoom>0 ? SCALING_FACTOR*zoom : 1/(SCALING_FACTOR*-zoom));
-		SCALE = Calculator.clamp(SCALE*factor, 0.5, 10);
+		System.out.println("Zoomed: " + factor);
+		SCALE = Math.max(0.5, SCALE*factor);//Calculator.clamp(SCALE*factor, 0.5, 10);
+		System.out.println(SCALE);
+		
 		double mapWidth = TILE_SIZE * SCALE * currentMap.getWidth();
 		double mapHeight = TILE_SIZE * SCALE * currentMap.getHeight();
 		offsetX = Math.max(-canvas.getWidth() + TILE_SIZE * SCALE, Math.min(offsetX - (x + offsetX) * (oldScale / SCALE - 1) * factor,
 				mapWidth - TILE_SIZE * SCALE));
 		offsetY = Math.max(-canvas.getHeight() + TILE_SIZE * SCALE, Math.min(offsetY - (y + offsetY) * (oldScale / SCALE - 1) * factor,
 				mapHeight - TILE_SIZE * SCALE));
+		calculateBackgroundBounds();
 		redraw();
 	}
 	
@@ -144,7 +145,7 @@ public class MapController extends SceneController {
 		for(Entity e : currentMap.getEntities())
 			if(e.getX()>=minX && e.getY()>=minY && e.getX()+e.getWidth()<=maxX && e.getY()+e.getHeight()<=maxY)
 				drawImage(e.getTexture(), e.getX(), e.getY(), e.getWidth(), e.getHeight());
-		
+		if(!gridOn) return;
 		double xBegin = Math.max(0, minX)*TILE_SIZE*SCALE-offsetX;
 		double xEnd = Math.min(tiles[0].length+1, maxX)*TILE_SIZE*SCALE-offsetX;
 		double yBegin = Math.max(0, minY)*TILE_SIZE*SCALE-offsetY;
@@ -152,10 +153,10 @@ public class MapController extends SceneController {
 		
 		gc.setStroke(Color.BLACK);
 		gc.setLineWidth(1);
-		for (double x = xBegin; x<=xEnd+0.1*TILE_SIZE; x+=TILE_SIZE*SCALE)
+		for (double x = xBegin; x <= xEnd+0.1*TILE_SIZE; x += TILE_SIZE*SCALE)
 			gc.strokeLine(x, yBegin, x, yEnd);
 			
-		for (double y = yBegin; y <= yEnd+0.1*TILE_SIZE; y+=TILE_SIZE*SCALE)
+		for (double y = yBegin; y <= yEnd+0.1*TILE_SIZE; y += TILE_SIZE*SCALE)
 			gc.strokeLine(xBegin, y, xEnd, y);
 	}
 	
@@ -210,6 +211,11 @@ public class MapController extends SceneController {
     
     protected void handleClick(Point position, MouseEvent event) {
     	
+    }
+    
+    protected void setViewGrid(boolean b) {
+    	gridOn = b;
+    	redraw();
     }
 	
 	//The zoom events are only called for touchscreen/-pad zooming
