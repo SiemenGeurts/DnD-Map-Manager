@@ -55,6 +55,10 @@ public class ServerController extends MapEditorController {
 	
 	private Entity selected = null;
 	
+
+	public static final class Key { private Key() {}}
+	private static Key key = new Key();
+	
 	@FXML
 	@Override
 	public void initialize() {
@@ -155,6 +159,13 @@ public class ServerController extends MapEditorController {
 		disablePreview();
 	}
 	
+	@Override
+	@FXML
+	void onOpen() throws IOException {
+		super.onOpen();
+		gameHandler.setMap(getMap(), key);
+	}
+	
 	public void togglePreview() {
 		inPreview = !inPreview;
 		if(inPreview) {
@@ -192,4 +203,5 @@ public class ServerController extends MapEditorController {
 	public void setGameHandler(ServerGameHandler _gameHandler) {
 		gameHandler = _gameHandler;
 	}
+	
 }

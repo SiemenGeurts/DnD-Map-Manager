@@ -33,25 +33,29 @@ public class Utils {
 		}
 		br.close();
 		int encodingVersion = 1;
+		int lineIndex = 0;
 		try {
-			encodingVersion = Integer.valueOf(lines.get(0));
+			encodingVersion = Integer.valueOf(lines.get(lineIndex));
+			lineIndex += 1;
 		} catch(NumberFormatException e) {
 			encodingVersion = 1;
+			lineIndex = 0;
 		}
 		Decoder decoder = Decoder.getDecoder(encodingVersion);
-		Map m = decoder.decodeMap(lines.get(0));
+		Map m = decoder.decodeMap(lines.get(lineIndex++));
 		if(lines.size()>1) {
-			byte[] imgbytes = Base64.getDecoder().decode(lines.get(1).getBytes());
+			byte[] imgbytes = Base64.getDecoder().decode(lines.get(lineIndex++).getBytes());
 			BufferedImage image = ImageIO.read(new ByteArrayInputStream(imgbytes));
 			m.setBackground(SwingFXUtils.toFXImage(image, null));
-			m.setScaling(lines.get(2).equals("fit") ? ScaleMode.FIT : (lines.get(2).equals("extend") ? ScaleMode.EXTEND : ScaleMode.STRETCH));
+			m.setScaling(lines.get(lineIndex).equals("fit") ? ScaleMode.FIT : (lines.get(lineIndex).equals("extend") ? ScaleMode.EXTEND : ScaleMode.STRETCH));
+			lineIndex++;
 		}
 		return m;
 	}
 	
 	public static void saveMap(File mapFile, Map map) throws IOException {
 		FileWriter writer = new FileWriter(mapFile, false);
-		writer.write(Encoder.VERSION_ID);
+		writer.write(String.valueOf(Encoder.VERSION_ID)+System.lineSeparator());
 		writer.write(Encoder.encode(map, true)+System.lineSeparator());
 		if(map.getBackground() != null) {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();

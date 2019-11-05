@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Stack;
 
@@ -361,5 +362,15 @@ public class ServerGameHandler extends GameHandler {
 
 	public ServerController getController() {
 		return controller;
+	}
+	
+	public void setMap(Map map, ServerController.Key key) {
+		Objects.requireNonNull(key);
+		this.map = map;
+		try {
+			server.write(map);
+		} catch (IOException e) {
+			ErrorHandler.handle("Could not send map. Try resyncing.", e);
+		}
 	}
 }
