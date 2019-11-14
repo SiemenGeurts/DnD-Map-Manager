@@ -2,6 +2,7 @@
 /app/
 /comms/
 /controller/
-/helpers/
 /data/
 /gui/
+/helpers/
+/assets/

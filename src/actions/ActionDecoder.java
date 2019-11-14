@@ -7,11 +7,25 @@ import app.ClientGameHandler;
 import app.GameHandler;
 import app.ServerGameHandler;
 import data.mapdata.Entity;
-import data.mapdata.Map;
 import data.mapdata.PresetTile;
 import helpers.AssetManager;
 import helpers.codecs.Decoder;
 
+
+/**
+ * Possible actions:
+ * <ul>
+ * <li>set [x,y] to (id): set tile on [x,y] to sprite (id)</li>
+ * <li>move (id) from [x1,y1] to [x2,y2]: move the entity (id) on [x1,y1] to [x2,y2]</li>
+ * <li>bloodied (id): add a 'bloodied' tag entity (id)</li>
+ * <li>clear [x,y]: clears tile [x,y] (removes sprites)</li>
+ * <li>remove (id): removes entity (id)</li>
+ * <li>add &lt;encodedEntity&gt;: decodes the entity and adds it to the map</li>
+ * <li>texture (id): requests the texture with (id)</li>
+ * </ul>
+ * @author Joep Geuskens
+ *
+ */
 public class ActionDecoder {
 	
 	static GameHandler handler;
@@ -50,13 +64,6 @@ public class ActionDecoder {
 		int index = s.indexOf(" ");
 		if(index == -1) {
 			switch(s) {
-			case "reset":
-				return new Action(0) {
-					@Override
-					protected void execute() {
-						((ClientGameHandler)handler).loadMap();
-					}
-				};
 			case "declined":
 				return new Action(0) {
 					@Override
@@ -106,7 +113,7 @@ public class ActionDecoder {
 				return new Action(isServer ? 0 : 0.5f) {
 					@Override
 					protected void execute() {
-						Entity entity = handler.map.getEntity((Point) arg.get(0));
+						Entity entity = handler.map.getEntityById((int)arg.get(0));
 						entity.setBloodied(true);
 					}
 				};
@@ -114,17 +121,14 @@ public class ActionDecoder {
 				return new Action(isServer ? 0 : 0.5f) {
 					@Override
 					protected void execute() {
-						Point p = (Point) arg.get(0);
-						Map map = handler.map;
-						map.getTile(p).setType(PresetTile.EMPTY);
+						handler.map.getTile((Point) arg.get(0)).setType(PresetTile.EMPTY);
 					}
 				};
 			case "remove":
 				return new Action(0f) {
 					@Override
 					protected void execute() {
-						Point p = (Point) arg.get(0);
-						handler.map.getTile(p).setType(PresetTile.EMPTY);
+						handler.map.removeEntity(handler.map.getEntityById((int) arg.get(0)));
 					}
 				};
 			case "add":

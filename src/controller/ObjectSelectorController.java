@@ -37,6 +37,7 @@ public class ObjectSelectorController {
 		tilePane.add(createButton(new TilePrefab(PresetTile.FLOOR), AssetManager.textures.get(PresetTile.FLOOR)));
 		tilePane.add(createButton(new TilePrefab(PresetTile.WALL), AssetManager.textures.get(PresetTile.WALL)));
 		tilePane.add(createButton(new TilePrefab(PresetTile.BUSHES), AssetManager.textures.get(PresetTile.BUSHES)));
+		tilePane.add(createButton(new TilePrefab(PresetTile.FIRE), AssetManager.textures.get(PresetTile.FIRE)));
 		tileScrollPane.setContent(tilePane);
 		entityPane = new GridSelectionPane(5);
 		entityScrollPane.setContent(entityPane);

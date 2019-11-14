@@ -30,12 +30,12 @@ public class ServerMap extends Map {
 	@Override
 	public void addEntity(Entity e) {
 		super.addEntity(e);
-		handler.sendUpdate(ActionEncoder.addEntity(e, false), ActionEncoder.removeEntity(e.getTileX(), e.getTileY()));
+		handler.sendUpdate(ActionEncoder.addEntity(e, false), ActionEncoder.removeEntity(e.getID()));
 	}
 	
 	@Override
 	public void removeEntity(Entity e) {
 		super.removeEntity(e);
-		handler.sendUpdate(ActionEncoder.removeEntity(e.getTileX(), e.getTileY()), ActionEncoder.addEntity(e, true));
+		handler.sendUpdate(ActionEncoder.removeEntity(e.getID()), ActionEncoder.addEntity(e, true));
 	}
 }
