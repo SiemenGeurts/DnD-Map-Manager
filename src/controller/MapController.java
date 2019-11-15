@@ -73,7 +73,8 @@ public class MapController extends SceneController {
     }
     
     private void onResize() {
-    	redraw();
+    	if(currentMap!=null)
+    		redraw();
     }
     
     /**

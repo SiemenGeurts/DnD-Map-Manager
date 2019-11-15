@@ -34,6 +34,8 @@ public class ServerController extends MapEditorController {
     private CheckBox chkbxBuffer;
     @FXML
     private Button btnPush;
+    @FXML
+    private Button btnSendImage;
 	
     //Preview stuff
     @FXML
@@ -136,9 +138,10 @@ public class ServerController extends MapEditorController {
 	@FXML
 	public void beginClicked(ActionEvent e) {
 		if(resync.getText().equals("begin")) {
+			gameHandler.begin();
 			reconnect.setDisable(false);
 			resync.setText("resync");
-			gameHandler.begin();
+			btnSendImage.setDisable(false);
 		} else {
 			gameHandler.resync();
 		}
@@ -157,6 +160,11 @@ public class ServerController extends MapEditorController {
 	public void onBtnDeclinePreviewClicked(ActionEvent e) {
 		gameHandler.previewDeclined();
 		disablePreview();
+	}
+	
+	@FXML
+	public void sendImageClicked(ActionEvent e) {
+		gameHandler.sendImage();
 	}
 	
 	@Override

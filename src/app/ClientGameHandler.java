@@ -31,6 +31,9 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
 
 public class ClientGameHandler extends GameHandler {
 
@@ -103,15 +106,23 @@ public class ClientGameHandler extends GameHandler {
 								Message<?> m = client.readMessage();
 								if(m.getMessage() instanceof SerializableImage) {
 									SerializableImage si = (SerializableImage) m.getMessage();
-									AssetManager.textures.put(si.getId(), si.getImage());
-									controller.redraw();
+									if((flags & DISPLAY_IMAGE) == DISPLAY_IMAGE)
+										displayImage(si.getImage());
+									else {
+										AssetManager.textures.put(si.getId(), si.getImage());
+										controller.redraw();
+									}
 								} else if(m.getMessage() instanceof SerializableMap) {
 									map = ((SerializableMap) m.getMessage()).getMap();
 									controller.setMap(map);
 									controller.redraw();
-								} else if(m.getMessage() instanceof String)
-									ActionDecoder.decode((String) m.getMessage()).attach();
-								else
+								} else if(m.getMessage() instanceof String) {
+									String message = (String) m.getMessage();
+									if(message.startsWith("!"))
+										ActionDecoder.decode(message.substring(1)).executeNow();
+									else
+										ActionDecoder.decode((String) m.getMessage()).attach();
+								} else
 									ErrorHandler.handle("Received message of type " + m.getMessage().getClass().getSimpleName() + " and didn't know what to do with it...", null);
 							}
 						} catch (IOException | InterruptedException e) {
@@ -265,5 +276,41 @@ public class ClientGameHandler extends GameHandler {
 		undoAction.attach();
 		updates = new StringBuilder();
 		undoAction = Action.empty();
+	}
+	
+	private static final int MAX_WIDTH = 1000;
+	private static final int MAX_HEIGHT = 1000;
+	private static Stage imgStage;
+	private static ImageView view;
+	private void displayImage(Image img) {
+		Runnable run = () -> {			
+			if(imgStage == null) {
+				imgStage = new Stage();
+				BorderPane pane = new BorderPane();
+				view = new ImageView(img);
+				pane.setCenter(view);
+				imgStage.setScene(new Scene(pane));
+			} else
+				view.setImage(img);
+			double width = img.getWidth();
+			double height = img.getHeight();
+			if(width>MAX_WIDTH) {
+				double f = MAX_WIDTH/width;
+				height*=f;
+				width = MAX_WIDTH;
+			}
+			if(height>MAX_HEIGHT) {
+				double f= MAX_HEIGHT/height;
+				width *= f;
+				height = MAX_HEIGHT;
+			}
+			view.maxWidth(width);
+			view.maxHeight(height);
+			imgStage.showAndWait();
+		};
+		if(Platform.isFxApplicationThread())
+			run.run();
+		else
+			Platform.runLater(run);
 	}
 }

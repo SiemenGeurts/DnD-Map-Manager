@@ -99,7 +99,7 @@ public class ToolkitController {
 		osController = controller;
 	}
 	
-	public Image getTexture() throws IOException {
+	public static Image getTexture() throws IOException {
 		File file = fc.showOpenDialog(SceneManager.getPrimaryStage());
 		if(file != null) {
 			fc.setInitialDirectory(new File(file.getParent()));

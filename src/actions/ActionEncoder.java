@@ -46,4 +46,11 @@ public class ActionEncoder {
 	public static String requestTexture(int id) {
 		return "texture (" + id + ")";
 	}
+	
+	public static String addFlag(short flag) {
+		return "!addflag <" + (char) flag + ">";
+	}
+	public static String remFlag(short flag) {
+		return "!remflag <" + (char) flag + ">";
+	}
 }

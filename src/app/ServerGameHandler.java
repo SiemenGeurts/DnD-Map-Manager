@@ -10,10 +10,12 @@ import java.util.Stack;
 
 import actions.Action;
 import actions.ActionDecoder;
+import actions.ActionEncoder;
 import comms.Server;
 import controller.MainMenuController;
 import controller.SceneManager;
 import controller.ServerController;
+import controller.ToolkitController;
 import data.mapdata.Map;
 import data.mapdata.ServerMap;
 import data.mapdata.Tile;
@@ -29,10 +31,14 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 public class ServerGameHandler extends GameHandler {
 
@@ -50,6 +56,7 @@ public class ServerGameHandler extends GameHandler {
 	Thread serverListener;
 	private Object pauseLock = new Object();
 	private boolean running = false, paused = false;
+	
 	
 	public ServerGameHandler(Server _server) {
 		super();
@@ -307,6 +314,7 @@ public class ServerGameHandler extends GameHandler {
 						e);
 			}
 	}
+	
 
 	public void undo() {
 		String[] s = undo.pop().split(";");
@@ -371,6 +379,52 @@ public class ServerGameHandler extends GameHandler {
 			server.write(map);
 		} catch (IOException e) {
 			ErrorHandler.handle("Could not send map. Try resyncing.", e);
+		}
+	}
+	
+	private Stage sendImgStage;
+	private ImageView imgView;
+	public void sendImage() {
+		try {
+			final Image tex = ToolkitController.getTexture();
+			if(sendImgStage == null) {
+				sendImgStage = new Stage();
+				BorderPane pane = new BorderPane();
+				imgView = new ImageView(tex);
+				ButtonBar bar = new ButtonBar();
+				Button btnSend = new Button("Send");
+				Button btnCancel = new Button("Cancel");
+				btnSend.setDefaultButton(true);
+				btnCancel.setCancelButton(true);
+				btnCancel.setOnAction(event -> sendImgStage.close());
+				btnSend.setOnAction(event -> {
+					try {
+						server.write(ActionEncoder.addFlag(DISPLAY_IMAGE));
+						server.write(tex, -6);
+					} catch (IOException e) {
+						ErrorHandler.handle("Could not send image.", e);
+					} finally {
+						try {
+							server.write(ActionEncoder.remFlag(DISPLAY_IMAGE));
+						} catch (IOException e) {}
+					}
+					sendImgStage.close();
+				});
+				bar.getButtons().addAll(btnSend, btnCancel);
+				pane.setCenter(imgView);
+				pane.setBottom(bar);
+				pane.setMaxWidth(600);
+				pane.setMaxHeight(600);
+				imgView.maxHeight(530);
+				imgView.maxWidth(600);
+				Scene scene = new Scene(pane);
+				sendImgStage.setScene(scene);
+				sendImgStage.setTitle("Send image?");
+			} else
+				imgView.setImage(tex);
+			sendImgStage.showAndWait();
+		} catch (IOException e) {
+			ErrorHandler.handle("Could not load image.", e);
 		}
 	}
 }

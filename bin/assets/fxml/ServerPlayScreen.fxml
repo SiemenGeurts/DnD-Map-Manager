@@ -69,6 +69,12 @@
                   <Insets left="10.0" right="10.0" />
                </padding>
             </Separator>
+            <Button fx:id="btnSendImage" disable="true" mnemonicParsing="false" onAction="#sendImageClicked" text="Send image" />
+            <Separator orientation="VERTICAL">
+               <padding>
+                  <Insets left="10.0" right="10.0" />
+               </padding>
+            </Separator>
             <HBox fx:id="hboxPreviewTools" spacing="4.0" visible="false">
                <children>
                   <Button fx:id="btnTogglePreview" mnemonicParsing="false" onAction="#onBtnTogglePreviewClicked" text="Hide preview" />

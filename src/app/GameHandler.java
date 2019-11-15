@@ -11,6 +11,7 @@ public abstract class GameHandler {
 	public Map map;
 	protected static Action currentAction;
 	public static ArrayList<Action> actions;
+	public static short flags = 0;
 	
 	public abstract MapController getController();
 	
@@ -45,4 +46,16 @@ public abstract class GameHandler {
 		currentAction = null;
 		getController().redraw();
 	}
+	
+	public void addFlag(short flag) {
+		flags |= flag;
+	}
+	
+	public void removeFlag(short flag) {
+		if((flags & flag) == flag)
+			flags &= ~flag;
+	}
+	
+	
+	public static final short DISPLAY_IMAGE = 1;
 }
