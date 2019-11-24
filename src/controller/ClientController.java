@@ -35,12 +35,15 @@ public class ClientController extends MapController {
 		MapManagerApp.stage.setResizable(true);
 		MapManagerApp.stage.setMaximized(true);
 		chkboxBuffer.selectedProperty().addListener((obs, oldVal, newVal) -> {
-			if(oldVal) {
-				if(!gameHandler.requestDisableUpdateBuffer()) {
-					chkboxBuffer.setSelected(true);
+			if(oldVal == newVal) return;
+			if(!newVal) { //buffer to be disabled
+				if(gameHandler.requestDisableUpdateBuffer()) {
 					btnPush.setDisable(true);
+				} else {
+					chkboxBuffer.setSelected(true);
+					btnPush.setDisable(false);
 				}
-			} else {
+			} else { // buffer enabled
 				btnPush.setDisable(false);
 				gameHandler.enableUpdateBuffer();
 			}

@@ -10,10 +10,8 @@ import comms.Server;
 import controller.MainMenuController;
 import controller.MapBuilderController;
 import controller.SceneManager;
-import data.mapdata.PresetTile;
 import gui.Dialogs;
 import gui.ErrorHandler;
-import helpers.AssetManager;
 import helpers.Logger;
 import helpers.Utils;
 import javafx.application.Application;
@@ -94,8 +92,8 @@ public class MapManagerApp extends Application{
     public static void main(String[] args) {
     	try {
     	setupLogFile();
-    	AssetManager.initializeManager();
-		PresetTile.setupPresetTiles();
+    	//AssetManager.initializeManager();
+		//PresetTile.setupPresetTiles();
         launch(args);
     	} catch(Exception e) {
     		ErrorHandler.handle("Something went wrong...", e);

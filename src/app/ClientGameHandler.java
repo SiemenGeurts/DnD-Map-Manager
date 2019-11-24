@@ -18,6 +18,9 @@ import comms.SerializableMap;
 import controller.ClientController;
 import controller.MainMenuController;
 import data.mapdata.Entity;
+import data.mapdata.Map;
+import data.mapdata.PresetTile;
+import data.mapdata.Tile;
 import gui.Dialogs;
 import gui.ErrorHandler;
 import helpers.AssetManager;
@@ -114,6 +117,7 @@ public class ClientGameHandler extends GameHandler {
 									}
 								} else if(m.getMessage() instanceof SerializableMap) {
 									map = ((SerializableMap) m.getMessage()).getMap();
+									requestMissingTextures(map);
 									controller.setMap(map);
 									controller.redraw();
 								} else if(m.getMessage() instanceof String) {
@@ -157,6 +161,7 @@ public class ClientGameHandler extends GameHandler {
 		Logger.println("[CLIENT] Loading textures.");
 		try {
 			int amount = client.read(Integer.class);
+			PresetTile.setupPresetTiles();
 			HashMap<Integer, Image> textures = AssetManager.textures;
 			for (int i = 0; i < amount; i++) {
 				SerializableImage img = client.read(SerializableImage.class);
@@ -186,9 +191,20 @@ public class ClientGameHandler extends GameHandler {
 	
 	public void move(Entity entity, Point target) {
 		if(awaitingResponse) return;
-		updates.append(ActionEncoder.movement(entity.getTileX(), entity.getTileY(), target.x, target.y, entity.getID())).append(';');
+		sendUpdate(ActionEncoder.movement(entity.getTileX(), entity.getTileY(), target.x, target.y, entity.getID()));
 		undoAction = new MovementAction(new GuideLine(new Point2D[] {target, entity.getLocation()}), entity, 0).addAction(undoAction);
 		new MovementAction(new GuideLine(new Point2D[] {entity.getLocation(), target}), entity, 0).attach();
+	}
+	
+	public void requestMissingTextures(Map map) {
+		for(Tile[] row : map.getTiles())
+			for(Tile t : row) {
+				if(t.getType()>=0 && !AssetManager.textures.containsKey(t.getType()))
+					requestTexture(t.getType());
+			}
+		for(Entity e : map.getEntities())
+			if(e.getType()>=0 && !AssetManager.textures.containsKey(e.getType()))
+				requestTexture(e.getType());
 	}
 
 	public void requestTexture(int id) {
@@ -209,6 +225,22 @@ public class ClientGameHandler extends GameHandler {
 			return action;
 		} else
 			return currentAction.insertAction(action);
+	}
+	
+	private boolean sendUpdate(String s) {
+		if(bufferUpdates) {
+			updates.append(s).append(';');
+			return true;
+		} else {
+			try {
+				awaitingResponse=true;
+				client.write(s);
+				return true;
+			} catch(IOException e) {
+				ErrorHandler.handle("Could not send updates. Please try again.", e);
+				return false;
+			}
+		}
 	}
 	
 	public boolean pushUpdates() {

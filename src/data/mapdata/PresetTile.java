@@ -2,7 +2,6 @@ package data.mapdata;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map.Entry;
 
 import helpers.AssetManager;
 import javafx.scene.image.Image;
@@ -22,8 +21,9 @@ public class PresetTile {
 	}
 	
 	public static void setupPresetTiles() throws IOException {
-		for (Entry<Integer, Image> entry : presetTextures.entrySet())
-			AssetManager.forceAddTexture(entry.getKey(), entry.getValue());
+		//for (Entry<Integer, Image> entry : presetTextures.entrySet())
+			//AssetManager.forceAddTexture(entry.getKey(), entry.getValue());
+		AssetManager.textures.putAll(presetTextures);
 	}
 	
 }

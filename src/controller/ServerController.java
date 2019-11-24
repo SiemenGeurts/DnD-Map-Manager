@@ -110,7 +110,7 @@ public class ServerController extends MapEditorController {
 	
 	@Override
 	public void handleClick(Point p, MouseEvent event) {
-		if(inPreview) return;
+		if(inPreview || !gameHandler.isPlaying) return;
 		super.handleClick(p, event);
 		if(event.getButton() == MouseButton.PRIMARY) {
 			Entity e;

@@ -13,6 +13,7 @@ import data.mapdata.PresetTile;
 import data.mapdata.Tile;
 import gui.ErrorHandler;
 import gui.NumericFieldListener;
+import helpers.AssetManager;
 import helpers.JSONManager;
 import helpers.Logger;
 import helpers.ScalingBounds.ScaleMode;
@@ -81,6 +82,13 @@ public class MapBuilderController extends MapEditorController {
 	public void initialize() {
 		super.initialize();
 		try {
+			try {
+				AssetManager.initializeManager();
+			} catch (Exception e) {
+				ErrorHandler.handle("Asset manager could not be created.", e);
+			}
+
+			PresetTile.setupPresetTiles();
 			JSONManager.initialize();
 			setMap(Map.emptyMap(20, 20));
 			
@@ -147,7 +155,7 @@ public class MapBuilderController extends MapEditorController {
 			chkboxViewGrid.selectedProperty().addListener((obs, oldVal, newVal) -> setViewGrid(newVal));
 			
 		} catch (IOException e) {
-			e.printStackTrace();
+			ErrorHandler.handle("Something went wrong...", e);
 		}
 	}
 	

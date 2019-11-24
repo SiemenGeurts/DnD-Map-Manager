@@ -17,6 +17,7 @@ import controller.SceneManager;
 import controller.ServerController;
 import controller.ToolkitController;
 import data.mapdata.Map;
+import data.mapdata.PresetTile;
 import data.mapdata.ServerMap;
 import data.mapdata.Tile;
 import data.mapdata.Entity;
@@ -51,7 +52,7 @@ public class ServerGameHandler extends GameHandler {
 	private StringBuilder updates;
 	private Stack<String> undo;
 	private boolean bufferUpdates = false;
-
+	public boolean isPlaying = false;
 	//for serverlistener
 	Thread serverListener;
 	private Object pauseLock = new Object();
@@ -67,6 +68,18 @@ public class ServerGameHandler extends GameHandler {
 		mapChooser = new FileChooser();
 		mapChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Map files (*.map)", "*.map"));
 
+		try {
+			AssetManager.initializeManager();
+		} catch (Exception e) {
+			ErrorHandler.handle("Asset manager could not be created.", e);
+		}
+		
+		try {
+			PresetTile.setupPresetTiles();
+		} catch (IOException e) {
+			ErrorHandler.handle("Could not load preset tiles.", e);
+		}
+		
 		try {
 			FXMLLoader loader = new FXMLLoader(
 					ServerGameHandler.class.getResource("/assets/fxml/ServerPlayScreen.fxml"));
@@ -236,6 +249,7 @@ public class ServerGameHandler extends GameHandler {
 		try {
 			server.waitForClient();
 			server.write(Encoder.VERSION_ID);
+			isPlaying = true;
 			ActionDecoder.setVersion(server.read(Integer.class));
 			Alert alert = new Alert(AlertType.INFORMATION);
 			alert.setTitle("Connection established.");
