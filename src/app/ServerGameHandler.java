@@ -319,7 +319,7 @@ public class ServerGameHandler extends GameHandler {
 	}
 
 	public void pushUpdates() {
-		if (bufferUpdates)
+		if (bufferUpdates && updates.length()>0)
 			try {
 				server.write(updates.toString());
 				updates = new StringBuilder();
@@ -327,6 +327,8 @@ public class ServerGameHandler extends GameHandler {
 				ErrorHandler.handle("Update [" + updates.toString() + "] could not be send. Try resyncing the game.",
 						e);
 			}
+		else
+			ErrorHandler.handle("Buffer is not enabled or empty.", null);
 	}
 	
 

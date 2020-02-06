@@ -122,6 +122,10 @@ public class ClientGameHandler extends GameHandler {
 									controller.redraw();
 								} else if(m.getMessage() instanceof String) {
 									String message = (String) m.getMessage();
+									if(message.length() == 0) {
+										Logger.println("Ignored message of length 0");
+										continue;
+									}
 									if(message.startsWith("!"))
 										ActionDecoder.decode(message.substring(1)).executeNow();
 									else
@@ -315,7 +319,7 @@ public class ClientGameHandler extends GameHandler {
 	private static Stage imgStage;
 	private static ImageView view;
 	private void displayImage(Image img) {
-		Runnable run = () -> {			
+		Runnable run = () -> {
 			if(imgStage == null) {
 				imgStage = new Stage();
 				BorderPane pane = new BorderPane();

@@ -19,6 +19,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -48,6 +49,10 @@ public class ServerController extends MapEditorController {
     private HBox hboxPreviewTools;
     @FXML
     private CheckMenuItem chkboxViewGrid;
+    
+    //Stats pane stuff
+    @FXML
+    private AnchorPane statsPane;
     
     public Map previewMap, oldMap;
     public boolean inPreview = false;
@@ -98,6 +103,14 @@ public class ServerController extends MapEditorController {
 			root = loader.load();
 			setPropertyEditor(loader.getController());
 			vbox.getChildren().add(root);
+			
+			loader = new FXMLLoader(ServerController.class.getResource("/assets/fxml/ProbabilityCalculator.fxml"));
+			root = loader.load();
+			statsPane.getChildren().add(root);
+			AnchorPane.setBottomAnchor(root, 0d);
+			AnchorPane.setLeftAnchor(root, 0d);
+			AnchorPane.setRightAnchor(root, 0d);
+			AnchorPane.setTopAnchor(root, 0d);
 			
 			MapManagerApp.stage.setResizable(true);
 			MapManagerApp.stage.setMaximized(true);
