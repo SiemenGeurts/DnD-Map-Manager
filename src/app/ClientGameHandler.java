@@ -3,7 +3,6 @@ package app;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Optional;
 
 import actions.Action;
@@ -112,7 +111,7 @@ public class ClientGameHandler extends GameHandler {
 									if((flags & DISPLAY_IMAGE) == DISPLAY_IMAGE)
 										displayImage(si.getImage());
 									else {
-										AssetManager.textures.put(si.getId(), si.getImage());
+										AssetManager.putTexture(si.getId(), si.getImage());
 										controller.redraw();
 									}
 								} else if(m.getMessage() instanceof SerializableMap) {
@@ -166,10 +165,9 @@ public class ClientGameHandler extends GameHandler {
 		try {
 			int amount = client.read(Integer.class);
 			PresetTile.setupPresetTiles();
-			HashMap<Integer, Image> textures = AssetManager.textures;
 			for (int i = 0; i < amount; i++) {
 				SerializableImage img = client.read(SerializableImage.class);
-				textures.put(img.getId(), img.getImage());
+				AssetManager.putTexture(img.getId(), img.getImage());
 			}
 		} catch (NumberFormatException | IOException e) {
 			ErrorHandler.handle("Did not recieve all textures. Please try again.", e);
@@ -203,11 +201,11 @@ public class ClientGameHandler extends GameHandler {
 	public void requestMissingTextures(Map map) {
 		for(Tile[] row : map.getTiles())
 			for(Tile t : row) {
-				if(t.getType()>=0 && !AssetManager.textures.containsKey(t.getType()))
+				if(t.getType()>=0 && !AssetManager.textureExists(t.getType()))
 					requestTexture(t.getType());
 			}
 		for(Entity e : map.getEntities())
-			if(e.getType()>=0 && !AssetManager.textures.containsKey(e.getType()))
+			if(e.getType()>=0 && !AssetManager.textureExists(e.getType()))
 				requestTexture(e.getType());
 	}
 

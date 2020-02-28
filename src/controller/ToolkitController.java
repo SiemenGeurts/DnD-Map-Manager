@@ -64,34 +64,29 @@ public class ToolkitController {
 	
 	@FXML
 	public void addBtnClicked(ActionEvent e) {
-		try {
-			//1. save the image to the images directory.
-			int id = AssetManager.addTexture(imgView.getImage());
-			//2. define a new tile/entity/player prefab.
-			//3. add it to the accordion selector.
-			Prefab<?> prefab;
-			switch(current) {
-				case ENTITY:
-					prefab = new EntityPrefab(id, propertyEditorController.getWidth(), propertyEditorController.getHeight(), propertyEditorController.getPropertyList(), propertyEditorController.getBloodied(), false, propertyEditorController.getDescription());
-					((EntityPrefab)prefab).setName(propertyEditorController.getName());
-					osController.addEntity((EntityPrefab) prefab, imgView.getImage());
-					JSONManager.addEntity((EntityPrefab) prefab);
-					break;
-				case PLAYER:
-					prefab = new EntityPrefab(id, propertyEditorController.getWidth(), propertyEditorController.getHeight(), propertyEditorController.getPropertyList(), propertyEditorController.getBloodied(), true, propertyEditorController.getDescription());
-					((EntityPrefab)prefab).setName(propertyEditorController.getName());
-					osController.addPlayer((EntityPrefab) prefab, imgView.getImage());
-					JSONManager.addPlayer((EntityPrefab) prefab);
-					break;
-				case TILE:
-					prefab = new TilePrefab(id);
-					osController.addTile((TilePrefab) prefab, imgView.getImage());
-					JSONManager.addTile((TilePrefab) prefab);
-					break;
-			}
-			
-		} catch (IOException e1) {
-			ErrorHandler.handle("Could not add texture.", e1);
+		//1. save the image to the images directory.
+		int id = AssetManager.addTexture(imgView.getImage());
+		//2. define a new tile/entity/player prefab.
+		//3. add it to the accordion selector.
+		Prefab<?> prefab;
+		switch(current) {
+			case ENTITY:
+				prefab = new EntityPrefab(id, propertyEditorController.getWidth(), propertyEditorController.getHeight(), propertyEditorController.getPropertyList(), propertyEditorController.getBloodied(), false, propertyEditorController.getDescription());
+				((EntityPrefab)prefab).setName(propertyEditorController.getName());
+				osController.addEntity((EntityPrefab) prefab, imgView.getImage());
+				JSONManager.addEntity((EntityPrefab) prefab);
+				break;
+			case PLAYER:
+				prefab = new EntityPrefab(id, propertyEditorController.getWidth(), propertyEditorController.getHeight(), propertyEditorController.getPropertyList(), propertyEditorController.getBloodied(), true, propertyEditorController.getDescription());
+				((EntityPrefab)prefab).setName(propertyEditorController.getName());
+				osController.addPlayer((EntityPrefab) prefab, imgView.getImage());
+				JSONManager.addPlayer((EntityPrefab) prefab);
+				break;
+			case TILE:
+				prefab = new TilePrefab(id);
+				osController.addTile((TilePrefab) prefab, imgView.getImage());
+				JSONManager.addTile((TilePrefab) prefab);
+				break;
 		}
 	}
 	

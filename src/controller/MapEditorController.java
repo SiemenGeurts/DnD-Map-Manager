@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 
 import data.mapdata.Entity;
 import data.mapdata.Map;
@@ -18,8 +19,12 @@ import helpers.Logger;
 import helpers.Utils;
 import javafx.fxml.FXML;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonType;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
@@ -34,6 +39,8 @@ public class MapEditorController extends MapController {
 	protected PropertyEditorController propeditor;
 	private Entity currentlyEdited;
 	private EntityMenu entityMenu;
+	public boolean isSaved;
+	Runnable onPropertySave = () -> getMap().setUnsaved();
 	
 	@Override
 	public void initialize() {
@@ -51,8 +58,17 @@ public class MapEditorController extends MapController {
 		propeditor = editor;
 	}
     
-    private boolean showProperties(Entity entity) {
-    	if(entity != null && currentlyEdited != entity) {
+	/**
+	 * shows the properties of the given Entity.
+	 * The method will first check if the user is currently editing another entity and if so,
+	 * if the user wants to cancel editing.
+	 * @param entity the entities whose properties are to be shown
+	 * @return true if the properties are shown, false is that was not possible because the user was still editing another entity.
+	 */
+    public boolean showProperties(Entity entity) {
+    	if(entity != null) {
+    		if(currentlyEdited == entity)
+    			return true;
     		if(propeditor.requestCancelEditing()) {
 	    		propeditor.setEntity(entity);
 	    		currentlyEdited = entity;
@@ -64,11 +80,22 @@ public class MapEditorController extends MapController {
     }
     
     private void editProperties(Entity entity) {
-    	if(showProperties(entity))
-    		propeditor.setEditing(true);
+    	editProperties(entity, onPropertySave);
     }
     
-    private boolean hideProperties() {
+    public void editProperties(Entity entity, Runnable onSave) {
+    	if(showProperties(entity)) {
+    		propeditor.setOnSavedAction(onSave);
+    		propeditor.setEditing(true);
+    	}
+    }
+    
+    /**
+     * Hides the properties currently displayed.
+     * If the user is currently editing those properties, he/she will be asked if he/she wants to cancel editing.
+     * @return true if the properties were hidden, false if the user canceled the operation
+     */
+    public boolean hideProperties() {
     	if(currentlyEdited != null) {
     		if(propeditor.requestClear()) {
     			currentlyEdited = null;
@@ -151,18 +178,17 @@ public class MapEditorController extends MapController {
 	void onSaveAs() {
 		mapChooser.setTitle("Save map");
 		currentFile = mapChooser.showSaveDialog(SceneManager.getPrimaryStage());
+		if(!currentFile.getName().endsWith(".map"))
+			currentFile = new File(currentFile.getAbsolutePath() + ".map");
 		if(currentFile == null) {
 			Dialogs.warning("Map was not saved.", true);
-		}
-		try {
-			Utils.saveMap(currentFile, getMap());
-		} catch(IOException e) {
-			ErrorHandler.handle("Map could not be saved!", e);
-		}
+		} else
+			onSave();
 	}
 
 	@FXML
 	void onOpen() throws IOException {
+		if(!checkSaved()) return;
 		mapChooser.setTitle("Load map");
 		currentFile = mapChooser.showOpenDialog(SceneManager.getPrimaryStage());
 		if(currentFile == null) return;
@@ -174,7 +200,32 @@ public class MapEditorController extends MapController {
 	
 	@FXML
 	void onQuit() {
-		MainMenuController.sceneManager.popScene();
+		if(checkSaved())
+			MainMenuController.sceneManager.popScene();
+	}
+	
+	
+	/**
+	 * Checks if the current library and map are saved.
+	 * @return true if they are both saved, or the user chose not to save them, false if the user canceled the save (meaning the closing should be canceled as well).
+	 */
+	protected boolean checkSaved() {
+		if(getMap() != null && !getMap().isSaved()) {
+			Alert alert = new Alert(AlertType.WARNING);
+			alert.setTitle("Warning");
+			alert.setHeaderText("It appears that the current map is not saved. Do you want to save?");
+			alert.setContentText("If not saved, all changes will be lost.");
+			ButtonType btnYes = new ButtonType("Yes", ButtonData.YES);
+			ButtonType btnNo = new ButtonType("No", ButtonData.NO);
+			ButtonType btnCancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
+			alert.getButtonTypes().setAll(btnYes, btnNo, btnCancel);
+			Optional<ButtonType> result = alert.showAndWait();
+			if(result.orElse(btnCancel) == btnCancel)
+				return false;
+			else if(result.get() == btnYes)
+				onSave();
+		}
+		return true;
 	}
 	
 	class EntityMenu extends ContextMenu {

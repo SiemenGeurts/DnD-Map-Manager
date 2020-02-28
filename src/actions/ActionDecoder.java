@@ -91,7 +91,7 @@ public class ActionDecoder {
 						Point p = (Point) arg.get(0);
 						int type = (Integer) arg.get(1);
 						handler.map.getTile(p).setType(type);
-						if(!isServer && type>=0 && AssetManager.textures.get(type)==null)
+						if(!isServer && type>=0 && !AssetManager.textureExists(type))
 							ClientGameHandler.instance.requestTexture(type);
 					}
 				};
@@ -137,7 +137,7 @@ public class ActionDecoder {
 					protected void execute() {
 						Entity e = decoder.decodeEntity((String) arg.get(0));
 						handler.map.addEntity(e);
-						if(!isServer && e.getType()>=0 && AssetManager.textures.get(e.getType())==null)
+						if(!isServer && e.getType()>=0 && !AssetManager.textureExists(e.getType()))
 							ClientGameHandler.instance.requestTexture(e.getType());
 					}
 				};

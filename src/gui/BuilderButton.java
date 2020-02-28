@@ -21,4 +21,8 @@ public class BuilderButton<T>  extends Button {
 	public Prefab<T> getPrefab() {
 		return prefab;
 	}
+	
+	public void setPrefab(Prefab<T> prefab) {
+		this.prefab = prefab;
+	}
 } 

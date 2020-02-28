@@ -11,7 +11,7 @@ public class JSONEncoder {
 		entity.put("width", prefab.width);
 		entity.put("height", prefab.height);
 		entity.put("bloodied", prefab.bloodied);
-		entity.put("type", prefab.getID());
+		entity.put("type", prefab.getType());
 		entity.put("description", prefab.description);
 		entity.put("name", prefab.name);
 		JSONObject properties = new JSONObject();

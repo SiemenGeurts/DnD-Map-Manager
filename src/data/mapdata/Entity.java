@@ -50,7 +50,7 @@ public class Entity {
 	}
 	
 	public Image getTexture() {
-		return AssetManager.textures.get(type);
+		return AssetManager.getTexture(type);
 	}
 	
 	public boolean isBloodied() {
@@ -159,7 +159,7 @@ public class Entity {
 	
 	@Override
 	public String toString() {
-		return "Entity[name=" +  name + ", x=" + x + ", y=" + y + ", isNPC="+ isNPC + "]";
+		return "Entity[name=" +  name + ", x=" + x + ", y=" + y + ", isNPC="+ isNPC + ", type=" + type + "]";
 	}
 	
 	public static ArrayList<Property> getDefaultProperties() {

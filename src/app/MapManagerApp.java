@@ -27,7 +27,7 @@ public class MapManagerApp extends Application{
 	private SceneManager sceneManager;
 	
 	public static Stage stage;
-	public final static String defaultDirectory = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
+	public final static String defaultDirectory = FileSystemView.getFileSystemView().getDefaultDirectory().getPath() + "/DnD Map Manager";
 	
 	@Override
 	public void start(Stage stage) throws Exception {
@@ -86,7 +86,7 @@ public class MapManagerApp extends Application{
 	}
 	
 	private static void setupLogFile() {
-		new Logger(defaultDirectory +"/DnD Map Manager/log.txt");
+		new Logger(defaultDirectory +"/log.txt");
 	}
 
     public static void main(String[] args) {

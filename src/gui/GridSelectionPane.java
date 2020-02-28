@@ -25,6 +25,39 @@ public class GridSelectionPane extends GridPane {
 		add(n, "");
 	}
 	
+	public void remove(Node n) {
+		if(!getChildren().contains(n)) return;
+		if(!names) {
+			remove(n);
+			return;
+		}
+		int row = getRowIndex(n);
+		int col = getColumnIndex(n);
+		Node toRemove = null;
+		for(Node child : getChildren()) {
+			if(getColumnIndex(child) == col && getRowIndex(child) == row + 1) {
+				toRemove = child;
+				break;
+			}
+		}
+		if(toRemove != null)
+			getChildren().remove(toRemove);
+		getChildren().remove(n);
+	}
+	
+	public void updateName(Node n, String name) {
+		if(!getChildren().contains(n)) return;
+		if(!names) return;
+		int row = getRowIndex(n);
+		int col = getColumnIndex(n);
+		for(Node child : getChildren()) {
+			if(getColumnIndex(child) == col && getRowIndex(child) == row + 1) {
+				((Label) child).setText(name);
+				return;
+			}
+		}
+	}
+	
 	public void add(Node n, String name) {
 		if(currentCol>=colCount) {
 			currentCol = 0;

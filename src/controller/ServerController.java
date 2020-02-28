@@ -9,7 +9,6 @@ import app.ServerGameHandler;
 import data.mapdata.Entity;
 import data.mapdata.Map;
 import gui.ErrorHandler;
-import helpers.JSONManager;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -83,12 +82,6 @@ public class ServerController extends MapEditorController {
 		});
 		
 		chkboxViewGrid.selectedProperty().addListener((obs, oldVal, newVal) -> setViewGrid(newVal));
-		
-		try {
-			JSONManager.initialize();
-		} catch (IOException e) {
-			ErrorHandler.handle("Stored data could not be read.", e);
-		}
 	}
 	
 	public void endInit() {

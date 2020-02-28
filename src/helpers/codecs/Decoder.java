@@ -16,7 +16,7 @@ public abstract class Decoder {
 		switch(version) {
 		case 1:
 		default:
-				return new DecoderV1();
+			return new DecoderV1();
 		}
 	}
 }

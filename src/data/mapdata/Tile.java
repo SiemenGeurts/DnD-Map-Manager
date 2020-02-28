@@ -20,7 +20,7 @@ public class Tile {
 	}
 	
 	public Image getTexture() {
-		return AssetManager.textures.get(type);
+		return AssetManager.getTexture(type);
 	}
 	
 	public Tile copy() {

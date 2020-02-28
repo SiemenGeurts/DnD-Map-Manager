@@ -58,7 +58,6 @@ public class ServerGameHandler extends GameHandler {
 	private Object pauseLock = new Object();
 	private boolean running = false, paused = false;
 	
-	
 	public ServerGameHandler(Server _server) {
 		super();
 		server = _server;
@@ -67,18 +66,6 @@ public class ServerGameHandler extends GameHandler {
 		instance = this;
 		mapChooser = new FileChooser();
 		mapChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Map files (*.map)", "*.map"));
-
-		try {
-			AssetManager.initializeManager();
-		} catch (Exception e) {
-			ErrorHandler.handle("Asset manager could not be created.", e);
-		}
-		
-		try {
-			PresetTile.setupPresetTiles();
-		} catch (IOException e) {
-			ErrorHandler.handle("Could not load preset tiles.", e);
-		}
 		
 		try {
 			FXMLLoader loader = new FXMLLoader(
@@ -101,6 +88,11 @@ public class ServerGameHandler extends GameHandler {
 					mapChooser.setTitle("Load map");
 					controller.currentFile = mapChooser.showOpenDialog(SceneManager.getPrimaryStage());
 				} while(!loadMap(controller.currentFile));
+			try {
+				PresetTile.setupPresetTiles();
+			} catch (IOException e) {
+				ErrorHandler.handle("Could not load preset tiles.", e);
+			}
 			
 			MainMenuController.sceneManager.pushView(scene, loader);
 			controller.endInit();
@@ -287,7 +279,7 @@ public class ServerGameHandler extends GameHandler {
 	public boolean sendTexture(int id) {
 		Logger.println("[SERVER] sending texture " + id);
 		try {
-			server.write(AssetManager.textures.get(id), id);
+			server.write(AssetManager.getTexture(id), id);
 		} catch (IOException e) {
 			ErrorHandler.handle("Texture could not be send.", e);
 			return false;

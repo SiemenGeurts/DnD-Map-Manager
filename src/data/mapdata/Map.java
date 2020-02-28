@@ -1,6 +1,7 @@
 package data.mapdata;
 
 import java.awt.Point;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -16,6 +17,8 @@ public class Map {
 	protected ArrayList<Entity> entities;
 	protected Image background;
 	protected ScalingBounds.ScaleMode mode = ScalingBounds.ScaleMode.FIT;
+	private File libraryFile = null;
+	private boolean isSaved = false;
 	
 	public Map(int _width, int _height) {
 		width = _width;
@@ -31,7 +34,17 @@ public class Map {
 		entities = new ArrayList<>();
 	}
 	
+	public void setLibraryFile(File file) {
+		libraryFile = file;
+		isSaved = false;
+	}
+	
+	public File getLibraryFile() {
+		return libraryFile;
+	}
+	
 	public void setTile(int x, int y, Tile tile) {
+		isSaved = (tiles[x][y] == tile);
 		tiles[y][x] = tile;
 	}
 	
@@ -64,10 +77,12 @@ public class Map {
 	
 	public void addEntity(Entity e) {
 		entities.add(e);
+		isSaved = false;
 	}
 	
 	public void removeEntity(Entity e) {
 		entities.remove(e);
+		isSaved = false;
 	}
 	
 	public Entity removeEntity(Point p) {
@@ -93,6 +108,7 @@ public class Map {
 		this.tiles = tiles;
 		width = tiles[0].length;
 		height = tiles.length;
+		isSaved = false;
 	}
 	
 	public Image getBackground() {
@@ -101,10 +117,12 @@ public class Map {
 
 	public void setBackground(Image background) {
 		this.background = background;
+		isSaved = false;
 	}
 	
 	public void setScaling(ScalingBounds.ScaleMode mode) {
 		this.mode = mode;
+		isSaved = false;
 	}
 	
 	public ScalingBounds.ScaleMode getScaling() {
@@ -121,6 +139,7 @@ public class Map {
 	
 	public void setEntities(ArrayList<Entity> entities) {
 		this.entities = entities;
+		isSaved = false;
 	}
 
 	public Map copy() {
@@ -132,7 +151,20 @@ public class Map {
 		copy.entities = new ArrayList<Entity>(entities.stream().map(entity -> entity.copyWidthId(entity.getID())).collect(Collectors.toList()));
 		copy.setBackground(background);
 		copy.setScaling(mode);
+		copy.setUnsaved();
 		return copy;
+	}
+	
+	public void setUnsaved() {
+		isSaved = false;
+	}
+	
+	public void setSaved() {
+		isSaved = true;
+	}
+	
+	public boolean isSaved() {
+		return isSaved;
 	}
 	
 	public static Map emptyMap(int width, int height) {

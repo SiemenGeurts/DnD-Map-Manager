@@ -43,12 +43,12 @@ public class EntityPrefab extends Prefab<Entity> {
 	
 	@Override
 	public String toString() {
-		return "EntityPrefab[type=" + id + ", name="+name + ", isPlayer="+isPlayer+"]";
+		return "EntityPrefab[type=" + type + ", name="+name + ", isPlayer="+isPlayer+"]";
 	}
 	
 	@Override
 	public Entity getInstance(int x, int y) {
-		Entity entity = new Entity(id, x, y, width, height, !isPlayer);
+		Entity entity = new Entity(type, x, y, width, height, !isPlayer);
 		entity.setBloodied(bloodied);
 		entity.setDescription(description);
 		entity.setName(name);
@@ -56,5 +56,10 @@ public class EntityPrefab extends Prefab<Entity> {
 			entity.setProperties(new ArrayList<>(properties.stream().map(prop -> prop.copy()).collect(Collectors.toList())));
 		System.out.println("Created instance " + entity);
 		return entity;
+	}
+	
+	public static EntityPrefab fromEntity(Entity e) {
+		return new EntityPrefab(e.getType(), e.getWidth(), e.getHeight(),
+				e.getProperties(), e.isBloodied(), !e.isNPC(), e.getDescription(), e.getName());
 	}
 }	

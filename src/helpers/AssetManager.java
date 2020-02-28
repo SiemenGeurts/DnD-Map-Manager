@@ -1,49 +1,85 @@
 package helpers;
 
-import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.imageio.ImageIO;
 
 import app.MapManagerApp;
-import javafx.embed.swing.SwingFXUtils;
+import controller.SceneManager;
+import gui.ErrorHandler;
 import javafx.scene.image.Image;
+import javafx.stage.FileChooser;
 
 public class AssetManager {
-
-	private static AtomicInteger generator;
-	private static ArrayList<Integer> openSlots;
-	public static HashMap<Integer, Image> textures = new HashMap<>();
 	
-	public static void initializeManager() throws IOException, NullPointerException {
-		readTexturesFromDisk();
-		ArrayList<Integer> takenSlots = new ArrayList<>();
-		for (Entry<Integer, Image> entry : textures.entrySet())
-			takenSlots.add(entry.getKey());
-		openSlots = new ArrayList<>();
-		int max = -1;
-		if (!takenSlots.isEmpty()) {
-			max = Collections.max(takenSlots);
-			for (int i = 0; i < max; i++) {
-				if (!takenSlots.contains(i))
-					openSlots.add(i);
+	private static Library library;
+	private final static FileChooser fs = new FileChooser();
+	private static HashMap<Integer, Image> presetTextures = new HashMap<Integer, Image>();
+	
+	static {
+		fs.setTitle("Choose a library");
+		fs.getExtensionFilters().add(new FileChooser.ExtensionFilter("Library Files (*.dlib)", "*.dlib"));
+		fs.setInitialDirectory(new File(MapManagerApp.defaultDirectory));		
+	}
+	
+	public static void initializeManager(boolean allowLibrarySelection) {
+		if(allowLibrarySelection) {
+			if(loadLibrary() == null)
+				library = Library.emptyLibrary();
+		} else
+			library = Library.emptyLibrary();
+	}
+	
+	public static File loadLibrary() {
+		while(true) {
+			try {
+				File file = fs.showOpenDialog(SceneManager.getPrimaryStage());
+				if(file == null)
+					return null;
+				setLibrary(Library.load(new FileInputStream(file)));
+				return file;
+			} catch(IOException e) {
+				ErrorHandler.handle("Could not load library.", e);
 			}
 		}
-		generator = new AtomicInteger(Math.max(0, max + 1));
+	}
+	
+	public static void setLibrary(Library lib) {
+		library = lib;
+	}
+	
+	public static Library getLibrary() {
+		return library;
+	}
+	
+	public static void addPresetTextures(HashMap<Integer, Image> map) {
+		presetTextures.putAll(map);
+	}
+	
+	public static Image getTexture(int id) {
+		if(id<0)
+			return presetTextures.get(id);
+		return library.getTexture(id);
+	}
+	
+	public static void putTexture(int id, Image img) {
+		if(id < 0)
+			presetTextures.put(id, img);
+		library.putTexture(id, img);
+	}
+	
+	public static int addTexture(Image img) {
+		return library.addTexture(img);
+	}
+	
+	public static boolean textureExists(int id) {
+		return library.textureExists(id) || presetTextures.containsKey(id);
 	}
 
+	/*
 	public static int addTexture(Image texture) throws IOException {
+		library.
 		int id = 0;
 		Object result;
 		if (!openSlots.isEmpty()) {
@@ -70,7 +106,7 @@ public class AssetManager {
 	}
 	
 	private static boolean removeFile(int id) {
-		new File(MapManagerApp.defaultDirectory + "/DnD Map Manager/Textures/" + id + ".png").delete();
+		new File(MapManagerApp.defaultDirectory + "/Textures/" + id + ".png").delete();
 		try {
 			writeTexturesToDisk();			
 		} catch(IOException e) {
@@ -80,7 +116,7 @@ public class AssetManager {
 	}
 
 	private static void saveToFile(int id, Image image) throws IOException {
-		File outputFile = new File(MapManagerApp.defaultDirectory + "/DnD Map Manager/Textures/" + id + ".png");
+		File outputFile = new File(MapManagerApp.defaultDirectory + "/Textures/" + id + ".png");
 		outputFile.mkdirs();
 		BufferedImage bImage = SwingFXUtils.fromFXImage(image, null);
 		ImageIO.write(bImage, "png", outputFile);
@@ -88,7 +124,7 @@ public class AssetManager {
 	}
 	
 	private static void writeTexturesToDisk() throws IOException {
-		FileWriter writer = new FileWriter(new File(MapManagerApp.defaultDirectory + "/DnD Map Manager/Textures/textureInfo.txt"), false);
+		FileWriter writer = new FileWriter(new File(MapManagerApp.defaultDirectory + "/Textures/textureInfo.txt"), false);
 		StringBuilder s = new StringBuilder();
 		for (Integer i : textures.keySet()) {
 			if(i>=0)
@@ -100,7 +136,7 @@ public class AssetManager {
 
 	private static void readTexturesFromDisk() throws IOException {
 		String defaultDir = MapManagerApp.defaultDirectory;
-		File f = new File(defaultDir + "/DnD Map Manager/Textures/textureInfo.txt");
+		File f = new File(defaultDir + "/Textures/textureInfo.txt");
 		if (!f.exists())
 			return;
 		InputStream is = new FileInputStream(f);
@@ -111,16 +147,16 @@ public class AssetManager {
 		while (line != null) {
 			int id = Integer.valueOf(line);
 			if(id>=0) {
-				Logger.println("file:/" + defaultDir + "/DnD Map Manager/Textures/" + id + ".png");
-				textures.put(id, new Image("file:/" + defaultDir + "/DnD Map Manager/Textures/" + id + ".png"));
+				Logger.println("file:/" + defaultDir + "/Textures/" + id + ".png");
+				textures.put(id, new Image("file:/" + defaultDir + "/Textures/" + id + ".png"));
 				Logger.println("Loading image: " + id + ", success: " + !textures.get(id).isError());
 			}
 			line = reader.readLine();
 		}
 		reader.close();
 	}
-	
 	private static boolean isWindows() {
 		return System.getProperty("os.name").startsWith("Windows");
 	}
+	 */
 }

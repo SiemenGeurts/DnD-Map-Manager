@@ -19,8 +19,6 @@ public class SceneManager {
 	private Stack<Scene> scenes;
 	private Hashtable<Scene, FXMLLoader> SceneLoader;
 
-	
-	
 	public SceneManager(Stage primaryStage, Scene mainScene, FXMLLoader loader) {
 		SceneManager.primaryStage = primaryStage;
         SceneLoader = new Hashtable<>();

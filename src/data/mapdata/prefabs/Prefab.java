@@ -2,14 +2,14 @@ package data.mapdata.prefabs;
 
 public abstract class Prefab<T> {
 	
-	int id;
+	int type;
 	
-	protected Prefab(int _id) {
-		id = _id;
+	protected Prefab(int _type) {
+		type = _type;
 	}
 	
-	public int getID() { 
-		return id;
+	public int getType() { 
+		return type;
 	}
 	
 	public abstract T getInstance(int x, int y);

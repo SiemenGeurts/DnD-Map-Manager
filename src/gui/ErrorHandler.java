@@ -50,6 +50,5 @@ public class ErrorHandler {
 			rb.run();
 		else
 			Platform.runLater(rb);
-		
 	}
 }

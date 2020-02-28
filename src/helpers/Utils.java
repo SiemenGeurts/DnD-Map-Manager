@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -14,11 +15,14 @@ import java.util.Base64;
 import javax.imageio.ImageIO;
 
 import data.mapdata.Map;
+import gui.Dialogs;
 import helpers.ScalingBounds.ScaleMode;
 import helpers.codecs.Decoder;
 import helpers.codecs.Encoder;
 import javafx.application.Application.Parameters;
+import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.stage.FileChooser;
 
 public class Utils {
 
@@ -26,7 +30,7 @@ public class Utils {
 	
 	public static Map loadMap(File mapFile) throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(mapFile));
-		ArrayList<String> lines = new ArrayList<String>(4);
+		ArrayList<String> lines = new ArrayList<String>(5);
 		String line;
 		while ((line=br.readLine())!= null) {
 			lines.add(line);
@@ -41,21 +45,50 @@ public class Utils {
 			encodingVersion = 1;
 			lineIndex = 0;
 		}
+		File libFile = new File(lines.get(lineIndex++));
+		if(!libFile.exists()) {
+			Dialogs.warning("Can't load the library associated with this map ("  + libFile.getName() + "). You'll have to select it manually.", true);
+			libFile = AssetManager.loadLibrary();
+		} else
+			AssetManager.setLibrary(Library.load(new FileInputStream(libFile)));	
+		
 		Decoder decoder = Decoder.getDecoder(encodingVersion);
 		Map m = decoder.decodeMap(lines.get(lineIndex++));
-		if(lines.size()>1) {
+		m.setLibraryFile(libFile);
+		if(lines.size()>lineIndex) {
 			byte[] imgbytes = Base64.getDecoder().decode(lines.get(lineIndex++).getBytes());
 			BufferedImage image = ImageIO.read(new ByteArrayInputStream(imgbytes));
 			m.setBackground(SwingFXUtils.toFXImage(image, null));
 			m.setScaling(lines.get(lineIndex).equals("fit") ? ScaleMode.FIT : (lines.get(lineIndex).equals("extend") ? ScaleMode.EXTEND : ScaleMode.STRETCH));
 			lineIndex++;
 		}
+		m.setSaved();
 		return m;
 	}
 	
+	public static boolean saveLibrary(Library library, Map map) {
+		File file = map.getLibraryFile();
+		if(file == null) {
+			FileChooser fc = new FileChooser();
+			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("DnD library files (*.dlib)", "*.dlib"));
+			file = fc.showSaveDialog(null);
+			if(file == null)
+				return false;
+			if(!file.getName().endsWith(".dlib"))
+				file = new File(file.getAbsolutePath()+ ".dlib");
+		}
+		if(library.save(file)) {
+			map.setLibraryFile(file);
+			return true;
+		} else
+			return false;
+	}
+	
 	public static void saveMap(File mapFile, Map map) throws IOException {
+		saveLibrary(AssetManager.getLibrary(), map);
 		FileWriter writer = new FileWriter(mapFile, false);
 		writer.write(String.valueOf(Encoder.VERSION_ID)+System.lineSeparator());
+		writer.write(map.getLibraryFile().getAbsolutePath()+System.lineSeparator());
 		writer.write(Encoder.encode(map, true)+System.lineSeparator());
 		if(map.getBackground() != null) {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -64,6 +97,7 @@ public class Utils {
 			writer.write(System.lineSeparator() + map.getScaling().name().toLowerCase());
 		}
 		writer.close();
+		map.setSaved();
 	}
 	
 	
@@ -124,5 +158,15 @@ public class Utils {
 	
 	public static boolean isUnnamedParameterGiven(String key) {
 		return params.getUnnamed().contains(key);
+	}
+	
+	public static boolean saveRun(Runnable run) {
+		if(Platform.isFxApplicationThread()) {
+			run.run();
+			return true;
+		} else {
+			Platform.runLater(run);
+			return false;
+		}
 	}
 }

@@ -1,6 +1,7 @@
 package controller;
 
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
@@ -8,15 +9,16 @@ import java.util.Optional;
 import javax.imageio.ImageIO;
 
 import app.MapManagerApp;
+import data.mapdata.Entity;
 import data.mapdata.Map;
 import data.mapdata.PresetTile;
 import data.mapdata.Tile;
 import gui.ErrorHandler;
 import gui.NumericFieldListener;
 import helpers.AssetManager;
-import helpers.JSONManager;
 import helpers.Logger;
 import helpers.ScalingBounds.ScaleMode;
+import helpers.Utils;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -25,6 +27,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.MenuBar;
@@ -39,6 +42,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
@@ -82,15 +86,41 @@ public class MapBuilderController extends MapEditorController {
 	public void initialize() {
 		super.initialize();
 		try {
-			try {
-				AssetManager.initializeManager();
-			} catch (Exception e) {
-				ErrorHandler.handle("Asset manager could not be created.", e);
-			}
+			Utils.saveRun(() -> {
+				Alert alert = new Alert(AlertType.CONFIRMATION);
+				alert.setTitle("Library");
+				alert.setHeaderText("Do you want to create a new library or open one?");
+				alert.setContentText("You can also choose to open a map which already has a library associated with it.");
+				ButtonType btnNew = new ButtonType("New library");
+				ButtonType btnOpenLib = new ButtonType("Open library");
+				ButtonType btnOpenMap = new ButtonType("Open map");
+				ButtonType btnCancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
+				alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+				alert.getButtonTypes().setAll(btnNew, btnOpenLib, btnOpenMap, btnCancel);
+				Optional<ButtonType> result = alert.showAndWait();
+				if(result.orElse(btnCancel) == btnCancel)
+					MainMenuController.sceneManager.popScene();
+				else if(result.get() == btnNew) {
+					AssetManager.initializeManager(false);
+					setMap(Map.emptyMap(20, 20));
+				} else if(result.get() == btnOpenLib) {
+					AssetManager.initializeManager(true);
+					setMap(Map.emptyMap(20, 20));
+				} else if(result.get() == btnOpenMap) {
+					try {
+						onOpen();
+						if(getMap() == null)
+							//treat this as a cancel
+							MainMenuController.sceneManager.popScene();		
+					} catch (IOException e) {
+						ErrorHandler.handle("Couldn't open map.", e);
+						MainMenuController.sceneManager.popScene();
+					}
+				}
+			});
 
 			PresetTile.setupPresetTiles();
-			JSONManager.initialize();
-			setMap(Map.emptyMap(20, 20));
+			//JSONManager.initialize();
 			
 			FXMLLoader loader = new FXMLLoader(MainMenuController.class.getResource("/assets/fxml/Toolkit.fxml"));
 			Node root = new Scene(loader.load()).getRoot();
@@ -109,7 +139,7 @@ public class MapBuilderController extends MapEditorController {
 			vbox.getChildren().add(root);
 			VBox.setVgrow(root, Priority.SOMETIMES);
 			
-			loader = new FXMLLoader(ServerController.class.getResource("/assets/fxml/PropertyEditor.fxml"));
+			loader = new FXMLLoader(MainMenuController.class.getResource("/assets/fxml/PropertyEditor.fxml"));
 			root = loader.load();
 			setPropertyEditor(loader.getController());
 			vbox.getChildren().add(root);
@@ -128,7 +158,8 @@ public class MapBuilderController extends MapEditorController {
 				radialArrows[row][column] = new ImageView(new Image("/assets/images/icons/arrow"+row+"-"+column+".png", 45, 45, true, true));
 				radialArrows[row][column].setFitHeight(45);
 				radialArrows[row][column].setFitWidth(45);
-			}	
+			}
+			
 			anchor = new Point(1, 1);
 			setSelectedAnchor(1, 1);
 			tfWidth.setText(""+getMap().getWidth());
@@ -138,8 +169,8 @@ public class MapBuilderController extends MapEditorController {
 			
 			//Background image stuff
 			imgChooser = new FileChooser();
-			//imgChooser.setTitle("Choose background image");
-			//imgChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files (*.png, *.jpg)", "*.png", "*.jpg"));
+			imgChooser.setTitle("Choose background image");
+			imgChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files (*.png, *.jpg)", "*.png", "*.jpg"));
 			tgScaling.selectedToggleProperty().addListener((obs, oldVal, newVal) -> {
 				if(oldVal==newVal) return;
 				if(newVal==rbFit)
@@ -251,10 +282,21 @@ public class MapBuilderController extends MapEditorController {
 			yEnd = height;
 			break;
 		}
+		
 		int x1 = xStart>0 ? xStart : 0;
 		int x2 = xEnd > width ? width: xEnd;
 		int y1 = yStart > 0 ? yStart : 0;
 		int y2 = yEnd > height ? height : yEnd;
+		Rectangle rect = new Rectangle(xStart, yStart, newWidth, newHeight);
+		
+		for(Entity entity : getMap().getEntities()) {
+			if(rect.contains(entity.getLocation())) {
+				entity.setX(entity.getX()-xStart);
+				entity.setY(entity.getY()-yStart);
+			} else
+				getMap().removeEntity(entity);
+		}
+		
 		
 		for(int i = y1; i<y2; i++)
 			for(int j = x1; j<x2; j++)

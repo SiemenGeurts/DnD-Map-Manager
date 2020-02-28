@@ -152,7 +152,6 @@ public class ProbabilityCalculatorController {
 				output.append("%").append(System.lineSeparator()).append(System.lineSeparator());
 			}
 			
-
 			dataSeries.setName(input);
 			dataSeries.getData().clear();
 			barchart.getData().clear();
