@@ -38,6 +38,11 @@ public class MapManagerApp extends Application{
         sceneManager = new SceneManager(stage,scene,loader);
         MainMenuController.sceneManager = this.sceneManager;
         stage.setTitle("DnD Map Manager");
+       
+        stage.setOnCloseRequest(event -> {
+        	if(!sceneManager.requestClose())
+        		event.consume();
+        });
         if(getParameters()!=null) {
         	Utils.setParameters(getParameters());
         	processArguments(getParameters());

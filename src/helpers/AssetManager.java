@@ -16,6 +16,7 @@ public class AssetManager {
 	private static Library library;
 	private final static FileChooser fs = new FileChooser();
 	private static HashMap<Integer, Image> presetTextures = new HashMap<Integer, Image>();
+	private static Image unknownTexture;
 	
 	static {
 		fs.setTitle("Choose a library");
@@ -24,6 +25,7 @@ public class AssetManager {
 	}
 	
 	public static void initializeManager(boolean allowLibrarySelection) {
+		unknownTexture = new Image("assets/images/unknown.png");
 		if(allowLibrarySelection) {
 			if(loadLibrary() == null)
 				library = Library.emptyLibrary();
@@ -60,7 +62,10 @@ public class AssetManager {
 	public static Image getTexture(int id) {
 		if(id<0)
 			return presetTextures.get(id);
-		return library.getTexture(id);
+		Image tex = library.getTexture(id);
+		if(tex == null)
+			return unknownTexture;
+		return tex;
 	}
 	
 	public static void putTexture(int id, Image img) {

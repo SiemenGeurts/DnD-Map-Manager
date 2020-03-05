@@ -70,8 +70,22 @@ public class SceneManager {
 		}
 	}
 
-
     public static Stage getPrimaryStage() {
         return primaryStage;
+    }
+    
+    public boolean requestClose() {
+    	while(scenes.size()>1) {
+    		Scene scene = scenes.peek();
+    		Object loader = SceneLoader.get(scene).getController();
+    		if(loader instanceof MapEditorController) {
+    			if(!((MapEditorController) loader).checkSaved())
+    				return false;
+    			else
+    				popScene();
+    		} else
+    			popScene();
+    	}
+    	return true;
     }
 }

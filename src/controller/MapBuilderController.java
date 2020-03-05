@@ -18,7 +18,6 @@ import gui.NumericFieldListener;
 import helpers.AssetManager;
 import helpers.Logger;
 import helpers.ScalingBounds.ScaleMode;
-import helpers.Utils;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -86,38 +85,39 @@ public class MapBuilderController extends MapEditorController {
 	public void initialize() {
 		super.initialize();
 		try {
-			Utils.saveRun(() -> {
-				Alert alert = new Alert(AlertType.CONFIRMATION);
-				alert.setTitle("Library");
-				alert.setHeaderText("Do you want to create a new library or open one?");
-				alert.setContentText("You can also choose to open a map which already has a library associated with it.");
-				ButtonType btnNew = new ButtonType("New library");
-				ButtonType btnOpenLib = new ButtonType("Open library");
-				ButtonType btnOpenMap = new ButtonType("Open map");
-				ButtonType btnCancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
-				alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-				alert.getButtonTypes().setAll(btnNew, btnOpenLib, btnOpenMap, btnCancel);
-				Optional<ButtonType> result = alert.showAndWait();
-				if(result.orElse(btnCancel) == btnCancel)
-					MainMenuController.sceneManager.popScene();
-				else if(result.get() == btnNew) {
+			Alert alert = new Alert(AlertType.CONFIRMATION);
+			alert.setTitle("Library");
+			alert.setHeaderText("Do you want to create a new library or open one?");
+			alert.setContentText("You can also choose to open a map which already has a library associated with it.");
+			ButtonType btnNew = new ButtonType("New library");
+			ButtonType btnOpenLib = new ButtonType("Open library");
+			ButtonType btnOpenMap = new ButtonType("Open map");
+			ButtonType btnCancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
+			alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+			alert.getButtonTypes().setAll(btnNew, btnOpenLib, btnOpenMap, btnCancel);
+			Optional<ButtonType> result = alert.showAndWait();
+			if(result.orElse(btnCancel) == btnCancel)
+				MainMenuController.sceneManager.popScene();
+			else if(result.get() == btnNew) {
+				AssetManager.initializeManager(false);
+				setMap(Map.emptyMap(20, 20));
+			} else if(result.get() == btnOpenLib) {
+				AssetManager.initializeManager(true);
+				setMap(Map.emptyMap(20, 20));
+			} else if(result.get() == btnOpenMap) {
+				try {
+					onOpen();
+					if(getMap() == null) {
+						//treat this as a new map
+						AssetManager.initializeManager(false);
+						setMap(Map.emptyMap(20, 20));
+					}
+				} catch (IOException e) {
+					ErrorHandler.handle("Couldn't open map.", e);
 					AssetManager.initializeManager(false);
 					setMap(Map.emptyMap(20, 20));
-				} else if(result.get() == btnOpenLib) {
-					AssetManager.initializeManager(true);
-					setMap(Map.emptyMap(20, 20));
-				} else if(result.get() == btnOpenMap) {
-					try {
-						onOpen();
-						if(getMap() == null)
-							//treat this as a cancel
-							MainMenuController.sceneManager.popScene();		
-					} catch (IOException e) {
-						ErrorHandler.handle("Couldn't open map.", e);
-						MainMenuController.sceneManager.popScene();
-					}
 				}
-			});
+			}
 
 			PresetTile.setupPresetTiles();
 			//JSONManager.initialize();

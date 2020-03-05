@@ -1,7 +1,8 @@
-/helpers/
-/app/
-/controller/
-/gui/
-/data/
 /actions/
+/app/
+/assets/
 /comms/
+/controller/
+/data/
+/gui/
+/helpers/

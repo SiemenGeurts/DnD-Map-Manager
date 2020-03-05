@@ -394,7 +394,7 @@ public class ServerGameHandler extends GameHandler {
 	private ImageView imgView;
 	public void sendImage() {
 		try {
-			final Image tex = ToolkitController.getTexture();
+			Image tex = ToolkitController.getTexture();
 			if(sendImgStage == null) {
 				sendImgStage = new Stage();
 				BorderPane pane = new BorderPane();
@@ -420,7 +420,7 @@ public class ServerGameHandler extends GameHandler {
 				});
 				bar.getButtons().addAll(btnSend, btnCancel);
 				pane.setCenter(imgView);
-				pane.setBottom(bar);
+				pane.setTop(bar);
 				pane.setMaxWidth(600);
 				pane.setMaxHeight(600);
 				imgView.maxHeight(530);
