@@ -38,7 +38,7 @@
             </Menu>
         </menus>
       </MenuBar>
-      <SplitPane dividerPositions="0.75" prefHeight="363.0" prefWidth="600.0" VBox.vgrow="ALWAYS">
+      <SplitPane dividerPositions="0.75" prefHeight="550.0" prefWidth="800.0" VBox.vgrow="ALWAYS">
         <items>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="382.0" prefWidth="446.0" style="-fx-background-color: #fff;">
                <children>
@@ -58,6 +58,11 @@
                               </AnchorPane>
                         </content>
                       </Tab>
+                        <Tab text="Initative">
+                          <content>
+                            <AnchorPane fx:id="initiativePane" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+                          </content>
+                        </Tab>
                       <Tab text="Dice stats">
                         <content>
                           <AnchorPane fx:id="statsPane" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />

@@ -9,7 +9,7 @@ import data.mapdata.Tile;
 
 public class Encoder {
 	
-	public static final int VERSION_ID = 1;
+	public static final int VERSION_ID = 2;
 	public static java.util.Base64.Encoder base64 = Base64.getEncoder();
 	
 	public static String encode(Entity entity, boolean includeProperties) {
@@ -33,9 +33,14 @@ public class Encoder {
 			for(int j = 0; j < tiles[0].length; j++)
 				builder.append(':').append(tiles[i][j].getType());
 
-		builder.append(';').append(map.getEntities().size()).append(':');
+		builder.append(';').append(map.getEntities().size());
 		for(Entity e : map.getEntities())
-			builder.append(encode(e, includeEntityData)).append(':');
+			builder.append(':').append(encode(e, includeEntityData));
+		builder.append(';');
+		byte[][] mask = map.getMask();
+		for(int i = 0; i < mask.length; i++)
+			for(int j = 0; j < mask[0].length; j++)
+				builder.append((char)(mask[i][j]+62));
 		return builder.toString();
 	}
 }

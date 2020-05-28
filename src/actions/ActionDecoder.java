@@ -155,6 +155,27 @@ public class ActionDecoder {
 						handler.removeFlag((short) ((String) arg.get(0)).charAt(0));
 					}
 				};
+			case "addinit":
+				return new Action(0f) {
+					@Override
+					protected void execute() {
+						handler.addInitiative((int) arg.get(0), (int) arg.get(1));
+					}
+				};
+			case "selectInit":
+				return new Action(0f) {
+					@Override
+					public void execute() {
+						handler.selectInitiative((int) arg.get(0));
+					}
+				};
+			case "remInit":
+				return new Action(0f) {
+					@Override
+					public void execute() {
+						handler.removeInitiative((int) arg.get(0));
+					}
+				};
 			default:
 				return null;
 		}

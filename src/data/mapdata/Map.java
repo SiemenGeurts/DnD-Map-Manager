@@ -19,19 +19,26 @@ public class Map {
 	protected ScalingBounds.ScaleMode mode = ScalingBounds.ScaleMode.FIT;
 	private File libraryFile = null;
 	private boolean isSaved = false;
+	private byte[][] mask;
 	
 	public Map(int _width, int _height) {
 		width = _width;
 		height = _height;
 		tiles = new Tile[_height][_width];
+		mask = new byte[_height][_width];
 		entities = new ArrayList<>();
 	}
 	
 	public Map(Tile[][] _tiles) {
+		this(_tiles, new byte[_tiles.length][_tiles[0].length]);
+	}
+	
+	public Map(Tile[][] _tiles, byte[][] _mask) {
 		tiles = _tiles;
 		width = _tiles[0].length;
 		height = _tiles.length;
 		entities = new ArrayList<>();
+		mask = _mask;
 	}
 	
 	public void setLibraryFile(File file) {
@@ -58,6 +65,24 @@ public class Map {
 	
 	public Entity getEntity(Point p) {
 		return getEntity(p.x, p.y);
+	}
+	
+	public byte getMask(int i, int j) {
+		return mask[i][j];
+	}
+	
+	public void setMask(int i, int j, byte m) {
+		mask[i][j] = m;
+		isSaved = false;
+	}
+	
+	public byte[][] getMask() {
+		return mask;
+	}
+	
+	public void setMask(byte[][] m) {
+		mask = m;
+		isSaved = false;
 	}
 	
 	public Entity getEntityById(int id) {
@@ -109,6 +134,8 @@ public class Map {
 		width = tiles[0].length;
 		height = tiles.length;
 		isSaved = false;
+		if(mask.length != tiles.length || mask[0].length != tiles[0].length)
+			mask = new byte[height][width];
 	}
 	
 	public Image getBackground() {

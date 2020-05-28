@@ -57,6 +57,7 @@ public class ServerGameHandler extends GameHandler {
 	Thread serverListener;
 	private Object pauseLock = new Object();
 	private boolean running = false, paused = false;
+	private boolean blockUpdates = false;
 	
 	public ServerGameHandler(Server _server) {
 		super();
@@ -299,6 +300,7 @@ public class ServerGameHandler extends GameHandler {
 	}
 
 	public void sendUpdate(String action, String undoAction) {
+		if(blockUpdates) return;
 		if (bufferUpdates)
 			updates.append(action).append(';');
 		else
@@ -325,6 +327,7 @@ public class ServerGameHandler extends GameHandler {
 	
 
 	public void undo() {
+		blockUpdates = true;
 		String[] s = undo.pop().split(";");
 		for (String line : s) {
 			Action action = ActionDecoder.decode(line, true);
@@ -332,6 +335,7 @@ public class ServerGameHandler extends GameHandler {
 			action.update(0);
 			updates.delete(updates.lastIndexOf(";"), updates.length());
 		}
+		blockUpdates = false;
 	}
 
 	private void undoBuffer() {
@@ -389,6 +393,22 @@ public class ServerGameHandler extends GameHandler {
 			ErrorHandler.handle("Could not send map. Try resyncing.", e);
 		}
 	}
+	
+	@Override
+	public void selectInitiative(int id) {
+		controller.getILController().select(id);
+	}
+
+	@Override
+	public void removeInitiative(int id) {
+		controller.getILController().remove(id);		
+	}
+
+	@Override
+	public void addInitiative(int id, int initiative) {
+		controller.getILController().addEntity(map.getEntityById(id), initiative);
+	}
+	
 	
 	private Stage sendImgStage;
 	private ImageView imgView;

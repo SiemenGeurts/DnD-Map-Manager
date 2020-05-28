@@ -56,6 +56,10 @@ public abstract class GameHandler {
 			flags &= ~flag;
 	}
 	
+	public abstract void selectInitiative(int id);
+	public abstract void removeInitiative(int id);
+	public abstract void addInitiative(int id, int initiative);
+	
 	
 	public static final short DISPLAY_IMAGE = 1;
 }

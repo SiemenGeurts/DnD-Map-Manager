@@ -95,8 +95,9 @@ public class Library {
 		return new Library();
 	}
 	
-	public static Library load(FileInputStream in) throws IOException {
+	public static Library load(File file) throws IOException {
 		try {
+			FileInputStream in = new FileInputStream(file);
 			ObjectInputStream objIn = new ObjectInputStream(in);
 			int version = (Integer) objIn.readObject();
 			if(version != VERSION_ID)
@@ -105,6 +106,7 @@ public class Library {
 			JSONObject players = new JSONObject((String) objIn.readObject());
 			JSONArray tiles = new JSONArray((String)objIn.readObject());
 			SpriteMap sm = (SpriteMap) objIn.readObject();
+			in.close();
 			return new Library(entities, players, tiles, sm);
 		} catch (ClassNotFoundException e) {
 			ErrorHandler.handle("Something went really wrong, notify the idiot who designed this.", e);

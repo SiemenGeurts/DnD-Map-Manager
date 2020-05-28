@@ -5,6 +5,7 @@ import java.util.Base64;
 import data.mapdata.Entity;
 import data.mapdata.Map;
 import helpers.codecs.version1.DecoderV1;
+import helpers.codecs.version1.DecoderV2;
 
 public abstract class Decoder {
 	public static final java.util.Base64.Decoder base64 = Base64.getDecoder();
@@ -14,6 +15,8 @@ public abstract class Decoder {
 	
 	public final static Decoder getDecoder(int version) {
 		switch(version) {
+		case 2:
+			return new DecoderV2();
 		case 1:
 		default:
 			return new DecoderV1();

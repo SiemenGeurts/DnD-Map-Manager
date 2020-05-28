@@ -16,6 +16,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.MenuItem;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -52,12 +53,15 @@ public class ServerController extends MapEditorController {
     //Stats pane stuff
     @FXML
     private AnchorPane statsPane;
+    @FXML
+    private AnchorPane initiativePane;
     
     public Map previewMap, oldMap;
     public boolean inPreview = false;
     
 	private ServerGameHandler gameHandler;
 	private ObjectSelectorController osController;
+	private InitiativeListController ilController;
 	
 	private Entity selected = null;
 	
@@ -104,6 +108,21 @@ public class ServerController extends MapEditorController {
 			AnchorPane.setLeftAnchor(root, 0d);
 			AnchorPane.setRightAnchor(root, 0d);
 			AnchorPane.setTopAnchor(root, 0d);
+			
+			loader = new FXMLLoader(ServerController.class.getResource("/assets/fxml/InitiativeList.fxml"));
+			root = loader.load();
+			initiativePane.getChildren().add(root);
+			AnchorPane.setBottomAnchor(root, 0d);
+			AnchorPane.setLeftAnchor(root, 0d);
+			AnchorPane.setRightAnchor(root, 0d);
+			AnchorPane.setTopAnchor(root, 0d);
+			ilController = loader.getController();
+			ilController.setGameHandler(gameHandler);
+			MenuItem item = new MenuItem("Initiative");
+			item.setOnAction(event -> {
+				ilController.addEntity(entityMenu.selected);
+			});
+			entityMenu.addEntityMenuItem(item);
 			
 			MapManagerApp.stage.setResizable(true);
 			MapManagerApp.stage.setMaximized(true);
@@ -212,6 +231,10 @@ public class ServerController extends MapEditorController {
 		} catch(IOException ex) {
 			ErrorHandler.handle("Could not reopen server.", ex);
 		}
+	}
+	
+	public InitiativeListController getILController() {
+		return ilController;
 	}
 	
 	public void setGameHandler(ServerGameHandler _gameHandler) {

@@ -1,17 +1,24 @@
 package controller;
 
 import java.awt.Point;
+import java.io.IOException;
 
 import app.ClientGameHandler;
+import app.Constants;
 import app.MapManagerApp;
 import data.mapdata.Entity;
+import gui.ErrorHandler;
 import helpers.Logger;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 
 public class ClientController extends MapController {
 	ClientGameHandler gameHandler;
@@ -23,6 +30,10 @@ public class ClientController extends MapController {
 	private Button btnPush;
 	@FXML
 	private CheckBox chkboxViewGrid;
+	@FXML
+	private VBox vbox;
+	
+	InitiativeListController ilController;
 	
 	public void setGameHandler(ClientGameHandler _gameHandler) {
 		gameHandler = _gameHandler;
@@ -49,6 +60,21 @@ public class ClientController extends MapController {
 			}
 		});
 		chkboxViewGrid.selectedProperty().addListener((obs, oldVal, newVal) -> setViewGrid(newVal));
+		
+		try {
+			FXMLLoader loader = new FXMLLoader(ServerController.class.getResource("/assets/fxml/InitiativeList.fxml"));
+			Node root = loader.load();
+			vbox.getChildren().add(0, root);
+			VBox.setVgrow(root, Priority.ALWAYS);
+			ilController = loader.getController();
+			ilController.setMode(Constants.CLIENTMODE);
+		} catch (IOException e) {
+			ErrorHandler.handle("Couldn't load initiative bar.",e);
+		}
+	}
+	
+	public InitiativeListController getInitiativeController() {
+		return ilController;
 	}
 	
 	@FXML

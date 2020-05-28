@@ -102,8 +102,10 @@ public class MapBuilderController extends MapEditorController {
 				AssetManager.initializeManager(false);
 				setMap(Map.emptyMap(20, 20));
 			} else if(result.get() == btnOpenLib) {
-				AssetManager.initializeManager(true);
+				File libFile = AssetManager.initializeManager(true);
 				setMap(Map.emptyMap(20, 20));
+				if(libFile != null)
+					getMap().setLibraryFile(libFile);
 			} else if(result.get() == btnOpenMap) {
 				try {
 					onOpen();

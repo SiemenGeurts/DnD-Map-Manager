@@ -59,6 +59,7 @@ public class ClientGameHandler extends GameHandler {
 		instance = this;
 		undoAction = Action.empty();
 		updates = new StringBuilder();
+		AssetManager.initializeManager(false);
 		try {
 			FXMLLoader loader = new FXMLLoader(
 					ClientGameHandler.class.getResource("/assets/fxml/ClientPlayScreen.fxml"));
@@ -196,6 +197,21 @@ public class ClientGameHandler extends GameHandler {
 		sendUpdate(ActionEncoder.movement(entity.getTileX(), entity.getTileY(), target.x, target.y, entity.getID()));
 		undoAction = new MovementAction(new GuideLine(new Point2D[] {target, entity.getLocation()}), entity, 0).addAction(undoAction);
 		new MovementAction(new GuideLine(new Point2D[] {entity.getLocation(), target}), entity, 0).attach();
+	}
+	
+	public void addInitiative(int id, int initiative) {
+		controller.getInitiativeController().addEntity(map.getEntityById(id), initiative);
+	}
+	
+
+	@Override
+	public void selectInitiative(int id) {
+		controller.getInitiativeController().select(id);
+	}
+
+	@Override
+	public void removeInitiative(int id) {
+		controller.getInitiativeController().remove(id);
 	}
 	
 	public void requestMissingTextures(Map map) {

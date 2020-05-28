@@ -1,7 +1,6 @@
 package helpers;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -24,13 +23,17 @@ public class AssetManager {
 		fs.setInitialDirectory(new File(MapManagerApp.defaultDirectory));		
 	}
 	
-	public static void initializeManager(boolean allowLibrarySelection) {
+	public static File initializeManager(boolean allowLibrarySelection) {
 		unknownTexture = new Image("assets/images/unknown.png");
 		if(allowLibrarySelection) {
-			if(loadLibrary() == null)
+			File libraryFile = loadLibrary();
+			if(libraryFile == null)
 				library = Library.emptyLibrary();
+			else
+				return libraryFile;
 		} else
 			library = Library.emptyLibrary();
+		return null;
 	}
 	
 	public static File loadLibrary() {
@@ -39,7 +42,7 @@ public class AssetManager {
 				File file = fs.showOpenDialog(SceneManager.getPrimaryStage());
 				if(file == null)
 					return null;
-				setLibrary(Library.load(new FileInputStream(file)));
+				setLibrary(Library.load(file));
 				return file;
 			} catch(IOException e) {
 				ErrorHandler.handle("Could not load library.", e);

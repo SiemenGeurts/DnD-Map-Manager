@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Optional;
 
 import data.mapdata.Entity;
@@ -38,7 +39,7 @@ public class MapEditorController extends MapController {
 	
 	protected PropertyEditorController propeditor;
 	private Entity currentlyEdited;
-	private EntityMenu entityMenu;
+	protected EntityMenu entityMenu;
 	public boolean isSaved;
 	Runnable onPropertySave = () -> getMap().setUnsaved();
 	
@@ -52,7 +53,6 @@ public class MapEditorController extends MapController {
 		mapChooser = new FileChooser();
 		mapChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Map files (*.map)", "*.map"));
 	}
-	
 	
 	public void setPropertyEditor(PropertyEditorController editor) {
 		propeditor = editor;
@@ -178,10 +178,10 @@ public class MapEditorController extends MapController {
 	void onSaveAs() {
 		mapChooser.setTitle("Save map");
 		currentFile = mapChooser.showSaveDialog(SceneManager.getPrimaryStage());
-		if(!currentFile.getName().endsWith(".map"))
-			currentFile = new File(currentFile.getAbsolutePath() + ".map");
 		if(currentFile == null) {
 			Dialogs.warning("Map was not saved.", true);
+		if(!currentFile.getName().endsWith(".map"))
+			currentFile = new File(currentFile.getAbsolutePath() + ".map");
 		} else
 			onSave();
 	}
@@ -203,7 +203,6 @@ public class MapEditorController extends MapController {
 		if(checkSaved())
 			MainMenuController.sceneManager.popScene();
 	}
-	
 	
 	/**
 	 * Checks if the current library and map are saved.
@@ -235,6 +234,8 @@ public class MapEditorController extends MapController {
 		
 		MenuItem edit, cut, copy, paste, delete, save;
 		
+		ArrayList<MenuItem> entityMenuItems = new ArrayList<>();
+		
 		public EntityMenu() {
 			edit = new MenuItem("Edit");
 			cut = new MenuItem("Cut");
@@ -262,13 +263,22 @@ public class MapEditorController extends MapController {
 			});
 			save.setOnAction(event -> {});
 			setOnHidden(event -> redraw());
+			entityMenuItems.add(edit);
+			entityMenuItems.add(cut);
+			entityMenuItems.add(copy);
+			entityMenuItems.add(delete);
+			entityMenuItems.add(save);
+		}
+		
+		public void addEntityMenuItem(MenuItem item) {
+			entityMenuItems.add(item);
 		}
 		
 		public void show(Entity e, double screenX, double screenY) {
 			selected = e;
 			showProperties(selected);
 			getItems().clear();
-			getItems().addAll(edit, cut, copy, delete, save);
+			getItems().addAll(entityMenuItems);
 			show(canvas, screenX, screenY);
 		}
 		
@@ -279,8 +289,10 @@ public class MapEditorController extends MapController {
 				show(e, screenX, screenY);
 			} else {
 				getItems().clear();
-				getItems().add(paste);
-				show(canvas, screenX, screenY);
+				if(copied != null) {
+					getItems().add(paste);
+					show(canvas, screenX, screenY);
+				}
 			}
 		}		
 	}

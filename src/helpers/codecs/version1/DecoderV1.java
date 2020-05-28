@@ -46,5 +46,4 @@ public class DecoderV1 extends Decoder {
 		map.setEntities(entities);
 		return map;
 	}
-
 }

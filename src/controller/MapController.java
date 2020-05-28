@@ -6,6 +6,7 @@ import java.io.IOException;
 import controller.InitClassStructure.SceneController;
 import data.mapdata.Entity;
 import data.mapdata.Map;
+import data.mapdata.PresetTile;
 import data.mapdata.Tile;
 import helpers.Logger;
 import helpers.ScalingBounds;
@@ -26,10 +27,10 @@ import javafx.scene.transform.Rotate;
 
 public class MapController extends SceneController {
 
-	protected int TILE_SIZE = 50;
-	protected double SCALE = 1;
+	protected final static int TILE_SIZE = 50;
+	protected double SCALE = 1, FACTOR=50;
 	
-	private double SCALING_FACTOR = 1.3;
+	private final static double SCALING_FACTOR = 1.3;
 	private double offsetX, offsetY;
 	private Map currentMap;
 	
@@ -69,7 +70,7 @@ public class MapController extends SceneController {
     
     public void calculateBackgroundBounds() {    	
     	if(currentMap.getBackground() != null)
-    		imagebounds = ScalingBounds.getBounds(currentMap.getWidth()*TILE_SIZE*SCALE, currentMap.getHeight()*TILE_SIZE*SCALE, currentMap.getBackground(), currentMap.getScaling());
+    		imagebounds = ScalingBounds.getBounds(currentMap.getWidth()*FACTOR, currentMap.getHeight()*FACTOR, currentMap.getBackground(), currentMap.getScaling());
     }
     
     private void onResize() {
@@ -97,19 +98,19 @@ public class MapController extends SceneController {
 	}
 	
 	private void drawImage(Image texture, double tileX, double tileY, double width, double height) {
-		double factor = TILE_SIZE*SCALE;
+		double factor = FACTOR;
 		gc.drawImage(texture, tileX*factor-offsetX, tileY*factor-offsetY, width*factor, height*factor);
 	}
 	
 	void moveScreen(double dx, double dy) {
 		if(dx<0)
-			offsetX = Math.max(-canvas.getWidth() + TILE_SIZE*SCALE, offsetX+dx*TILE_SIZE*SCALE);
+			offsetX = Math.max(-canvas.getWidth() + FACTOR, offsetX+dx*FACTOR);
 		else
-			offsetX = Math.min((currentMap.getWidth()-1)*TILE_SIZE*SCALE, offsetX+dx*TILE_SIZE*SCALE);
+			offsetX = Math.min((currentMap.getWidth()-1)*FACTOR, offsetX+dx*FACTOR);
 		if(dy<0)
-			offsetY = Math.max(-canvas.getHeight() + TILE_SIZE * SCALE, offsetY + dy*TILE_SIZE*SCALE);
+			offsetY = Math.max(-canvas.getHeight() + FACTOR, offsetY + dy*FACTOR);
 		else
-			offsetY = Math.min(currentMap.getHeight() * TILE_SIZE * SCALE - TILE_SIZE * SCALE, offsetY + dy*TILE_SIZE*SCALE);
+			offsetY = Math.min(currentMap.getHeight() * FACTOR - FACTOR, offsetY + dy*FACTOR);
 		redraw();
 	}
 
@@ -124,40 +125,47 @@ public class MapController extends SceneController {
 		double factor=zoom;//(zoom>0 ? SCALING_FACTOR*zoom : 1/(SCALING_FACTOR*-zoom));
 		System.out.println("Zoomed: " + factor);
 		SCALE = Math.max(0.5, SCALE*factor);//Calculator.clamp(SCALE*factor, 0.5, 10);
+		FACTOR = SCALE*TILE_SIZE;
 		System.out.println(SCALE);
 		
-		double mapWidth = TILE_SIZE * SCALE * currentMap.getWidth();
-		double mapHeight = TILE_SIZE * SCALE * currentMap.getHeight();
-		offsetX = Math.max(-canvas.getWidth() + TILE_SIZE * SCALE, Math.min(offsetX - (x + offsetX) * (oldScale / SCALE - 1) * factor,
-				mapWidth - TILE_SIZE * SCALE));
-		offsetY = Math.max(-canvas.getHeight() + TILE_SIZE * SCALE, Math.min(offsetY - (y + offsetY) * (oldScale / SCALE - 1) * factor,
-				mapHeight - TILE_SIZE * SCALE));
+		double mapWidth = FACTOR * currentMap.getWidth();
+		double mapHeight = FACTOR * currentMap.getHeight();
+		offsetX = Math.max(-canvas.getWidth() + FACTOR, Math.min(offsetX - (x + offsetX) * (oldScale / SCALE - 1) * factor,
+				mapWidth - FACTOR));
+		offsetY = Math.max(-canvas.getHeight() + FACTOR, Math.min(offsetY - (y + offsetY) * (oldScale / SCALE - 1) * factor,
+				mapHeight - FACTOR));
 		calculateBackgroundBounds();
 		redraw();
 	}
 	
 	public void drawMap(int minX, int minY, int maxX, int maxY) {
 		Tile[][] tiles = currentMap.getTiles();
+		gc.setFill(Color.BLACK);
 		for (int i = Math.max(0, minY); i <= Math.min(tiles.length - 1, maxY); i++) {
 			for (int j = Math.max(0, minX); j <= Math.min(tiles[0].length - 1, maxX); j++) {
-				drawImage(tiles[i][j].getTexture(), j, i);
+				if(tiles[i][j].getType()!=PresetTile.EMPTY)
+					drawImage(tiles[i][j].getTexture(), j, i);
+				if(currentMap.getMask(i, j)!=0) {
+					gc.setGlobalAlpha(currentMap.getMask(i,j)/127);
+					gc.fillRect(j*FACTOR-offsetX, i*FACTOR-offsetY, FACTOR, FACTOR);
+				}
 			}
 		}
 		for(Entity e : currentMap.getEntities())
 			if(e.getX()>=minX && e.getY()>=minY && e.getX()+e.getWidth()<=maxX && e.getY()+e.getHeight()<=maxY)
 				drawImage(e.getTexture(), e.getX(), e.getY(), e.getWidth(), e.getHeight());
 		if(!gridOn) return;
-		double xBegin = Math.max(0, minX)*TILE_SIZE*SCALE-offsetX;
-		double xEnd = Math.min(tiles[0].length+1, maxX)*TILE_SIZE*SCALE-offsetX;
-		double yBegin = Math.max(0, minY)*TILE_SIZE*SCALE-offsetY;
-		double yEnd = Math.min(tiles.length+1, maxY)*TILE_SIZE*SCALE-offsetY;
+		double xBegin = Math.max(0, minX)*FACTOR-offsetX;
+		double xEnd = Math.min(tiles[0].length+1, maxX)*FACTOR-offsetX;
+		double yBegin = Math.max(0, minY)*FACTOR-offsetY;
+		double yEnd = Math.min(tiles.length+1, maxY)*FACTOR-offsetY;
 		
 		gc.setStroke(Color.BLACK);
 		gc.setLineWidth(1);
-		for (double x = xBegin; x <= xEnd+0.1*TILE_SIZE; x += TILE_SIZE*SCALE)
+		for (double x = xBegin; x <= xEnd+0.1*TILE_SIZE; x += FACTOR)
 			gc.strokeLine(x, yBegin, x, yEnd);
 			
-		for (double y = yBegin; y <= yEnd+0.1*TILE_SIZE; y += TILE_SIZE*SCALE)
+		for (double y = yBegin; y <= yEnd+0.1*TILE_SIZE; y += FACTOR)
 			gc.strokeLine(xBegin, y, xEnd, y);
 	}
 	
@@ -185,28 +193,28 @@ public class MapController extends SceneController {
 	}
 	
 	public Point getTileOnPosition(double x, double y) {
-		return new Point((int) ((x + offsetX)/(TILE_SIZE*SCALE)), (int) ((y+offsetY)/(TILE_SIZE*SCALE)));
+		return new Point((int) ((x + offsetX)/(FACTOR)), (int) ((y+offsetY)/(FACTOR)));
 	}
 	
 	public Point2D screenToWorld(Point p) {
-		return new Point2D((p.x + offsetX)/(TILE_SIZE*SCALE), (p.y+offsetY)/(TILE_SIZE*SCALE));
+		return new Point2D((p.x + offsetX)/(FACTOR), (p.y+offsetY)/(FACTOR));
 	}
 		
 	public Point worldToScreen(Point2D p) {
-		return new Point((int)(p.getX()*TILE_SIZE*SCALE-offsetX),(int) (p.getY()*TILE_SIZE*SCALE-offsetY));
+		return new Point((int)(p.getX()*FACTOR-offsetX),(int) (p.getY()*FACTOR-offsetY));
 	}
 	
 	public Rectangle2D screenToWorld(Rectangle rect) {
-		return new Rectangle2D((rect.x + offsetX)/(TILE_SIZE*SCALE), (rect.y+offsetY)/(TILE_SIZE*SCALE), rect.getWidth()*TILE_SIZE*SCALE, rect.getHeight()*TILE_SIZE*SCALE);
+		return new Rectangle2D((rect.x + offsetX)/(FACTOR), (rect.y+offsetY)/(FACTOR), rect.getWidth()*FACTOR, rect.getHeight()*FACTOR);
 	}
 	
 	public Rectangle worldToScreen(Rectangle2D rect) {
-		return new Rectangle((int)(rect.getMinX()*TILE_SIZE*SCALE-offsetX),(int) (rect.getMinY()*TILE_SIZE*SCALE-offsetY), (int) (rect.getWidth()*TILE_SIZE*SCALE), (int) (rect.getHeight()*TILE_SIZE*SCALE));
+		return new Rectangle((int)(rect.getMinX()*FACTOR-offsetX),(int) (rect.getMinY()*FACTOR-offsetY), (int) (rect.getWidth()*FACTOR), (int) (rect.getHeight()*FACTOR));
 	}
 	
     @FXML
     void onMouseClicked(MouseEvent event) {
-    	if(mousePressedCoords != null && mousePressedCoords.distance(event.getX(), event.getY())>TILE_SIZE*SCALE/2) return;
+    	if(mousePressedCoords != null && mousePressedCoords.distance(event.getX(), event.getY())>FACTOR/2) return;
     	handleClick(getTileOnPosition(event.getX(), event.getY()), event);
     }
     
@@ -244,8 +252,8 @@ public class MapController extends SceneController {
 			zoom(Math.pow(SCALING_FACTOR, event.getDeltaY()/event.getMultiplierY()), event.getX(), event.getY()); //the multiplier is for device and settings dependent scaling
 		else { //event triggered by touchscreen
 			if(lastDragCoords != null) {
-		    	double dx = (lastDragCoords.getX()-event.getX())/(TILE_SIZE*SCALE*SCALING_FACTOR);
-		    	double dy = (lastDragCoords.getY()-event.getY())/(TILE_SIZE*SCALE*SCALING_FACTOR);
+		    	double dx = (lastDragCoords.getX()-event.getX())/(FACTOR*SCALING_FACTOR);
+		    	double dy = (lastDragCoords.getY()-event.getY())/(FACTOR*SCALING_FACTOR);
 		    	moveScreen(dx, dy);
 	    	}
 	    	lastDragCoords = new Point2D(event.getX(), event.getY());
@@ -256,8 +264,8 @@ public class MapController extends SceneController {
     public void onDragHandler(MouseEvent e) {
 		if(!e.isSynthesized()) { // event triggered by mouse
 	    	if(lastDragCoords != null) {
-		    	double dx = (lastDragCoords.getX()-e.getX())/(TILE_SIZE*SCALE*SCALING_FACTOR);
-		    	double dy = (lastDragCoords.getY()-e.getY())/(TILE_SIZE*SCALE*SCALING_FACTOR);
+		    	double dx = (lastDragCoords.getX()-e.getX())/(FACTOR*SCALING_FACTOR);
+		    	double dy = (lastDragCoords.getY()-e.getY())/(FACTOR*SCALING_FACTOR);
 		    	moveScreen(dx, dy);
 	    	}
 	    	lastDragCoords = new Point2D(e.getX(), e.getY());

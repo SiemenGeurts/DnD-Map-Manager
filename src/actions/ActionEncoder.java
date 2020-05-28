@@ -53,4 +53,17 @@ public class ActionEncoder {
 	public static String remFlag(short flag) {
 		return "!remflag <" + (char) flag + ">";
 	}
+	
+	public static String addInitiative(int id, int initiative) {
+		return "addinit (" + id + ") (" + initiative + ")";
+	}
+	
+	public static String selectInitiative(int id) {
+		return "selectInit (" + id + ")";
+	}
+	
+	public static String removeInitiative(int id) {
+		return "remInit (" + id + ")";
+	}
+	
 }

@@ -19,9 +19,9 @@
             </AnchorPane>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                <children>
-                  <VBox alignment="BOTTOM_CENTER" prefHeight="615.0" prefWidth="159.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                  <VBox fx:id="vbox" alignment="TOP_CENTER" style="-fx-background-color: blue;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                      <children>
-                        <CheckBox fx:id="chkboxViewGrid" mnemonicParsing="false" selected="true" text="Show Grid" />
+                        <CheckBox fx:id="chkboxViewGrid" mnemonicParsing="false" selected="true" text="Show Grid" VBox.vgrow="NEVER" />
                         <ToolBar prefHeight="40.0" VBox.vgrow="NEVER">
                           <items>
                               <CheckBox fx:id="chkboxBuffer" mnemonicParsing="false" selected="true" text="Buffer changes" />
