@@ -51,7 +51,7 @@ public class Map {
 	}
 	
 	public void setTile(int x, int y, Tile tile) {
-		isSaved = (tiles[x][y] == tile);
+		isSaved = (tiles[y][x] == tile);
 		tiles[y][x] = tile;
 	}
 	

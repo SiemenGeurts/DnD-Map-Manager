@@ -253,6 +253,7 @@ public class MapBuilderController extends MapEditorController {
 				return;
 		}
 		Tile[][] tiles = new Tile[newHeight][newWidth];
+		byte[][] mask = new byte[newHeight][newWidth];
 		int xdiff = newWidth-width;
 		int ydiff = newHeight-height;
 		int xStart=0, xEnd=width, yStart=0, yEnd=height;
@@ -301,28 +302,39 @@ public class MapBuilderController extends MapEditorController {
 		
 		
 		for(int i = y1; i<y2; i++)
-			for(int j = x1; j<x2; j++)
+			for(int j = x1; j<x2; j++) {
 				tiles[i-yStart][j-xStart] = getMap().getTile(j, i);
+				mask[i-yStart][j-xStart] = getMap().getMask(j, i);
+			}
 
 		if(newWidth>width) {
 			xStart = -xStart;
 			for(int x = 0; x<xStart; x++)
-				for(int y = 0; y<newHeight; y++)
+				for(int y = 0; y<newHeight; y++) {
 					tiles[y][x] = new Tile(PresetTile.EMPTY);
+					mask[y][x] = 0;
+				}
 			for(int x = xStart+width; x<newWidth; x++)
-				for(int y = 0; y<newHeight; y++)
+				for(int y = 0; y<newHeight; y++) {
 					tiles[y][x] = new Tile(PresetTile.EMPTY);
+					mask[y][x] = 0;
+				}
 		}
 		if(newHeight>height) {
 			yStart = -yStart;
 			for(int y = 0; y < yStart; y++)
-				for(int x = xStart; x < width+xStart; x++)
+				for(int x = xStart; x < width+xStart; x++) {
 					tiles[y][x] = new Tile(PresetTile.EMPTY);
+					mask[y][x] = 0;
+				}
 			for(int y = yStart+height; y < newHeight; y++)
-				for(int x = xStart; x < width+xStart; x++)
+				for(int x = xStart; x < width+xStart; x++) {
 					tiles[y][x] = new Tile(PresetTile.EMPTY);
+					mask[y][x] = 0;
+				}
 		}
 		getMap().setTiles(tiles);
+		getMap().setMask(mask);
 		calculateBackgroundBounds();
 		redraw();
 	}
