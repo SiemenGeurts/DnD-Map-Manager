@@ -12,6 +12,7 @@ import actions.Action;
 import actions.ActionDecoder;
 import actions.ActionEncoder;
 import comms.Server;
+import controller.InitiativeListController.InitiativeEntry;
 import controller.MainMenuController;
 import controller.SceneManager;
 import controller.ServerController;
@@ -51,6 +52,8 @@ public class ServerGameHandler extends GameHandler {
 	private FileChooser mapChooser;
 	private StringBuilder updates;
 	private Stack<String> undo;
+	private byte[][] oldMask;
+	
 	private boolean bufferUpdates = false;
 	public boolean isPlaying = false;
 	//for serverlistener
@@ -214,9 +217,11 @@ public class ServerGameHandler extends GameHandler {
 
 	public void resync() {
 		try {
-			server.write(map);
+			server.write(map, false);
+			for(InitiativeEntry entry : controller.getILController().getAll())
+				server.write(ActionEncoder.addInitiative(entry.getEntity().getID(), entry.getInitiative()));
 		} catch (IOException e) {
-			e.printStackTrace();
+			ErrorHandler.handle("Could not resync...", e);
 		}
 	}
 
@@ -299,8 +304,18 @@ public class ServerGameHandler extends GameHandler {
 		return true;
 	}
 
+	public void sendForcedUpdate(String action) {
+		if(blockUpdates)return;
+		//this bypasses the buffer
+		try{
+			server.write(action);
+		} catch (IOException e) {
+			ErrorHandler.handle("Update [" + action + "] could not be send. Try resyncing the game.", e);
+		}
+	}
+	
 	public void sendUpdate(String action, String undoAction) {
-		if(blockUpdates) return;
+		if(blockUpdates) return; //if this is true, we're undoing the buffer, and we don't want to send the undo actions
 		if (bufferUpdates)
 			updates.append(action).append(';');
 		else
@@ -313,19 +328,25 @@ public class ServerGameHandler extends GameHandler {
 	}
 
 	public void pushUpdates() {
-		if (bufferUpdates && updates.length()>0)
+		if (bufferUpdates) {
 			try {
-				server.write(updates.toString());
-				updates = new StringBuilder();
-			} catch (IOException e) {
-				ErrorHandler.handle("Update [" + updates.toString() + "] could not be send. Try resyncing the game.",
-						e);
+				server.write(map.getMask());
+			} catch(IOException e) {
+				ErrorHandler.handle("Could not send the new Fog of War, try resyncing the game.", e);
 			}
-		else
-			ErrorHandler.handle("Buffer is not enabled or empty.", null);
+			if(updates.length()>0) {
+				try {
+					server.write(updates.toString());
+					updates = new StringBuilder();
+				} catch (IOException e) {
+					ErrorHandler.handle("Update [" + updates.toString() + "] could not be send. Try resyncing the game.",
+							e);
+				}
+			}
+		} else
+			ErrorHandler.handle("Buffer is not enabled", null);
 	}
 	
-
 	public void undo() {
 		blockUpdates = true;
 		String[] s = undo.pop().split(";");
@@ -339,6 +360,9 @@ public class ServerGameHandler extends GameHandler {
 	}
 
 	private void undoBuffer() {
+		map.setMask(oldMask);
+		controller.redraw();
+		oldMask = null;
 		long count = updates.chars().filter(ch -> ch == ';').count();
 		for (int i = 0; i < count; i++)
 			undo();
@@ -349,8 +373,16 @@ public class ServerGameHandler extends GameHandler {
 		if(!bufferUpdates)
 			return true;
 		if(updates.length()==0) {
-			bufferUpdates = false;
-			return true;
+			//check if fow map changed
+			boolean maskchanged = false;
+			for(int i = 0; i < oldMask.length && !maskchanged; i++)
+				for(int j = 0; j < oldMask[0].length && !maskchanged; j++)
+					if(oldMask[i][j] == map.getMask(j, i))
+						maskchanged = true;
+			if(!maskchanged) {
+				bufferUpdates = false;
+				return true;
+			}
 		}
 		ButtonType cont = new ButtonType("continue", ButtonBar.ButtonData.OK_DONE);
 		ButtonType push = new ButtonType("push updates", ButtonBar.ButtonData.APPLY);
@@ -373,7 +405,18 @@ public class ServerGameHandler extends GameHandler {
 	}
 	
 	public void enableUpdateBuffer() {
+		if(!bufferUpdates) {
+			byte[][] mask = map.getMask();
+			oldMask = new byte[mask.length][mask[0].length];
+			for(int i = 0; i < oldMask.length; i++)
+				for(int j = 0; j < oldMask[0].length; j++)
+					oldMask[i][j] = mask[i][j];
+		}
 		bufferUpdates = true;
+	}
+	
+	public boolean isBufferEnabled() {
+		return bufferUpdates;
 	}
 
 	public String getBufferedActions() {
@@ -407,6 +450,11 @@ public class ServerGameHandler extends GameHandler {
 	@Override
 	public void addInitiative(int id, int initiative) {
 		controller.getILController().addEntity(map.getEntityById(id), initiative);
+	}
+	
+	@Override
+	public void clearInitiative() {
+		//this method cannot be called by the server
 	}
 	
 	

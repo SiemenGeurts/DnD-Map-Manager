@@ -78,6 +78,13 @@ public class ActionDecoder {
 						((ClientGameHandler)handler).onActionAccepted();
 					}
 				};
+			case "clrInit":
+				return new Action(0f) {
+					@Override
+					public void execute() {
+						handler.clearInitiative();
+					}
+				};
 			default:
 				throw new IllegalArgumentException("command '" + s + "' could not be parsed.");
 			}

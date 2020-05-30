@@ -1,6 +1,8 @@
 package controller;
 
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 
 import actions.ActionEncoder;
@@ -75,9 +77,12 @@ public class InitiativeListController {
 				gameHandler.sendUpdate(ActionEncoder.selectInitiative(newVal.entity.getID()), oldVal == null ? "" : ActionEncoder.selectInitiative(oldVal.entity.getID()));
 		});
 		
-		btnRemove.setOnAction(event ->
-			list.remove(listview.getSelectionModel().getSelectedItem())
-		);
+		btnRemove.setOnAction(event -> {
+			InitiativeEntry entry = listview.getSelectionModel().getSelectedItem();
+			if(isServer)
+				gameHandler.sendUpdate(ActionEncoder.removeInitiative(entry.entity.getID()), ActionEncoder.addInitiative(entry.entity.getID(), entry.getInitiative()));
+			list.remove(entry);
+		});
 		btnClear.setOnAction(event -> {
 			Alert alert = new Alert(AlertType.CONFIRMATION);
 			alert.setHeaderText("Are you sure you want to clear the initiative list?");
@@ -86,6 +91,7 @@ public class InitiativeListController {
 			Optional<ButtonType> result = alert.showAndWait();
 			if(result.orElse(ButtonType.CANCEL) == ButtonType.OK) {
 				list.clear();
+				gameHandler.sendForcedUpdate(ActionEncoder.clearInitiative());
 			}				
 		});
 		
@@ -106,23 +112,32 @@ public class InitiativeListController {
 		this.gameHandler = handler;
 	}
 	
+	public List<InitiativeEntry> getAll() {
+		return Collections.unmodifiableList(list);
+	}
+	
 	public void setMode(short mode) {
 		isServer = mode == Constants.SERVERMODE;
 		bar.setVisible(isServer);
-		listview.setMouseTransparent(!isServer);
-		listview.setFocusTraversable(isServer);
+		//listview.setMouseTransparent(!isServer);
+		//listview.setFocusTraversable(isServer);
+		listview.setDisable(!isServer);
 	}
 	
 	public boolean remove(int id) {
 		for(int i = 0; i < list.size(); i++)
 			if(list.get(i).entity.getID()==id) {
 				if(isServer)
-					gameHandler.sendUpdate(ActionEncoder.removeInitiative(id), ActionEncoder.removeInitiative(listview.getSelectionModel().getSelectedIndex()));
+					gameHandler.sendUpdate(ActionEncoder.removeInitiative(id), ActionEncoder.addInitiative(id, list.get(i).getInitiative()));
 				final int j = i;
 				Utils.safeRun(()->list.remove(j));
 				return true;
 			}
 		return false;
+	}
+	
+	public void clear() {
+		Utils.safeRun(() -> list.clear());
 	}
 	
 	public boolean select(int id) {
@@ -166,7 +181,7 @@ public class InitiativeListController {
 		}
 	}
 	
-	class InitiativeEntry implements Comparable<InitiativeEntry> {
+	public class InitiativeEntry implements Comparable<InitiativeEntry> {
 		Entity entity;
 		int initiative;
 		
@@ -175,7 +190,11 @@ public class InitiativeListController {
 			this.initiative = initiative;
 		}
 		
-		int getInitiative() {
+		public Entity getEntity() {
+			return entity;
+		}
+		
+		public int getInitiative() {
 			return initiative;
 		}
 		

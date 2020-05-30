@@ -67,12 +67,12 @@ public class Map {
 		return getEntity(p.x, p.y);
 	}
 	
-	public byte getMask(int i, int j) {
-		return mask[i][j];
+	public byte getMask(int x, int y) {
+		return mask[y][x];
 	}
 	
-	public void setMask(int i, int j, byte m) {
-		mask[i][j] = m;
+	public void setMask(int x, int y, byte m) {
+		mask[y][x] = m;
 		isSaved = false;
 	}
 	

@@ -6,9 +6,9 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="421.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.InitiativeListController">
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="100.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.InitiativeListController">
    <children>
-      <ListView fx:id="listview" VBox.vgrow="ALWAYS" />
+      <ListView fx:id="listview" minWidth="100.0" style="-fx-opacity: 1.0;" VBox.vgrow="ALWAYS" />
       <ButtonBar fx:id="bar" prefHeight="40.0" prefWidth="200.0">
         <buttons>
           <Button fx:id="btnClear" mnemonicParsing="false" text="Clear" />

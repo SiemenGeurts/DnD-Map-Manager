@@ -12,6 +12,7 @@ import gui.ErrorHandler;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Point2D;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -21,6 +22,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 public class ServerController extends MapEditorController {
@@ -90,8 +92,14 @@ public class ServerController extends MapEditorController {
 	
 	public void endInit() {
 		try {
-			FXMLLoader loader = new FXMLLoader(ServerController.class.getResource("/assets/fxml/ObjectSelector.fxml"));
+			FXMLLoader loader = new FXMLLoader(ServerController.class.getResource("/assets/fxml/PaintPane.fxml"));
 			Parent root = loader.load();
+			paintController = loader.getController();
+			vbox.getChildren().add(root);
+			VBox.setVgrow(root, Priority.NEVER);
+			
+			loader = new FXMLLoader(ServerController.class.getResource("/assets/fxml/ObjectSelector.fxml"));
+			root = loader.load();
 			osController = loader.getController();
 			osController.setController(this);
 			vbox.getChildren().add(root);
@@ -146,6 +154,12 @@ public class ServerController extends MapEditorController {
 				selected = null;
 			}
 		}
+	}
+	
+	@Override
+	public void handleDrag(Point2D old, Point2D cur, MouseEvent e) {
+		if(inPreview || !gameHandler.isPlaying || !gameHandler.isBufferEnabled()) return;
+		super.handleDrag(old, cur, e);
 	}
 	
 	private void move(Entity entity, Point p) {

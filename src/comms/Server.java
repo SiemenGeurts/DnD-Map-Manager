@@ -38,8 +38,12 @@ public class Server {
 	}
 	
 	public void write(Map map) throws IOException {
+		write(map, true);
+	}
+	
+	public void write(Map map, boolean includeBackground) throws IOException {
 		Logger.println(getTimeStamp() + "writing map");
-		ostream.writeObject(new Message<SerializableMap>(new SerializableMap(map)));
+		ostream.writeObject(new Message<SerializableMap>(new SerializableMap(map, includeBackground)));
 		ostream.flush();
 	}
 	

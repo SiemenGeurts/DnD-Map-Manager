@@ -19,10 +19,13 @@ import gui.ErrorHandler;
 import helpers.Logger;
 import helpers.Utils;
 import javafx.fxml.FXML;
+import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.RadioMenuItem;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
@@ -34,10 +37,15 @@ import javafx.stage.FileChooser;
 public class MapEditorController extends MapController {
 	private Prefab<?> toBePlaced;
 	
+	@FXML
+	protected RadioMenuItem rbFowShow1, rbFowShow2, rbFowShow3, rbFowHide;
+	protected ToggleGroup FowGroup = new ToggleGroup();
+	
 	public File currentFile = null;
 	protected FileChooser mapChooser;
 	
 	protected PropertyEditorController propeditor;
+	protected PaintPaneController paintController;
 	private Entity currentlyEdited;
 	protected EntityMenu entityMenu;
 	public boolean isSaved;
@@ -47,6 +55,14 @@ public class MapEditorController extends MapController {
 	public void initialize() {
 		super.initialize();
 		entityMenu = new EntityMenu();
+		rbFowShow1.setToggleGroup(FowGroup);
+		rbFowShow2.setToggleGroup(FowGroup);
+		rbFowShow3.setToggleGroup(FowGroup);
+		rbFowHide.setToggleGroup(FowGroup);
+		rbFowShow1.selectedProperty().addListener((obs, oldVal, newVal) -> {if(newVal) setFoWOpacity(1);});
+		rbFowShow2.selectedProperty().addListener((obs, oldVal, newVal) -> {if(newVal) setFoWOpacity(0.5);});
+		rbFowShow3.selectedProperty().addListener((obs, oldVal, newVal) -> {if(newVal) setFoWOpacity(0.25);});
+		rbFowHide.selectedProperty().addListener((obs, oldVal, newVal) -> {if(newVal) setFoWOpacity(0);});
 	}
 	
 	public MapEditorController() {
@@ -143,6 +159,38 @@ public class MapEditorController extends MapController {
     	} else {
     		entityMenu.show(event.getX(), event.getY(), event.getScreenX(), event.getScreenY());
     	}
+    }
+    
+    Point2D lastDragPos = null;
+    @Override
+    public void handleDrag(Point2D old, Point2D cur, MouseEvent e) {
+    	if(lastDragPos != null && cur.distance(lastDragPos)<0.5) return;
+    	lastDragPos = cur;
+    	TilePrefab prefab = null;
+    	boolean erasing = e.isControlDown();
+    	boolean editingMask = paintController.isEditingMask();
+    	if(erasing)
+    		prefab = new TilePrefab(PresetTile.EMPTY);
+    	else if(toBePlaced instanceof TilePrefab)
+    		prefab = (TilePrefab) toBePlaced;
+    	else if(!erasing && !editingMask)
+    		return;
+    	int width = paintController.getSize();
+    	byte opacity = erasing ? 0 : (byte)(Math.round(paintController.getOpacity()*64));
+    	Point center = new Point((int)cur.getX(), (int)cur.getY());
+    	if(width==1) {
+    		if(editingMask)
+    			getMap().setMask(center.x, center.y, opacity);
+    		else
+    			getMap().setTile(center.x, center.y, prefab.getInstance(0, 0));
+    	}
+    	//float size = width/2f;
+    	//float top = center.y+size;
+    	//float bottom = center.y-size;
+    	//for(int i = (int)top; i < bottom; i--) {
+    		
+    	//}
+    	redraw();
     }
     
     @Override

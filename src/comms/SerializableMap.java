@@ -13,24 +13,31 @@ import helpers.codecs.Encoder;
 public class SerializableMap implements Serializable {
 	private static final long serialVersionUID = 7313703191129654465L;
 	transient Map map;
-	boolean hasBackground;
-	int encodingVersion;
-	ScaleMode scaling;
-	SerializableImage background;
+	private boolean hasBackground;
+	private boolean includeBackground;
+	private int encodingVersion;
+	private ScaleMode scaling;
+	private SerializableImage background;
 	
-	public SerializableMap(Map map) {
+	public SerializableMap(Map map, boolean includeBackground) {
 		this.map = map;
 		if(map.getBackground()!=null) {
 			hasBackground = true;
-			background = new SerializableImage(map.getBackground());
+			if(includeBackground)
+				background = new SerializableImage(map.getBackground());
 			scaling = map.getScaling();
 		} else
 			hasBackground = false;
+		this.includeBackground = includeBackground;
 		encodingVersion = Encoder.VERSION_ID;
 	}
 	
 	public Map getMap() {
 		return map;
+	}
+	
+	public boolean wasBackgroundIncluded() {
+		return includeBackground;
 	}
 	
 	private void writeObject(ObjectOutputStream stream) throws IOException {
@@ -46,7 +53,8 @@ public class SerializableMap implements Serializable {
 		System.out.println("map: " + s);
 		map = Decoder.getDecoder(encodingVersion).decodeMap(s);
 		if(hasBackground)  {
-			map.setBackground(background.getImage());
+			if(includeBackground)
+				map.setBackground(background.getImage());
 			map.setScaling(scaling);
 		}
 	}

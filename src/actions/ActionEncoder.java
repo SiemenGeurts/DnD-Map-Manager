@@ -66,4 +66,8 @@ public class ActionEncoder {
 		return "remInit (" + id + ")";
 	}
 	
+	public static String clearInitiative() {
+		return "clrInit";
+	}
+	
 }

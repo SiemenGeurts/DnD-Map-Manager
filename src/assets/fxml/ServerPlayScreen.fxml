@@ -8,6 +8,7 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.RadioMenuItem?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.SplitPane?>
@@ -34,6 +35,14 @@
             <Menu mnemonicParsing="false" text="View">
               <items>
                   <CheckMenuItem fx:id="chkboxViewGrid" mnemonicParsing="false" text="Grid" />
+                  <Menu mnemonicParsing="false" text="Fog of war">
+                     <items>
+                        <RadioMenuItem fx:id="rbFowShow1" mnemonicParsing="false" selected="true" text="Show at 100% opacity" />
+                        <RadioMenuItem fx:id="rbFowShow2" mnemonicParsing="false" text="Show at 50% opacity" />
+                        <RadioMenuItem fx:id="rbFowShow3" mnemonicParsing="false" text="Show at 25% opacity" />
+                        <RadioMenuItem fx:id="rbFowHide" mnemonicParsing="false" text="Hide" />
+                     </items>
+                  </Menu>
               </items>
             </Menu>
         </menus>

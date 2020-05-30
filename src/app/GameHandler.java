@@ -58,6 +58,7 @@ public abstract class GameHandler {
 	
 	public abstract void selectInitiative(int id);
 	public abstract void removeInitiative(int id);
+	public abstract void clearInitiative();
 	public abstract void addInitiative(int id, int initiative);
 	
 	

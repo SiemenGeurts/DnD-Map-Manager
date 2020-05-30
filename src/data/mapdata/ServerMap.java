@@ -13,7 +13,7 @@ public class ServerMap extends Map {
 	}
 	
 	public ServerMap(Map map, ServerGameHandler handler) {
-		super(map.getTiles());
+		super(map.getTiles(), map.getMask());
 		entities = map.getAllEntities();
 		background = map.getBackground();
 		mode = map.getScaling();

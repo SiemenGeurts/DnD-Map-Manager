@@ -134,12 +134,19 @@ public class MapBuilderController extends MapEditorController {
 			
 			tkController = loader.getController();
 			
+			loader = new FXMLLoader(MainMenuController.class.getResource("/assets/fxml/PaintPane.fxml"));
+			root = loader.load();
+			paintController = loader.getController();
+			vbox.getChildren().add(root);
+			VBox.setVgrow(root, Priority.NEVER);
+
 			loader = new FXMLLoader(MainMenuController.class.getResource("/assets/fxml/ObjectSelector.fxml"));
 			root = loader.load();
 			osController = loader.getController();
 			osController.setController(this);
 			vbox.getChildren().add(root);
 			VBox.setVgrow(root, Priority.SOMETIMES);
+			
 			
 			loader = new FXMLLoader(MainMenuController.class.getResource("/assets/fxml/PropertyEditor.fxml"));
 			root = loader.load();
@@ -186,6 +193,9 @@ public class MapBuilderController extends MapEditorController {
 			});
 			
 			chkboxViewGrid.selectedProperty().addListener((obs, oldVal, newVal) -> setViewGrid(newVal));
+			
+			MapManagerApp.stage.setResizable(true);
+			MapManagerApp.stage.setMaximized(true);
 			
 		} catch (IOException e) {
 			ErrorHandler.handle("Something went wrong...", e);

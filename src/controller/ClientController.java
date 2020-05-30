@@ -17,7 +17,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Priority;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 
 public class ClientController extends MapController {
@@ -32,6 +32,8 @@ public class ClientController extends MapController {
 	private CheckBox chkboxViewGrid;
 	@FXML
 	private VBox vbox;
+	@FXML
+	private AnchorPane initiativePane;
 	
 	InitiativeListController ilController;
 	
@@ -64,8 +66,11 @@ public class ClientController extends MapController {
 		try {
 			FXMLLoader loader = new FXMLLoader(ServerController.class.getResource("/assets/fxml/InitiativeList.fxml"));
 			Node root = loader.load();
-			vbox.getChildren().add(0, root);
-			VBox.setVgrow(root, Priority.ALWAYS);
+			initiativePane.getChildren().add(root);
+			AnchorPane.setBottomAnchor(root, 0d);
+			AnchorPane.setTopAnchor(root, 0d);
+			AnchorPane.setLeftAnchor(root, 0d);
+			AnchorPane.setRightAnchor(root, 0d);
 			ilController = loader.getController();
 			ilController.setMode(Constants.CLIENTMODE);
 		} catch (IOException e) {

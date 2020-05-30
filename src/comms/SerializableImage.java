@@ -10,6 +10,7 @@ import java.io.Serializable;
 
 import javax.imageio.ImageIO;
 
+import helpers.Logger;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 
@@ -39,7 +40,8 @@ public class SerializableImage implements Serializable {
 		stream.defaultWriteObject();
 		BufferedImage bimage = SwingFXUtils.fromFXImage(image, null);
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ImageIO.write(bimage, "png", baos);
+		ImageIO.write(bimage, "jpg", baos);
+		Logger.println("Image size: " + baos.size() + " bytes");
 		stream.writeObject(baos.toByteArray());
 	}
 	

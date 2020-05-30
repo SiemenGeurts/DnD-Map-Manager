@@ -8,6 +8,7 @@ import data.mapdata.Entity;
 import data.mapdata.Map;
 import data.mapdata.PresetTile;
 import data.mapdata.Tile;
+import helpers.Calculator;
 import helpers.Logger;
 import helpers.ScalingBounds;
 import javafx.fxml.FXML;
@@ -41,6 +42,7 @@ public class MapController extends SceneController {
 	protected GraphicsContext gc;
 	protected ScalingBounds imagebounds;
 	protected boolean gridOn = true;
+	protected double fowOpacity = 1;
 	
     @FXML
     protected Canvas canvas;
@@ -66,6 +68,12 @@ public class MapController extends SceneController {
     	currentMap = map;
     	calculateBackgroundBounds();
 		redraw();
+    }
+    
+    public void setFoWOpacity(double opacity) {
+    	fowOpacity = Calculator.clamp(opacity, 0, 1);
+    	System.out.println("Opacity set to " + opacity);
+    	redraw();
     }
     
     public void calculateBackgroundBounds() {    	
@@ -140,24 +148,42 @@ public class MapController extends SceneController {
 	
 	public void drawMap(int minX, int minY, int maxX, int maxY) {
 		Tile[][] tiles = currentMap.getTiles();
+		byte[][] mask = currentMap.getMask();
 		gc.setFill(Color.BLACK);
-		for (int i = Math.max(0, minY); i <= Math.min(tiles.length - 1, maxY); i++) {
-			for (int j = Math.max(0, minX); j <= Math.min(tiles[0].length - 1, maxX); j++) {
-				if(tiles[i][j].getType()!=PresetTile.EMPTY)
-					drawImage(tiles[i][j].getTexture(), j, i);
-				if(currentMap.getMask(i, j)!=0) {
-					gc.setGlobalAlpha(currentMap.getMask(i,j)/127);
-					gc.fillRect(j*FACTOR-offsetX, i*FACTOR-offsetY, FACTOR, FACTOR);
-				}
+		minY = Math.max(0, minY);
+		int Ymax = Math.min(tiles.length - 1, maxY);
+		minX = Math.max(0, minX);
+		int Xmax = Math.min(tiles[0].length - 1, maxX);
+		//first draw the tiles
+		for (int y = minY; y <= Ymax; y++) {
+			for (int x = minX; x <= Xmax; x++) {
+				if(tiles[y][x].getType()!=PresetTile.EMPTY)
+					drawImage(tiles[y][x].getTexture(), x, y);
 			}
 		}
+		//draw the entities on top
 		for(Entity e : currentMap.getEntities())
 			if(e.getX()>=minX && e.getY()>=minY && e.getX()+e.getWidth()<=maxX && e.getY()+e.getHeight()<=maxY)
 				drawImage(e.getTexture(), e.getX(), e.getY(), e.getWidth(), e.getHeight());
+		
+		//and then the mask
+		if(fowOpacity>0) {
+			for (int y = minY; y <= Ymax; y++) {
+				for (int x = minX; x <= Xmax; x++) {
+					if(mask[y][x]!=0) {
+						gc.setGlobalAlpha(mask[y][x]/64d*fowOpacity);
+						gc.fillRect(x*FACTOR-offsetX, y*FACTOR-offsetY, FACTOR, FACTOR);
+					}
+				}
+			}
+		}
+		//reset the opacity
+		gc.setGlobalAlpha(1);
+		
 		if(!gridOn) return;
-		double xBegin = Math.max(0, minX)*FACTOR-offsetX;
+		double xBegin = minX*FACTOR-offsetX;
 		double xEnd = Math.min(tiles[0].length+1, maxX)*FACTOR-offsetX;
-		double yBegin = Math.max(0, minY)*FACTOR-offsetY;
+		double yBegin = minY*FACTOR-offsetY;
 		double yEnd = Math.min(tiles.length+1, maxY)*FACTOR-offsetY;
 		
 		gc.setStroke(Color.BLACK);
@@ -196,8 +222,8 @@ public class MapController extends SceneController {
 		return new Point((int) ((x + offsetX)/(FACTOR)), (int) ((y+offsetY)/(FACTOR)));
 	}
 	
-	public Point2D screenToWorld(Point p) {
-		return new Point2D((p.x + offsetX)/(FACTOR), (p.y+offsetY)/(FACTOR));
+	public Point2D screenToWorld(Point2D p) {
+		return new Point2D((p.getX() + offsetX)/(FACTOR), (p.getY()+offsetY)/(FACTOR));
 	}
 		
 	public Point worldToScreen(Point2D p) {
@@ -220,6 +246,10 @@ public class MapController extends SceneController {
     
     protected void handleClick(Point position, MouseEvent event) {
     	
+    }
+    
+    protected void handleDrag(Point2D last, Point2D cur, MouseEvent event) {
+    	System.out.println("Dragged to:"  + cur.getX() + " : " + cur.getY());
     }
     
     protected void setViewGrid(boolean b) {
@@ -263,12 +293,16 @@ public class MapController extends SceneController {
 	@FXML
     public void onDragHandler(MouseEvent e) {
 		if(!e.isSynthesized()) { // event triggered by mouse
-	    	if(lastDragCoords != null) {
-		    	double dx = (lastDragCoords.getX()-e.getX())/(FACTOR*SCALING_FACTOR);
-		    	double dy = (lastDragCoords.getY()-e.getY())/(FACTOR*SCALING_FACTOR);
-		    	moveScreen(dx, dy);
-	    	}
-	    	lastDragCoords = new Point2D(e.getX(), e.getY());
+			Point2D newPoint = new Point2D(e.getX(), e.getY());
+			if(e.isSecondaryButtonDown()) {
+		    	if(lastDragCoords != null) {
+			    	double dx = (lastDragCoords.getX()-e.getX())/(FACTOR*SCALING_FACTOR);
+			    	double dy = (lastDragCoords.getY()-e.getY())/(FACTOR*SCALING_FACTOR);
+			    	moveScreen(dx, dy);
+		    	}
+			} else
+				handleDrag(screenToWorld(lastDragCoords), screenToWorld(newPoint), e);
+			lastDragCoords = newPoint;
 		}
     }
     

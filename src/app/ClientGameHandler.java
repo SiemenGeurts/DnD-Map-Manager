@@ -116,9 +116,12 @@ public class ClientGameHandler extends GameHandler {
 										controller.redraw();
 									}
 								} else if(m.getMessage() instanceof SerializableMap) {
-									map = ((SerializableMap) m.getMessage()).getMap();
-									requestMissingTextures(map);
-									controller.setMap(map);
+									Map newMap = ((SerializableMap) m.getMessage()).getMap();
+									if(newMap.getBackground()==null && !((SerializableMap) m.getMessage()).wasBackgroundIncluded())
+										newMap.setBackground(map.getBackground());
+									requestMissingTextures(newMap);
+									map = newMap;
+									controller.setMap(newMap);
 									controller.redraw();
 								} else if(m.getMessage() instanceof String) {
 									String message = (String) m.getMessage();
@@ -130,7 +133,10 @@ public class ClientGameHandler extends GameHandler {
 										ActionDecoder.decode(message.substring(1)).executeNow();
 									else
 										ActionDecoder.decode((String) m.getMessage()).attach();
-								} else
+								} else if(m.getMessage() instanceof byte[][]) {
+									map.setMask((byte[][]) m.getMessage());
+									controller.redraw();
+								}else
 									ErrorHandler.handle("Received message of type " + m.getMessage().getClass().getSimpleName() + " and didn't know what to do with it...", null);
 							}
 						} catch (IOException | InterruptedException e) {
@@ -212,6 +218,11 @@ public class ClientGameHandler extends GameHandler {
 	@Override
 	public void removeInitiative(int id) {
 		controller.getInitiativeController().remove(id);
+	}
+	
+	@Override
+	public void clearInitiative() {
+		controller.getInitiativeController().clear();
 	}
 	
 	public void requestMissingTextures(Map map) {

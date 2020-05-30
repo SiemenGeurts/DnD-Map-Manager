@@ -136,7 +136,7 @@ public class Utils {
 		ous.writeInt(Encoder.VERSION_ID);
 		if(map.getLibraryFile() != null)
 			ous.writeObject(map.getLibraryFile().getAbsolutePath());
-		ous.writeObject(new SerializableMap(map));
+		ous.writeObject(new SerializableMap(map, true));
 		map.setSaved();
 		ous.flush();
 		ous.close();
