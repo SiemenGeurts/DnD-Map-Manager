@@ -46,6 +46,7 @@ public class MapEditorController extends MapController {
 	
 	protected PropertyEditorController propeditor;
 	protected PaintPaneController paintController;
+	protected ObjectSelectorController osController;
 	private Entity currentlyEdited;
 	protected EntityMenu entityMenu;
 	public boolean isSaved;
@@ -243,6 +244,8 @@ public class MapEditorController extends MapController {
 		currentFile = mapChooser.showOpenDialog(SceneManager.getPrimaryStage());
 		if(currentFile == null) return;
 		Map map = Utils.loadMap(currentFile);
+		if(osController!=null)//for initial loading of the map builder
+			osController.reload();
 		if(map != null)
 			setMap(map);
 		redraw();
@@ -344,6 +347,6 @@ public class MapEditorController extends MapController {
 					show(canvas, screenX, screenY);
 				}
 			}
-		}		
+		}
 	}
 }

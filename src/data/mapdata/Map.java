@@ -5,12 +5,18 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
+import controller.MapBuilderController;
 import helpers.ScalingBounds;
 import javafx.scene.image.Image;
 
 public class Map {
+	
+	static {
+		MapBuilderController.setEditingKey(new EditingKey());
+	}
 	
 	private int width, height;
 	private Tile[][] tiles;
@@ -160,7 +166,8 @@ public class Map {
 		return Collections.unmodifiableList(entities);
 	}
 	
-	protected ArrayList<Entity> getAllEntities() {
+	public ArrayList<Entity> getAllEntities(EditingKey key) {
+		Objects.requireNonNull(key);
 		return entities;
 	}
 	
@@ -203,5 +210,5 @@ public class Map {
 		}
 		return map;
 	}
-
+	public static class EditingKey {}
 }

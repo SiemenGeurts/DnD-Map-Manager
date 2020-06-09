@@ -14,7 +14,7 @@ public class ServerMap extends Map {
 	
 	public ServerMap(Map map, ServerGameHandler handler) {
 		super(map.getTiles(), map.getMask());
-		entities = map.getAllEntities();
+		entities = map.getAllEntities(new EditingKey());
 		background = map.getBackground();
 		mode = map.getScaling();
 		this.handler = handler;

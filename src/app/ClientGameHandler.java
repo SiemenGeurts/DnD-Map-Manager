@@ -117,7 +117,7 @@ public class ClientGameHandler extends GameHandler {
 									}
 								} else if(m.getMessage() instanceof SerializableMap) {
 									Map newMap = ((SerializableMap) m.getMessage()).getMap();
-									if(newMap.getBackground()==null && !((SerializableMap) m.getMessage()).wasBackgroundIncluded())
+									if(((SerializableMap) m.getMessage()).hasBackground() && newMap.getBackground()==null)
 										newMap.setBackground(map.getBackground());
 									requestMissingTextures(newMap);
 									map = newMap;

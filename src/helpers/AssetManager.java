@@ -16,11 +16,11 @@ public class AssetManager {
 	private final static FileChooser fs = new FileChooser();
 	private static HashMap<Integer, Image> presetTextures = new HashMap<Integer, Image>();
 	private static Image unknownTexture;
-	
+
 	static {
 		fs.setTitle("Choose a library");
 		fs.getExtensionFilters().add(new FileChooser.ExtensionFilter("Library Files (*.dlib)", "*.dlib"));
-		fs.setInitialDirectory(new File(MapManagerApp.defaultDirectory));		
+		fs.setInitialDirectory(new File(MapManagerApp.defaultDirectory));
 	}
 	
 	public static File initializeManager(boolean allowLibrarySelection) {

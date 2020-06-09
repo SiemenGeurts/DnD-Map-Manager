@@ -40,6 +40,11 @@ public class ObjectSelectorController {
 	void initialize() {
 		tilePane = new GridSelectionPane(5);
 		tilePane.setNames(false);
+		tileScrollPane.setContent(tilePane);
+		entityPane = new GridSelectionPane(5);
+		entityScrollPane.setContent(entityPane);
+		playerPane = new GridSelectionPane(5);
+		playerScrollPane.setContent(playerPane);
 		//tilePane.add(createButton(new TilePrefab(PresetTile.EMPTY), AssetManager.textures.get(PresetTile.EMPTY)));
 		tilePane.add(createButton(new TilePrefab(PresetTile.FLOOR), AssetManager.getTexture(PresetTile.FLOOR)));
 		tilePane.add(createButton(new TilePrefab(PresetTile.WALL), AssetManager.getTexture(PresetTile.WALL)));
@@ -50,6 +55,28 @@ public class ObjectSelectorController {
 		entityScrollPane.setContent(entityPane);
 		playerPane = new GridSelectionPane(5);
 		playerScrollPane.setContent(playerPane);
+		ArrayList<TilePrefab> tiles = JSONManager.getTiles();
+		if(tiles != null)
+			for(TilePrefab tp : tiles)
+				tilePane.add(createButton(tp, AssetManager.getTexture(tp.getType())));
+		ArrayList<EntityPrefab> entities = JSONManager.getEntities();
+		if(entities != null)
+			for(EntityPrefab ep : entities)
+				entityPane.add(createButton(ep, AssetManager.getTexture(ep.getType())), ep.getName());
+		entities = JSONManager.getPlayers();
+		if(entities != null)
+			for(EntityPrefab ep : entities)
+				playerPane.add(createButton(ep, AssetManager.getTexture(ep.getType())), ep.getName());
+	}
+	
+	public void reload() {
+		tilePane.clear();
+		entityPane.clear();
+		playerPane.clear();
+		tilePane.add(createButton(new TilePrefab(PresetTile.FLOOR), AssetManager.getTexture(PresetTile.FLOOR)));
+		tilePane.add(createButton(new TilePrefab(PresetTile.WALL), AssetManager.getTexture(PresetTile.WALL)));
+		tilePane.add(createButton(new TilePrefab(PresetTile.BUSHES), AssetManager.getTexture(PresetTile.BUSHES)));
+		tilePane.add(createButton(new TilePrefab(PresetTile.FIRE), AssetManager.getTexture(PresetTile.FIRE)));
 		ArrayList<TilePrefab> tiles = JSONManager.getTiles();
 		if(tiles != null)
 			for(TilePrefab tp : tiles)

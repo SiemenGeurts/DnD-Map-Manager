@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Optional;
 
 import javax.imageio.ImageIO;
@@ -77,9 +78,9 @@ public class MapBuilderController extends MapEditorController {
 	private CheckMenuItem chkboxViewGrid;
 	
 	ToolkitController tkController;
-	ObjectSelectorController osController;
 
 	private FileChooser imgChooser;
+	private static Map.EditingKey key = null;
 	
 	@Override
 	public void initialize() {
@@ -123,7 +124,7 @@ public class MapBuilderController extends MapEditorController {
 
 			PresetTile.setupPresetTiles();
 			//JSONManager.initialize();
-			
+			 
 			FXMLLoader loader = new FXMLLoader(MainMenuController.class.getResource("/assets/fxml/Toolkit.fxml"));
 			Node root = new Scene(loader.load()).getRoot();
 			toolkitPane.getChildren().add(root);
@@ -302,12 +303,13 @@ public class MapBuilderController extends MapEditorController {
 		int y2 = yEnd > height ? height : yEnd;
 		Rectangle rect = new Rectangle(xStart, yStart, newWidth, newHeight);
 		
-		for(Entity entity : getMap().getEntities()) {
+		for(Iterator<Entity> iter = getMap().getAllEntities(key).iterator(); iter.hasNext();) {
+			Entity entity = iter.next();
 			if(rect.contains(entity.getLocation())) {
 				entity.setX(entity.getX()-xStart);
 				entity.setY(entity.getY()-yStart);
 			} else
-				getMap().removeEntity(entity);
+				iter.remove();
 		}
 		
 		
@@ -347,6 +349,10 @@ public class MapBuilderController extends MapEditorController {
 		getMap().setMask(mask);
 		calculateBackgroundBounds();
 		redraw();
+	}
+	
+	public static void setEditingKey(Map.EditingKey _key) {
+		key = _key;
 	}
 	
 	class AnchorButtonClicked implements EventHandler<ActionEvent> {

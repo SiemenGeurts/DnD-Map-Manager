@@ -46,7 +46,7 @@ public class InitiativeListController {
 	
 	private boolean isServer = true;
 	private ServerGameHandler gameHandler;
-	
+	private MapController mapController;
 	@FXML
 	public void initialize() {
 		list = FXCollections.observableArrayList();
@@ -69,11 +69,13 @@ public class InitiativeListController {
                 }
             }
         });
-		
+		listview.getStylesheets().add(getClass().getResource("/assets/css/listview.css").toExternalForm());
 		listview.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 		listview.setItems(list);
 		listview.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-			if(isServer)
+			if(mapController != null)
+				mapController.setActiveEntity(newVal == null ? -1 : newVal.entity.getID());
+			if(isServer && newVal != null)
 				gameHandler.sendUpdate(ActionEncoder.selectInitiative(newVal.entity.getID()), oldVal == null ? "" : ActionEncoder.selectInitiative(oldVal.entity.getID()));
 		});
 		
@@ -108,6 +110,10 @@ public class InitiativeListController {
 		});
 	}
 	
+	public void setMapController(MapController mc) {
+		mapController = mc;
+	}
+	
 	public void setGameHandler(ServerGameHandler handler) {
 		this.gameHandler = handler;
 	}
@@ -138,6 +144,7 @@ public class InitiativeListController {
 	
 	public void clear() {
 		Utils.safeRun(() -> list.clear());
+		mapController.setActiveEntity(-1);
 	}
 	
 	public boolean select(int id) {

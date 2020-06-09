@@ -62,7 +62,6 @@ public class ServerController extends MapEditorController {
     public boolean inPreview = false;
     
 	private ServerGameHandler gameHandler;
-	private ObjectSelectorController osController;
 	private InitiativeListController ilController;
 	
 	private Entity selected = null;
@@ -126,6 +125,7 @@ public class ServerController extends MapEditorController {
 			AnchorPane.setTopAnchor(root, 0d);
 			ilController = loader.getController();
 			ilController.setGameHandler(gameHandler);
+			ilController.setMapController(this);
 			MenuItem item = new MenuItem("Initiative");
 			item.setOnAction(event -> {
 				ilController.addEntity(entityMenu.selected);

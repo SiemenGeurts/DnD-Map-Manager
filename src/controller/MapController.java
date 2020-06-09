@@ -44,6 +44,8 @@ public class MapController extends SceneController {
 	protected boolean gridOn = true;
 	protected double fowOpacity = 1;
 	
+	protected int activeEntityId; //used for initiative
+	
     @FXML
     protected Canvas canvas;
     
@@ -68,6 +70,11 @@ public class MapController extends SceneController {
     	currentMap = map;
     	calculateBackgroundBounds();
 		redraw();
+    }
+    
+    public void setActiveEntity(int id) {
+    	activeEntityId = id;
+    	redraw();
     }
     
     public void setFoWOpacity(double opacity) {
@@ -149,7 +156,6 @@ public class MapController extends SceneController {
 	public void drawMap(int minX, int minY, int maxX, int maxY) {
 		Tile[][] tiles = currentMap.getTiles();
 		byte[][] mask = currentMap.getMask();
-		gc.setFill(Color.BLACK);
 		minY = Math.max(0, minY);
 		int Ymax = Math.min(tiles.length - 1, maxY);
 		minX = Math.max(0, minX);
@@ -163,9 +169,18 @@ public class MapController extends SceneController {
 		}
 		//draw the entities on top
 		for(Entity e : currentMap.getEntities())
-			if(e.getX()>=minX && e.getY()>=minY && e.getX()+e.getWidth()<=maxX && e.getY()+e.getHeight()<=maxY)
+			if(e.getX()>=minX && e.getY()>=minY && e.getX()+e.getWidth()<=maxX && e.getY()+e.getHeight()<=maxY) {
 				drawImage(e.getTexture(), e.getX(), e.getY(), e.getWidth(), e.getHeight());
-		
+				if(e.getID()==activeEntityId) {
+					gc.setStroke(Color.YELLOW);
+					gc.setLineWidth(5);
+		    		Rectangle rect = worldToScreen(new Rectangle2D(e.getX()-.05, e.getY()-.05, e.getWidth()+.1, e.getHeight()+.1));
+		    		gc.strokeRect(rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight()); 
+				}
+			}
+		//reset the fill color
+		gc.setFill(Color.BLACK);
+		gc.setLineWidth(1);
 		//and then the mask
 		if(fowOpacity>0) {
 			for (int y = minY; y <= Ymax; y++) {

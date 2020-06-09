@@ -1,0 +1,5 @@
+.list-cell:disabled,
+.list-cell:disabled,
+.list-view:disabled {
+    -fx-opacity: 1;
+}

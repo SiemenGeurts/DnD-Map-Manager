@@ -73,6 +73,7 @@ public class ClientController extends MapController {
 			AnchorPane.setRightAnchor(root, 0d);
 			ilController = loader.getController();
 			ilController.setMode(Constants.CLIENTMODE);
+			ilController.setMapController(this);
 		} catch (IOException e) {
 			ErrorHandler.handle("Couldn't load initiative bar.",e);
 		}

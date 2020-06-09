@@ -27,7 +27,7 @@ public class MapManagerApp extends Application{
 	private SceneManager sceneManager;
 	
 	public static Stage stage;
-	public final static String defaultDirectory = FileSystemView.getFileSystemView().getDefaultDirectory().getPath() + "/DnD Map Manager";
+	public final static String defaultDirectory = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
 	
 	@Override
 	public void start(Stage stage) throws Exception {

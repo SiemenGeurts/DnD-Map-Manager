@@ -45,6 +45,12 @@ public class GridSelectionPane extends GridPane {
 		getChildren().remove(n);
 	}
 	
+	public void clear() {
+		getChildren().clear();
+		rowCount = 1;
+		currentRow = 0; currentCol = 0;
+	}
+	
 	public void updateName(Node n, String name) {
 		if(!getChildren().contains(n)) return;
 		if(!names) return;
