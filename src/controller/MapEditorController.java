@@ -32,7 +32,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
-import javafx.stage.FileChooser;
 
 public class MapEditorController extends MapController {
 	private Prefab<?> toBePlaced;
@@ -42,7 +41,6 @@ public class MapEditorController extends MapController {
 	protected ToggleGroup FowGroup = new ToggleGroup();
 	
 	public File currentFile = null;
-	protected FileChooser mapChooser;
 	
 	protected PropertyEditorController propeditor;
 	protected PaintPaneController paintController;
@@ -65,12 +63,7 @@ public class MapEditorController extends MapController {
 		rbFowShow3.selectedProperty().addListener((obs, oldVal, newVal) -> {if(newVal) setFoWOpacity(0.25);});
 		rbFowHide.selectedProperty().addListener((obs, oldVal, newVal) -> {if(newVal) setFoWOpacity(0);});
 	}
-	
-	public MapEditorController() {
-		mapChooser = new FileChooser();
-		mapChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Map files (*.map)", "*.map"));
-	}
-	
+
 	public void setPropertyEditor(PropertyEditorController editor) {
 		propeditor = editor;
 	}
@@ -227,8 +220,7 @@ public class MapEditorController extends MapController {
 
 	@FXML
 	void onSaveAs() {
-		mapChooser.setTitle("Save map");
-		currentFile = mapChooser.showSaveDialog(SceneManager.getPrimaryStage());
+		currentFile = Utils.saveMapDialog();
 		if(currentFile == null) {
 			Dialogs.warning("Map was not saved.", true);
 		if(!currentFile.getName().endsWith(".map"))
@@ -240,8 +232,7 @@ public class MapEditorController extends MapController {
 	@FXML
 	void onOpen() throws IOException {
 		if(!checkSaved()) return;
-		mapChooser.setTitle("Load map");
-		currentFile = mapChooser.showOpenDialog(SceneManager.getPrimaryStage());
+		currentFile = Utils.openMapDialog();
 		if(currentFile == null) return;
 		Map map = Utils.loadMap(currentFile);
 		if(osController!=null)//for initial loading of the map builder

@@ -14,7 +14,6 @@ import actions.ActionEncoder;
 import comms.Server;
 import controller.InitiativeListController.InitiativeEntry;
 import controller.MainMenuController;
-import controller.SceneManager;
 import controller.ServerController;
 import controller.ToolkitController;
 import data.mapdata.Map;
@@ -39,7 +38,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 public class ServerGameHandler extends GameHandler {
@@ -49,7 +47,6 @@ public class ServerGameHandler extends GameHandler {
 	ServerController controller;
 	public static ServerGameHandler instance;
 
-	private FileChooser mapChooser;
 	private StringBuilder updates;
 	private Stack<String> undo;
 	private byte[][] oldMask;
@@ -68,8 +65,6 @@ public class ServerGameHandler extends GameHandler {
 		updates = new StringBuilder();
 		undo = new Stack<>();
 		instance = this;
-		mapChooser = new FileChooser();
-		mapChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Map files (*.map)", "*.map"));
 		
 		try {
 			FXMLLoader loader = new FXMLLoader(
@@ -89,8 +84,7 @@ public class ServerGameHandler extends GameHandler {
 			}
 			if(!loadedMap)
 				do {
-					mapChooser.setTitle("Load map");
-					controller.currentFile = mapChooser.showOpenDialog(SceneManager.getPrimaryStage());
+					controller.currentFile = Utils.openMapDialog();
 				} while(!loadMap(controller.currentFile));
 			try {
 				PresetTile.setupPresetTiles();

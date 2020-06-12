@@ -74,6 +74,7 @@ public class GridSelectionPane extends GridPane {
 			Label lbl = new Label(name);
 			lbl.setTextAlignment(TextAlignment.CENTER);
 			setHalignment(lbl, HPos.CENTER);
+			setHalignment(n, HPos.CENTER);
 			lbl.setWrapText(true);
 			this.add(lbl, currentCol, 2*currentRow+1);
 		}

@@ -44,7 +44,7 @@ public class MapController extends SceneController {
 	protected boolean gridOn = true;
 	protected double fowOpacity = 1;
 	
-	protected int activeEntityId; //used for initiative
+	protected int activeEntityId = -1; //used for initiative
 	
     @FXML
     protected Canvas canvas;
@@ -139,7 +139,7 @@ public class MapController extends SceneController {
 		double oldScale = SCALE;
 		double factor=zoom;//(zoom>0 ? SCALING_FACTOR*zoom : 1/(SCALING_FACTOR*-zoom));
 		System.out.println("Zoomed: " + factor);
-		SCALE = Math.max(0.5, SCALE*factor);//Calculator.clamp(SCALE*factor, 0.5, 10);
+		SCALE = Calculator.clamp(SCALE*factor, 0.5, 15);
 		FACTOR = SCALE*TILE_SIZE;
 		System.out.println(SCALE);
 		

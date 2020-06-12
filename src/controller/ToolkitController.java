@@ -2,7 +2,6 @@ package controller;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -14,6 +13,7 @@ import data.mapdata.prefabs.TilePrefab;
 import gui.ErrorHandler;
 import helpers.AssetManager;
 import helpers.JSONManager;
+import helpers.Utils;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -25,7 +25,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.stage.FileChooser;
 
 public class ToolkitController {
 	
@@ -45,11 +44,8 @@ public class ToolkitController {
 	PropertyEditorController propertyEditorController;
 	
 	TextureType current;
-	static FileChooser fc = new FileChooser();
 	
 	public void initialize() {
-		List<FileChooser.ExtensionFilter> extensionFilters = fc.getExtensionFilters();
-		extensionFilters.add(new FileChooser.ExtensionFilter("Image files (*.png, *.jpg)", "*.png", "*.jpg"));
 		try {
 			FXMLLoader loader = new FXMLLoader(ServerGameHandler.class.getResource("/assets/fxml/PropertyEditor.fxml"));
 			propertyEditor = (AnchorPane) new Scene(loader.load()).getRoot();
@@ -95,9 +91,8 @@ public class ToolkitController {
 	}
 	
 	public static Image getTexture() throws IOException {
-		File file = fc.showOpenDialog(SceneManager.getPrimaryStage());
+		File file = Utils.openImageDialog();
 		if(file != null) {
-			fc.setInitialDirectory(new File(file.getParent()));
 			return SwingFXUtils.toFXImage(ImageIO.read(file), null);
 		} else
 			return null;

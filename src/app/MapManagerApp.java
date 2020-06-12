@@ -1,7 +1,10 @@
 package app;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 import javax.swing.filechooser.FileSystemView;
 
@@ -27,7 +30,10 @@ public class MapManagerApp extends Application{
 	private SceneManager sceneManager;
 	
 	public static Stage stage;
-	public final static String defaultDirectory = FileSystemView.getFileSystemView().getDefaultDirectory().getPath();
+	public final static File defaultDirectory = FileSystemView.getFileSystemView().getDefaultDirectory();
+	private static File lastMapDirectory = defaultDirectory;
+	private static File lastResourceDirectory = defaultDirectory;
+	private static Preferences prefs;
 	
 	@Override
 	public void start(Stage stage) throws Exception {
@@ -90,15 +96,51 @@ public class MapManagerApp extends Application{
         }
 	}
 	
+	public static File getLastResourceDirectory() {
+		return lastResourceDirectory.exists() && lastResourceDirectory.isDirectory() ? lastResourceDirectory : defaultDirectory;
+	}
+	
+	public static void updateLastResourceDirectory(File file) {
+		if(file == null) return;
+ 		if(!file.exists()) return;
+		if(!file.isDirectory()) file = file.getParentFile();
+		lastResourceDirectory = file;
+		prefs.put("resourcedirectory", file.getPath());
+		try {
+			prefs.flush();
+		} catch (BackingStoreException e) {
+			ErrorHandler.handle("Could not save preferences.", e);
+		}
+	}
+	
+	public static File getLastMapDirectory() {
+		return lastMapDirectory.exists() && lastMapDirectory.isDirectory() ? lastMapDirectory : defaultDirectory;
+	}
+	
+	public static void updateLastMapDirectory(File file) {
+		if(file == null) return;
+		if(!file.exists()) return;
+		if(!file.isDirectory()) file = file.getParentFile();
+		lastMapDirectory = file;
+		prefs.put("mapdirectory", file.getPath());
+		try {
+			prefs.flush();
+		} catch (BackingStoreException e) {
+			ErrorHandler.handle("Could not save preferences.", e);
+		}
+	}
+	
+	
 	private static void setupLogFile() {
-		new Logger(defaultDirectory +"/log.txt");
+		new Logger("DnDMapManager.log");
 	}
 
     public static void main(String[] args) {
     	try {
     	setupLogFile();
-    	//AssetManager.initializeManager();
-		//PresetTile.setupPresetTiles();
+    	prefs = Preferences.userNodeForPackage(MapManagerApp.class);
+    	lastMapDirectory = new File(prefs.get("mapdirectory", lastMapDirectory.toString()));
+    	lastResourceDirectory = new File(prefs.get("resourcedirectory", lastResourceDirectory.toString()));
         launch(args);
     	} catch(Exception e) {
     		ErrorHandler.handle("Something went wrong...", e);

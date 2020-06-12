@@ -17,7 +17,7 @@ import data.mapdata.Tile;
 import gui.ErrorHandler;
 import gui.NumericFieldListener;
 import helpers.AssetManager;
-import helpers.Logger;
+import helpers.Utils;
 import helpers.ScalingBounds.ScaleMode;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
@@ -44,7 +44,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.stage.FileChooser;
 
 public class MapBuilderController extends MapEditorController {
 
@@ -79,7 +78,6 @@ public class MapBuilderController extends MapEditorController {
 	
 	ToolkitController tkController;
 
-	private FileChooser imgChooser;
 	private static Map.EditingKey key = null;
 	
 	@Override
@@ -178,9 +176,6 @@ public class MapBuilderController extends MapEditorController {
 			tfHeight.textProperty().addListener(new NumericFieldListener(tfHeight, true));
 			
 			//Background image stuff
-			imgChooser = new FileChooser();
-			imgChooser.setTitle("Choose background image");
-			imgChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files (*.png, *.jpg)", "*.png", "*.jpg"));
 			tgScaling.selectedToggleProperty().addListener((obs, oldVal, newVal) -> {
 				if(oldVal==newVal) return;
 				if(newVal==rbFit)
@@ -216,11 +211,8 @@ public class MapBuilderController extends MapEditorController {
 	
 	@FXML
 	void onBtnChooseImageClicked(ActionEvent e) {
-		Logger.println("Opening file dialog");
-		File f = imgChooser.showOpenDialog(SceneManager.getPrimaryStage());
-		Logger.println("Selected file " + f);
+		File f = Utils.openImageDialog();
 		if(f == null) return;
-		imgChooser.setInitialDirectory(new File(f.getParent()));
 		try {
 			Image img = SwingFXUtils.toFXImage(ImageIO.read(f), null);
 			getMap().setBackground(img);

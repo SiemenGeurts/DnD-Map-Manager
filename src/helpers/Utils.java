@@ -16,7 +16,9 @@ import java.util.Base64;
 
 import javax.imageio.ImageIO;
 
+import app.MapManagerApp;
 import comms.SerializableMap;
+import controller.SceneManager;
 import data.mapdata.Map;
 import gui.Dialogs;
 import gui.ErrorHandler;
@@ -31,6 +33,11 @@ import javafx.stage.FileChooser;
 public class Utils {
 
 	private static Parameters params;
+	private static FileChooser fileChooser = new FileChooser();
+	
+	private static final FileChooser.ExtensionFilter mapFilter = new FileChooser.ExtensionFilter("Map files (*.map)", "*.map");
+	private static final FileChooser.ExtensionFilter imgFilter = new FileChooser.ExtensionFilter("Image Files (*.png, *.jpg)", "*.png", "*.jpg");
+	private static final FileChooser.ExtensionFilter libFilter = new FileChooser.ExtensionFilter("Library files (*.dlib)", "*.dlib");
 	
 	public static Map loadMap(File mapFile) throws IOException {
 		
@@ -114,16 +121,21 @@ public class Utils {
 	public static boolean saveLibrary(Library library, Map map) {
 		File file = map.getLibraryFile();
 		if(file == null) {
-			FileChooser fc = new FileChooser();
-			fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("DnD library files (*.dlib)", "*.dlib"));
-			file = fc.showSaveDialog(null);
+			fileChooser.setTitle("Save Library");
+			fileChooser.getExtensionFilters().clear();
+			fileChooser.getExtensionFilters().add(libFilter);
+			fileChooser.setInitialDirectory(MapManagerApp.getLastMapDirectory());
+			file = fileChooser.showSaveDialog(null);
 			if(file == null)
 				return false;
+			MapManagerApp.updateLastMapDirectory(file);
 			if(!file.getName().endsWith(".dlib"))
 				file = new File(file.getAbsolutePath()+ ".dlib");
 		}
 		if(library.save(file)) {
 			map.setLibraryFile(file);
+			Logger.println("Saved library!");
+			Dialogs.info("Library was successfully saved!", false);
 			return true;
 		} else
 			return false;
@@ -141,6 +153,7 @@ public class Utils {
 		ous.flush();
 		ous.close();
 		fos.close();
+		Dialogs.info("Map was successfully saved!", false);
 	}
 	
 	
@@ -211,6 +224,49 @@ public class Utils {
 			Platform.runLater(run);
 			return false;
 		}
+	}
+	
+	public static File openMapDialog() {
+		Logger.println("Opening file dialog");
+		fileChooser.setTitle("Open map");
+		fileChooser.getExtensionFilters().clear();
+		fileChooser.getExtensionFilters().add(mapFilter);
+		fileChooser.setInitialDirectory(MapManagerApp.getLastMapDirectory());
+		File file = fileChooser.showOpenDialog(SceneManager.getPrimaryStage());
+		if(file != null) {
+			MapManagerApp.updateLastMapDirectory(file);
+			try {
+				Logger.println("Selected file " + file.getCanonicalPath());
+			} catch(IOException e) {}
+		}
+		return file;
+	}
+	
+	public static File saveMapDialog() {
+		Logger.println("Opening save file dialog");
+		fileChooser.setTitle("Save map");
+		fileChooser.getExtensionFilters().clear();
+		fileChooser.getExtensionFilters().add(mapFilter);
+		fileChooser.setInitialDirectory(MapManagerApp.getLastMapDirectory());
+		File file = fileChooser.showSaveDialog(SceneManager.getPrimaryStage());
+		if(file != null)
+			MapManagerApp.updateLastMapDirectory(file);
+		try {
+			Logger.println("Selected file " + file.getCanonicalPath());
+		} catch(IOException e) {}
+		return file;
+	}
+	
+	public static File openImageDialog() {
+		Logger.println("Opening image file dialog");
+		fileChooser.setTitle("Open image");
+		fileChooser.getExtensionFilters().clear();
+		fileChooser.getExtensionFilters().add(imgFilter);
+		fileChooser.setInitialDirectory(MapManagerApp.getLastResourceDirectory());
+		File file = fileChooser.showOpenDialog(SceneManager.getPrimaryStage());
+		if(file != null)
+			MapManagerApp.updateLastResourceDirectory(file);
+		return file;
 	}
 	
 	public static byte[] flatten(byte[][] arr) {
