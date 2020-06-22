@@ -24,6 +24,7 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 
 public class InitiativeListController {
 
@@ -125,9 +126,8 @@ public class InitiativeListController {
 	public void setMode(short mode) {
 		isServer = mode == Constants.SERVERMODE;
 		bar.setVisible(isServer);
-		//listview.setMouseTransparent(!isServer);
-		//listview.setFocusTraversable(isServer);
-		listview.setDisable(!isServer);
+		if(!isServer)
+			listview.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> event.consume());
 	}
 	
 	public boolean remove(int id) {
@@ -221,6 +221,5 @@ public class InitiativeListController {
 				return 1;
 			return 0;
 		}
-	}
-	
+	}	
 }

@@ -211,6 +211,8 @@ public class ServerController extends MapEditorController {
 	void onOpen() throws IOException {
 		super.onOpen();
 		gameHandler.setMap(getMap(), key);
+		ilController.clear();
+		gameHandler.sendForcedUpdate(ActionEncoder.clearInitiative());
 	}
 	
 	public void togglePreview() {

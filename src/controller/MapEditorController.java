@@ -178,12 +178,6 @@ public class MapEditorController extends MapController {
     		else
     			getMap().setTile(center.x, center.y, prefab.getInstance(0, 0));
     	}
-    	//float size = width/2f;
-    	//float top = center.y+size;
-    	//float bottom = center.y-size;
-    	//for(int i = (int)top; i < bottom; i--) {
-    		
-    	//}
     	redraw();
     }
     
