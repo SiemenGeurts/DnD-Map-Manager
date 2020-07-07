@@ -144,7 +144,6 @@ public class ServerController extends MapEditorController {
 	@Override
 	public void handleClick(Point p, MouseEvent event) {
 		if(inPreview || !gameHandler.isPlaying) return;
-		super.handleClick(p, event);
 		if(event.getButton() == MouseButton.PRIMARY) {
 			Entity e;
 			if((e=getMap().getEntity(p)) != null) {
@@ -152,7 +151,10 @@ public class ServerController extends MapEditorController {
 			} else if(selected != null){
 				move(selected, p);
 				selected = null;
-			}
+			} else
+				super.handleClick(p, event);
+		} else {
+			super.handleClick(p, event);
 		}
 	}
 	

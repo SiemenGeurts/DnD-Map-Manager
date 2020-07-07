@@ -54,7 +54,8 @@ public class ServerGameHandler extends GameHandler {
 	private boolean bufferUpdates = false;
 	public boolean isPlaying = false;
 	//for serverlistener
-	Thread serverListener;
+	Runnable serverListener;
+	Thread listenerThread;
 	private Object pauseLock = new Object();
 	private boolean running = false, paused = false;
 	private boolean blockUpdates = false;
@@ -101,40 +102,43 @@ public class ServerGameHandler extends GameHandler {
 			ErrorHandler.handle("Well, something went horribly wrong...", e);
 		}
 
-		serverListener = new Thread(new Runnable() {
+		serverListener = new Runnable() {
 			@Override
 			public void run() {
-				while (running) {
-					synchronized (pauseLock) {
-						if (paused) {
-							Logger.println("Listener paused");
-							try {
-								synchronized (pauseLock) {
-									pauseLock.wait();
+				try {
+					while (running) {
+						synchronized (pauseLock) {
+							if (paused) {
+								Logger.println("Listener paused");
+								try {
+									synchronized (pauseLock) {
+										pauseLock.wait();
+									}
+								} catch (InterruptedException ex) {
+									break;
 								}
-							} catch (InterruptedException ex) {
+							}
+							if (!running)
+								break;
+							try {
+								Thread.sleep((long) (1000 / 20));
+								Logger.println("listening...");
+								ActionDecoder.decodeRequest(server.read(String.class)).attach();
+							} catch (IOException | InterruptedException e) {
+								Platform.runLater(new Runnable() {
+									public void run() {
+										ErrorHandler.handle("Communication was lost, please reconnect.", e);
+									}
+								});
 								break;
 							}
 						}
-						if (!running)
-							break;
-						try {
-							Thread.sleep((long) (1000 / 20));
-							Logger.println("listening...");
-							ActionDecoder.decodeRequest(server.read(String.class)).attach();
-						} catch (IOException | InterruptedException e) {
-							Platform.runLater(new Runnable() {
-								public void run() {
-									ErrorHandler.handle("Communication was lost, please reconnect.", e);
-								}
-							});
-							break;
-						}
 					}
+				} catch(Exception e) {
+					ErrorHandler.handle("The server thread has crashed! Try resyncing the game.", e);
 				}
 			}
-		});
-		serverListener.setDaemon(true);
+		};
 	}
 	
 	public void preview(String action) {
@@ -204,13 +208,22 @@ public class ServerGameHandler extends GameHandler {
 		sendMap();
 		if(!running) {
 			running = true;
-			serverListener.start();
+			listenerThread = new Thread(serverListener);
+			listenerThread.setDaemon(true);
+			listenerThread.start();
 		} else
 			resumeServerListener();
 	}
 
 	public void resync() {
 		try {
+			if(!listenerThread.isAlive()) {
+				//restart the thread
+				running = true;
+				listenerThread = new Thread(serverListener);
+				listenerThread.setDaemon(true);
+				listenerThread.start();
+			}
 			server.write(map, false);
 			for(InitiativeEntry entry : controller.getILController().getAll())
 				server.write(ActionEncoder.addInitiative(entry.getEntity().getID(), entry.getInitiative()));

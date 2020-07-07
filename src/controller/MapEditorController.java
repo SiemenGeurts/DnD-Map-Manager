@@ -16,7 +16,6 @@ import data.mapdata.prefabs.Prefab;
 import data.mapdata.prefabs.TilePrefab;
 import gui.Dialogs;
 import gui.ErrorHandler;
-import helpers.Logger;
 import helpers.Utils;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
@@ -122,9 +121,6 @@ public class MapEditorController extends MapController {
 
     @Override
     protected void handleClick(Point p, MouseEvent event) {
-    	Logger.println(" mouse clicked [touch=" + event.isSynthesized() + "; x=" + event.getX() + ", y=" + event.getY() + "]" + event.isControlDown());
-    	if(p.x < 0 || p.y < 0 || p.x >= getMap().getWidth() || p.y >= getMap().getHeight())
-    		return;
     	if(entityMenu.isShowing())
     		entityMenu.hide();
     	if(event.getButton() == MouseButton.PRIMARY) {
