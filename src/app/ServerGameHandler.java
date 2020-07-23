@@ -434,14 +434,15 @@ public class ServerGameHandler extends GameHandler {
 		return controller;
 	}
 	
-	public void setMap(Map map, ServerController.Key key) {
+	public ServerMap setMap(Map map, ServerController.Key key) {
 		Objects.requireNonNull(key);
-		this.map = map;
+		this.map = new ServerMap(map, this);
 		try {
 			server.write(map);
 		} catch (IOException e) {
 			ErrorHandler.handle("Could not send map. Try resyncing.", e);
 		}
+		return (ServerMap) this.map;
 	}
 	
 	@Override

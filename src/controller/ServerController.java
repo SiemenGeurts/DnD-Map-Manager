@@ -212,7 +212,7 @@ public class ServerController extends MapEditorController {
 	@FXML
 	void onOpen() throws IOException {
 		super.onOpen();
-		gameHandler.setMap(getMap(), key);
+		setMap(gameHandler.setMap(getMap(), key)); //to ensure that this map becomes a ServerMap
 		ilController.clear();
 		gameHandler.sendForcedUpdate(ActionEncoder.clearInitiative());
 	}
