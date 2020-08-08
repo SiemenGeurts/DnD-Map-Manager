@@ -17,9 +17,15 @@ public class SerializableMap implements Serializable {
 	private int encodingVersion;
 	private ScaleMode scaling;
 	private SerializableImage background;
+	private boolean includeEntityProps;
 	
 	public SerializableMap(Map map, boolean includeBackground) {
+		this(map, includeBackground, false);
+	}
+	
+	public SerializableMap(Map map, boolean includeBackground, boolean includeEntityProps) {
 		this.map = map;
+		this.includeEntityProps = includeEntityProps;
 		if(map.getBackground()!=null) {
 			hasBackground = true;
 			if(includeBackground)
@@ -28,6 +34,10 @@ public class SerializableMap implements Serializable {
 		} else
 			hasBackground = false;
 		encodingVersion = Encoder.VERSION_ID;
+	}
+	
+	public void setIncludeEntityProperties(boolean includeEntityProps) {
+		this.includeEntityProps = includeEntityProps;
 	}
 	
 	public boolean hasBackground() {
@@ -40,7 +50,7 @@ public class SerializableMap implements Serializable {
 	
 	private void writeObject(ObjectOutputStream stream) throws IOException {
 		stream.defaultWriteObject();
-		String s = Encoder.encode(map, false);
+		String s = Encoder.encode(map, includeEntityProps);
 		System.out.println("encoded map: " + s);
 		stream.writeObject(s.getBytes());
 	}
