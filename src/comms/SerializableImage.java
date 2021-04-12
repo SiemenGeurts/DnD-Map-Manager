@@ -8,8 +8,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
+import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
 
+import gui.ErrorHandler;
 import helpers.Logger;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
@@ -39,17 +41,22 @@ public class SerializableImage implements Serializable {
 	private void writeObject(ObjectOutputStream stream) throws IOException {
 		stream.defaultWriteObject();
 		BufferedImage bimage = SwingFXUtils.fromFXImage(image, null);
+		Logger.println("Image dims: " + bimage.getWidth() +  "x" + bimage.getHeight());
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ImageIO.write(bimage, "jpg", baos);
-		Logger.println("Image size: " + baos.size() + " bytes");
+		boolean result = ImageIO.write(bimage, "png", baos);
+		Logger.println("Image size: " + baos.size() + " bytes " + result);
 		stream.writeObject(baos.toByteArray());
 	}
 	
 	private void readObject(ObjectInputStream stream) throws ClassNotFoundException, IOException {
 		stream.defaultReadObject();
 		byte[] img = (byte[]) stream.readObject();
-		BufferedImage bimg = ImageIO.read(new ByteArrayInputStream(img));
-		image = SwingFXUtils.toFXImage(bimg, null);
+		try {
+			BufferedImage bimg = ImageIO.read(new ByteArrayInputStream(img));
+			image = SwingFXUtils.toFXImage(bimg, null);
+		} catch(IIOException | NullPointerException e) {
+			ErrorHandler.handle("Couldn't load image", e);
+		}
 	}
 	
 }

@@ -61,8 +61,11 @@ public class SerializableMap implements Serializable {
 		System.out.println("map: " + s);
 		map = Decoder.getDecoder(encodingVersion).decodeMap(s);
 		if(hasBackground)  {
-			if(background != null)
+			if(background != null && background.getImage()!=null) {
 				map.setBackground(background.getImage());
+			} else {
+				hasBackground = false;
+			}
 			map.setScaling(scaling);
 		}
 	}
