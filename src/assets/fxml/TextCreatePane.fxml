@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="900.0" prefWidth="1300.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.CreateTextPaneController">
+   <bottom>
+      <HBox BorderPane.alignment="CENTER">
+         <BorderPane.margin>
+            <Insets right="10.0" />
+         </BorderPane.margin>
+         <children>
+            <ButtonBar prefHeight="40.0" prefWidth="200.0" HBox.hgrow="NEVER">
+              <buttons>
+                <Button fx:id="btnSave" mnemonicParsing="false" onAction="#onBtnSaveClicked" text="Save" />
+                  <Button fx:id="btnOpen" mnemonicParsing="false" onAction="#onBtnOpenClicked" text="Open" />
+              </buttons>
+            </ButtonBar>
+            <ButtonBar prefHeight="40.0" prefWidth="200.0" HBox.hgrow="ALWAYS">
+              <buttons>
+                <Button fx:id="btnNewPage" alignment="CENTER" mnemonicParsing="false" onAction="#newPageClicked" text="New Page" />
+                  <Button fx:id="btnCancel" cancelButton="true" mnemonicParsing="false" onAction="#btnCancelClicked" text="Cancel" />
+                  <Button fx:id="btnSend" mnemonicParsing="false" onAction="#btnSendClicked" text="Send" />
+              </buttons>
+               <opaqueInsets>
+                  <Insets />
+               </opaqueInsets>
+            </ButtonBar>
+         </children>
+      </HBox>
+   </bottom>
+   <center>
+      <TabPane fx:id="tabPane" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+        <tabs>
+          <Tab closable="false" text="Page 1">
+            <content>
+              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" styleClass="anchor-pane" stylesheets="@../css/textpane.css">
+                     <children>
+                        <TextArea prefHeight="200.0" prefWidth="200.0" promptText="Write text" styleClass="scrollTextArea" stylesheets="@../css/textpane.css" wrapText="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <font>
+                              <Font name="Black Sam's Gold" size="13.0" />
+                           </font>
+                           <padding>
+                              <Insets bottom="50.0" left="50.0" right="80.0" top="50.0" />
+                           </padding></TextArea>
+                     </children>
+                  </AnchorPane>
+            </content>
+          </Tab>
+        </tabs>
+      </TabPane>
+   </center>
+</BorderPane>

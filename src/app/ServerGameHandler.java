@@ -11,7 +11,9 @@ import java.util.Stack;
 import actions.Action;
 import actions.ActionDecoder;
 import actions.ActionEncoder;
+import comms.SerializableJSON;
 import comms.Server;
+import controller.CreateTextPaneController;
 import controller.InitiativeListController.InitiativeEntry;
 import controller.MainMenuController;
 import controller.ServerController;
@@ -510,5 +512,24 @@ public class ServerGameHandler extends GameHandler {
 		} catch (IOException e) {
 			ErrorHandler.handle("Could not load image.", e);
 		}
+	}
+	
+	private Stage sendTextStage;
+	public void sendText() {
+        try {
+        	sendTextStage = new Stage();
+        	FXMLLoader loader = new FXMLLoader(MapManagerApp.class.getResource("/assets/fxml/TextCreatePane.fxml"));
+			Scene scene = new Scene(loader.load());
+			CreateTextPaneController cont = loader.getController();
+			cont.setMode(CreateTextPaneController.SEND);
+			sendTextStage.setScene(scene);
+			sendTextStage.showAndWait();
+			if(cont.isCanceled()) return;
+			System.out.println(cont.getPageCount());
+			server.write(new SerializableJSON(cont.getJSON()));
+		} catch (IOException e) {
+			ErrorHandler.handle("Could not start stage", e);
+		}
+        
 	}
 }

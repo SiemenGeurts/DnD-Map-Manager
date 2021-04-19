@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="json.jar" sourcepath="/home/joep/Dropbox/Eclipse/WorkSpace/lib/jars/source/JSON.zip"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/JavaFX16"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/JavaFX15">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="json.jar" sourcepath="/home/joep/Dropbox/Eclipse/WorkSpace/lib/jars/source/JSON.zip"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

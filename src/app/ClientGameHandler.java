@@ -5,6 +5,9 @@ import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.util.Optional;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import actions.Action;
 import actions.ActionDecoder;
 import actions.ActionEncoder;
@@ -13,9 +16,11 @@ import actions.MovementAction;
 import comms.Client;
 import comms.Message;
 import comms.SerializableImage;
+import comms.SerializableJSON;
 import comms.SerializableMap;
 import controller.ClientController;
 import controller.MainMenuController;
+import controller.TextPaneController;
 import data.mapdata.Entity;
 import data.mapdata.Map;
 import data.mapdata.PresetTile;
@@ -123,6 +128,8 @@ public class ClientGameHandler extends GameHandler {
 									map = newMap;
 									controller.setMap(newMap);
 									controller.redraw();
+								} else if(m.getMessage() instanceof SerializableJSON) {
+									parseJSON(((SerializableJSON) m.getMessage()).getJSON());
 								} else if(m.getMessage() instanceof String) {
 									String message = (String) m.getMessage();
 									if(message.length() == 0) {
@@ -164,6 +171,24 @@ public class ClientGameHandler extends GameHandler {
 		synchronized(pauseLock) {
 			paused = false;
 			pauseLock.notifyAll();
+		}
+	}
+	
+	private void parseJSON(JSONObject json) {
+		try {
+		switch(json.getString("type")) {
+		case Constants.JSON_TYPE_SHOW_TEXT:
+			int n = json.getInt("num_pages");
+			String[] pages = new String[n];
+			for(int i = 0; i < n; i++)
+				pages[i] = json.getString("page"+(i+1));
+			displayText(pages);
+			break;
+		default:
+			ErrorHandler.handle("Unknown JSON type: " + json.getString("type"), null);
+		}
+		} catch(JSONException e) {
+			ErrorHandler.handle("Could not parse JSON", e);
 		}
 	}
 
@@ -209,7 +234,6 @@ public class ClientGameHandler extends GameHandler {
 		controller.getInitiativeController().addEntity(map.getEntityById(id), initiative);
 	}
 	
-
 	@Override
 	public void selectInitiative(int id) {
 		controller.getInitiativeController().select(id);
@@ -361,7 +385,7 @@ public class ClientGameHandler extends GameHandler {
 				width = MAX_WIDTH;
 			}
 			if(height>MAX_HEIGHT) {
-				double f= MAX_HEIGHT/height;
+				double f = MAX_HEIGHT/height;
 				width *= f;
 				height = MAX_HEIGHT;
 			}
@@ -373,5 +397,29 @@ public class ClientGameHandler extends GameHandler {
 			run.run();
 		else
 			Platform.runLater(run);
+	}
+	
+	private static Stage textStage;
+	private void displayText(String[] pages) {
+		Runnable run = () -> {
+			TextPaneController cont;
+			try {
+				FXMLLoader loader = new FXMLLoader(ClientGameHandler.class.getResource("/assets/fxml/TextPane.fxml"));
+				if(textStage == null)
+					textStage = new Stage();
+				textStage.setScene(new Scene(loader.load()));
+				cont = loader.getController();
+				cont.showText(pages);
+				textStage.showAndWait();
+			} catch(IOException e) {
+				ErrorHandler.handle("Could not open text pane", e);
+				return;				
+			}
+		};
+		if(Platform.isFxApplicationThread())
+			run.run();
+		else
+			Platform.runLater(run);
+		
 	}
 }

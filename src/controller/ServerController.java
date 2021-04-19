@@ -39,6 +39,8 @@ public class ServerController extends MapEditorController {
     private Button btnPush;
     @FXML
     private Button btnSendImage;
+    @FXML
+    private Button btnSendText;
 	
     //Preview stuff
     @FXML
@@ -183,6 +185,7 @@ public class ServerController extends MapEditorController {
 			reconnect.setDisable(false);
 			resync.setText("resync");
 			btnSendImage.setDisable(false);
+			btnSendText.setDisable(false);
 		} else {
 			gameHandler.resync();
 		}
@@ -206,6 +209,11 @@ public class ServerController extends MapEditorController {
 	@FXML
 	public void sendImageClicked(ActionEvent e) {
 		gameHandler.sendImage();
+	}
+	
+	@FXML
+	public void sendTextClicked(ActionEvent e) {
+		gameHandler.sendText();
 	}
 	
 	@Override

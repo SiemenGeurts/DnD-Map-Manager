@@ -63,7 +63,7 @@ public class ClientController extends MapController {
 		});
 		chkboxViewGrid.selectedProperty().addListener((obs, oldVal, newVal) -> setViewGrid(newVal));
 		
-		try {
+		try {	
 			FXMLLoader loader = new FXMLLoader(ServerController.class.getResource("/assets/fxml/InitiativeList.fxml"));
 			Node root = loader.load();
 			initiativePane.getChildren().add(root);

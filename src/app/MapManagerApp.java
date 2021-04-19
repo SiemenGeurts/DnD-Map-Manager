@@ -39,7 +39,13 @@ public class MapManagerApp extends Application{
 	public void start(Stage stage) throws Exception {
 		MapManagerApp.stage = stage;
 		stage.setResizable(false);
-        FXMLLoader loader = new FXMLLoader(MapManagerApp.class.getResource("/assets/fxml/MainMenu.fxml"));
+		/*FXMLLoader loader = new FXMLLoader(MapManagerApp.class.getResource("/assets/fxml/TextPane.fxml"));
+		stage.setScene(new Scene(loader.load()));
+		TextPaneController cont = loader.getController();
+		cont.showText(new String[] {"test test \n nice HEY!", "PAGE 2", "test more \n\n\n\n more"});
+		stage.show();*/
+
+		FXMLLoader loader = new FXMLLoader(MapManagerApp.class.getResource("/assets/fxml/MainMenu.fxml"));
         Scene scene = new Scene(loader.load());
         sceneManager = new SceneManager(stage,scene,loader);
         MainMenuController.sceneManager = this.sceneManager;

@@ -27,7 +27,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.MenuBar;
@@ -44,6 +43,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
 public class MapBuilderController extends MapEditorController {
 
@@ -91,13 +91,10 @@ public class MapBuilderController extends MapEditorController {
 			ButtonType btnNew = new ButtonType("New library");
 			ButtonType btnOpenLib = new ButtonType("Open library");
 			ButtonType btnOpenMap = new ButtonType("Open map");
-			ButtonType btnCancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
 			alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-			alert.getButtonTypes().setAll(btnNew, btnOpenLib, btnOpenMap, btnCancel);
+			alert.getButtonTypes().setAll(btnNew, btnOpenLib, btnOpenMap);
 			Optional<ButtonType> result = alert.showAndWait();
-			if(result.orElse(btnCancel) == btnCancel)
-				MainMenuController.sceneManager.popScene();
-			else if(result.get() == btnNew) {
+			if(result.get() == btnNew) {
 				AssetManager.initializeManager(false);
 				setMap(Map.emptyMap(20, 20));
 			} else if(result.get() == btnOpenLib) {
@@ -202,6 +199,22 @@ public class MapBuilderController extends MapEditorController {
 		MapManagerApp.stage.setResizable(true);
 		MapManagerApp.stage.setMaximized(true);
 		redraw();
+	}
+	
+	private Stage sendTextStage;
+	@FXML
+	void onNewText() {
+        try {
+        	sendTextStage = new Stage();
+        	FXMLLoader loader = new FXMLLoader(MapManagerApp.class.getResource("/assets/fxml/TextCreatePane.fxml"));
+			Scene scene = new Scene(loader.load());
+			CreateTextPaneController cont = loader.getController();
+			cont.setMode(CreateTextPaneController.CREATE);
+			sendTextStage.setScene(scene);
+			sendTextStage.showAndWait();
+		} catch (IOException e) {
+			ErrorHandler.handle("Could not start stage", e);
+		}
 	}
 	
     @FXML
