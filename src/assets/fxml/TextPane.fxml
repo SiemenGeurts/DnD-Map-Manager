@@ -39,16 +39,13 @@
    <center>
       <AnchorPane prefHeight="200.0" prefWidth="200.0" styleClass="anchor-pane" stylesheets="@../css/textpane.css" BorderPane.alignment="CENTER">
          <children>
-            <TextArea fx:id="txtArea" editable="false" styleClass="scrollTextArea" wrapText="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <TextArea fx:id="txtArea" editable="false" styleClass="scrollTextArea" wrapText="true" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="150.0" AnchorPane.topAnchor="50.0">
                <font>
                   <Font name="Black Sam's Gold" size="40.0" />
                </font>
                <opaqueInsets>
                   <Insets />
                </opaqueInsets>
-               <padding>
-                  <Insets bottom="50.0" left="50.0" right="100.0" top="50.0" />
-               </padding>
                <stylesheets>
                   <URL value="@../css/textpane.css" />
                   <URL value="@../css/scrollbars.css" />
