@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.net.URL?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
@@ -38,16 +39,20 @@
    <center>
       <AnchorPane prefHeight="200.0" prefWidth="200.0" styleClass="anchor-pane" stylesheets="@../css/textpane.css" BorderPane.alignment="CENTER">
          <children>
-            <TextArea fx:id="txtArea" editable="false" style="-fx-background-color: transparent;" styleClass="scrollTextArea" stylesheets="@../css/textpane.css" text="test" wrapText="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <TextArea fx:id="txtArea" editable="false" styleClass="scrollTextArea" wrapText="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                <font>
-                  <Font name="AccanthisADFStdNo3-Regular" size="12.0" />
+                  <Font name="Black Sam's Gold" size="40.0" />
                </font>
                <opaqueInsets>
                   <Insets />
                </opaqueInsets>
                <padding>
-                  <Insets bottom="50.0" left="50.0" right="80.0" top="50.0" />
+                  <Insets bottom="50.0" left="50.0" right="100.0" top="50.0" />
                </padding>
+               <stylesheets>
+                  <URL value="@../css/textpane.css" />
+                  <URL value="@../css/scrollbars.css" />
+               </stylesheets>
             </TextArea>
          </children>
       </AnchorPane>

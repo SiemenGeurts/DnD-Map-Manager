@@ -56,7 +56,7 @@ public class CreateTextPaneController {
 
 		InputStream fontStream = TextPaneController.class.getResourceAsStream("/assets/fonts/BlackSamsGold.ttf");
 		if(fontStream != null) {
-			font = Font.loadFont(fontStream, 36);
+			font = Font.loadFont(fontStream, 46);
 			pages.get(0).setFont(font);
 			try {
 				fontStream.close();
@@ -175,17 +175,18 @@ public class CreateTextPaneController {
     	
     	TextArea area = new TextArea(s);
     	area.setWrapText(true);
-    	area.getStyleClass().add("scrollTextArea");
+    	area.getStyleClass().add("text-area");
     	area.getStylesheets().add("/assets/css/textpane.css");
+    	area.getStylesheets().add("/assets/css/scrollbars.css");
     	if(font != null)
     		area.setFont(font);
     	AnchorPane pane = new AnchorPane();
     	pane.getStyleClass().add("anchor-pane");
     	pane.getStylesheets().add("/assets/css/textpane.css");
-    	AnchorPane.setTopAnchor(area, 0d);
-    	AnchorPane.setLeftAnchor(area, 0d);
-    	AnchorPane.setRightAnchor(area, 0d);
-    	AnchorPane.setBottomAnchor(area, 0d);
+    	AnchorPane.setTopAnchor(area, 50d);
+    	AnchorPane.setLeftAnchor(area, 50d);
+    	AnchorPane.setRightAnchor(area, 150d);
+    	AnchorPane.setBottomAnchor(area, 50d);
     	pane.getChildren().add(area);
     	tab.setContent(pane);
     	tab.setClosable(true);

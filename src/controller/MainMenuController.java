@@ -3,6 +3,7 @@ package controller;
 import java.io.IOException;
 
 import app.ClientGameHandler;
+import app.MapManagerApp;
 import app.ServerGameHandler;
 import comms.Client;
 import comms.Server;
@@ -22,6 +23,20 @@ public class MainMenuController {
     @FXML
     void exit(ActionEvent event) {
     	Platform.exit();
+    }
+    
+    @FXML
+    void startEditText(ActionEvent event) {
+    	try {
+        	FXMLLoader loader = new FXMLLoader(MapManagerApp.class.getResource("/assets/fxml/TextCreatePane.fxml"));
+			Scene scene = new Scene(loader.load());
+			CreateTextPaneController cont = loader.getController();
+			cont.setMode(CreateTextPaneController.CREATE);
+			scene.getRoot().requestFocus();
+			sceneManager.pushView(scene, loader);
+		} catch (IOException e) {
+			ErrorHandler.handle("Could not start stage", e);
+		}
     }
 
     @FXML

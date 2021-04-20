@@ -38,7 +38,7 @@ public class TextPaneController {
     	btnPrevPage.setDisable(true);
     	InputStream fontStream = TextPaneController.class.getResourceAsStream("/assets/fonts/BlackSamsGold.ttf");
     	if(fontStream != null) {
-    		Font font = Font.loadFont(fontStream, 36);
+    		Font font = Font.loadFont(fontStream, 46);
     		try {
 				fontStream.close();
 			} catch (IOException e) {
