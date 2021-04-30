@@ -8,6 +8,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import data.mapdata.Map;
+import gui.ErrorHandler;
 import helpers.Logger;
 import javafx.scene.image.Image;
 
@@ -53,17 +54,14 @@ public class Server {
 		ostream.flush();
 	}
 	
-	public <T extends Object> T read(Class<T> c) throws IOException {
+	public Message<?> read() throws IOException {
 		try {
 			Message<?> m = (Message<?>) istream.readObject();
-			if(c.isInstance(m.getMessage())) {
-				Logger.println(getTimeStamp() + "reading: " + m.getMessage());
-				return c.cast(m.getMessage());
-			}
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+			Logger.println(getTimeStamp() + "reading: " + m.getMessage());
+			return m;
+		} catch(ClassNotFoundException e) {
+			throw new IOException("Recieved object which was not a message...");
 		}
-		throw new CommsException("Received message was not of type " + c.getSimpleName());
 	}
 	
 	private String getTimeStamp() {

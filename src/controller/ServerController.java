@@ -24,15 +24,17 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 
 public class ServerController extends MapEditorController {
  
     @FXML
     private VBox vbox;
     @FXML
-    private Button resync;
+    private Circle iconConnected;
     @FXML
-    private Button reconnect;
+    private Button resync;
     @FXML
     private CheckBox chkbxBuffer;
     @FXML
@@ -178,17 +180,16 @@ public class ServerController extends MapEditorController {
 		gameHandler.pushUpdates();
 	}
 
+	public void setConnected(boolean connected) {
+		if(connected == true)
+			iconConnected.fillProperty().set(Color.rgb(255,31,31));
+		else
+			iconConnected.fillProperty().set(Color.rgb(33,255,95));
+	}
+	
 	@FXML
-	public void beginClicked(ActionEvent e) {
-		if(resync.getText().equals("begin")) {
-			gameHandler.begin();
-			reconnect.setDisable(false);
-			resync.setText("resync");
-			btnSendImage.setDisable(false);
-			btnSendText.setDisable(false);
-		} else {
-			gameHandler.resync();
-		}
+	public void onResyncClicked(ActionEvent e) {
+		gameHandler.resync();
 	}
 
 	@FXML
@@ -249,14 +250,6 @@ public class ServerController extends MapEditorController {
 		inPreview = false;
 		setMap(oldMap);
 		hboxPreviewTools.setVisible(false);
-	}
-	
-	public void reconnectClicked(ActionEvent e) {
-		try {
-			gameHandler.reconnect();
-		} catch(IOException ex) {
-			ErrorHandler.handle("Could not reopen server.", ex);
-		}
 	}
 	
 	public InitiativeListController getILController() {

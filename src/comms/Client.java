@@ -19,8 +19,8 @@ public class Client {
 	ObjectOutputStream ostream;
 	
 	long startTime;
-	private Client(Socket client, String ip, int port) throws IOException {
-		this.client = client;
+	private Client(String ip, int port) throws IOException {
+		client = new Socket(ip, port);
 		this.ip = ip;
 		this.port = port;
 		startTime = System.currentTimeMillis();
@@ -74,9 +74,5 @@ public class Client {
 	
 	private String getTimeStamp() {
 		return "["  + (System.currentTimeMillis() - startTime) + "] ";
-	}
-	
-	public static Client create(String ip, int port) throws UnknownHostException, IOException {
-		return new Client(new Socket(ip, port), ip, port);
 	}
 }

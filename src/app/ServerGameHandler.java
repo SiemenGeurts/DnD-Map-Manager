@@ -44,8 +44,6 @@ import javafx.stage.Stage;
 
 public class ServerGameHandler extends GameHandler {
 
-	Server server;
-
 	ServerController controller;
 	public static ServerGameHandler instance;
 
@@ -55,16 +53,11 @@ public class ServerGameHandler extends GameHandler {
 	
 	private boolean bufferUpdates = false;
 	public boolean isPlaying = false;
-	//for serverlistener
-	Runnable serverListener;
-	Thread listenerThread;
-	private Object pauseLock = new Object();
-	private boolean running = false, paused = false;
+
 	private boolean blockUpdates = false;
 	
-	public ServerGameHandler(Server _server) {
+	public ServerGameHandler() {
 		super();
-		server = _server;
 		updates = new StringBuilder();
 		undo = new Stack<>();
 		instance = this;
@@ -103,44 +96,6 @@ public class ServerGameHandler extends GameHandler {
 		} catch (IOException e) {
 			ErrorHandler.handle("Well, something went horribly wrong...", e);
 		}
-
-		serverListener = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					while (running) {
-						synchronized (pauseLock) {
-							if (paused) {
-								Logger.println("Listener paused");
-								try {
-									synchronized (pauseLock) {
-										pauseLock.wait();
-									}
-								} catch (InterruptedException ex) {
-									break;
-								}
-							}
-							if (!running)
-								break;
-							try {
-								Thread.sleep((long) (1000 / 20));
-								Logger.println("listening...");
-								ActionDecoder.decodeRequest(server.read(String.class)).attach();
-							} catch (IOException | InterruptedException e) {
-								Platform.runLater(new Runnable() {
-									public void run() {
-										ErrorHandler.handle("Communication was lost, please reconnect.", e);
-									}
-								});
-								break;
-							}
-						}
-					}
-				} catch(Exception e) {
-					ErrorHandler.handle("The server thread has crashed! Try resyncing the game.", e);
-				}
-			}
-		};
 	}
 	
 	public void preview(String action) {
@@ -191,31 +146,6 @@ public class ServerGameHandler extends GameHandler {
 			ErrorHandler.handle("Couldn't send decline command. You should probably resync.", e);
 		}
 	}
-	
-	public void pauseServerListener() {
-		paused = true;
-	}
-	
-	public void resumeServerListener() {
-		synchronized(pauseLock) {
-			paused = false;
-			pauseLock.notifyAll();
-		}
-	}
-
-	public void begin() {
-		// after the begin button has been clicked, execute the following sequence.
-		acceptClient();
-		sendTextures();
-		sendMap();
-		if(!running) {
-			running = true;
-			listenerThread = new Thread(serverListener);
-			listenerThread.setDaemon(true);
-			listenerThread.start();
-		} else
-			resumeServerListener();
-	}
 
 	public void resync() {
 		try {
@@ -232,14 +162,6 @@ public class ServerGameHandler extends GameHandler {
 		} catch (IOException e) {
 			ErrorHandler.handle("Could not resync...", e);
 		}
-	}
-
-	public void reconnect() throws IOException {
-		pauseServerListener();
-		int port = server.server.getLocalPort();
-		server.server.close();
-		server = Server.create(port);
-		begin();
 	}
 
 	public boolean loadMap(File f) throws IOException {
