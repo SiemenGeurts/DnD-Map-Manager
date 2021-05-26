@@ -1,4 +1,4 @@
-package helpers.codecs.version1;
+package helpers.codecs.versions;
 
 import java.util.ArrayList;
 
@@ -9,8 +9,8 @@ import data.mapdata.prefabs.EntityPrefab;
 import helpers.Logger;
 import helpers.codecs.JSONDecoder;
 
-public class JSONDecoderV1 extends JSONDecoder {
-	public EntityPrefab decodeEntity(JSONObject json) {
+public class JSONDecoderV1 implements JSONDecoder {
+	public EntityPrefab decodeEntityPrefab(JSONObject json) {
 		JSONObject properties = json.getJSONObject("properties");
 		ArrayList<Property> propertylist = new ArrayList<>(properties.length());
 		for (String pkey : properties.keySet())

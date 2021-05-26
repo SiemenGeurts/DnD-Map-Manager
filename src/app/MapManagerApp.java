@@ -9,7 +9,6 @@ import java.util.prefs.Preferences;
 import javax.swing.filechooser.FileSystemView;
 
 import comms.Client;
-import comms.Server;
 import controller.MainMenuController;
 import controller.MapBuilderController;
 import controller.SceneManager;
@@ -78,7 +77,7 @@ public class MapManagerApp extends Application{
         		port = Integer.parseInt(portString);
         	else
         		Logger.println("No valid port given, using 5000");
-        	new ServerGameHandler(Server.create(port));
+        	new ServerGameHandler(port);
         } else if(playMode.equals("party")) {
         	String ip = namedArgs.get("ip");
         	String portString = namedArgs.get("port");
@@ -94,7 +93,7 @@ public class MapManagerApp extends Application{
 					else
 						Dialogs.warning("Port " + portString + " is not valid, using port 5000 instead.", true);
 				}
-				new ClientGameHandler(Client.create(ip, port));
+				new ClientGameHandler(new Client(ip, port));
         	} else {
         		Dialogs.warning("No valid ip given, application will exit.", true);
         		Platform.exit();

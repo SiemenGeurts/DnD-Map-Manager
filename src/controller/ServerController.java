@@ -9,6 +9,7 @@ import app.ServerGameHandler;
 import data.mapdata.Entity;
 import data.mapdata.Map;
 import gui.ErrorHandler;
+import helpers.Utils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -24,15 +25,17 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 
 public class ServerController extends MapEditorController {
  
     @FXML
     private VBox vbox;
     @FXML
-    private Button resync;
+    private Circle iconConnected;
     @FXML
-    private Button reconnect;
+    private Button resync;
     @FXML
     private CheckBox chkbxBuffer;
     @FXML
@@ -91,6 +94,20 @@ public class ServerController extends MapEditorController {
 		chkboxViewGrid.selectedProperty().addListener((obs, oldVal, newVal) -> setViewGrid(newVal));
 	}
 	
+	@FXML
+	@Override
+	void onQuit() {
+		if(checkSaved()) {
+			gameHandler.disconnect();
+			MainMenuController.sceneManager.popScene();
+		}
+	}
+	
+	@FXML
+	void onDisconnect(ActionEvent event) {
+		gameHandler.disconnect();
+	}
+	
 	public void endInit() {
 		try {
 			FXMLLoader loader = new FXMLLoader(ServerController.class.getResource("/assets/fxml/PaintPane.fxml"));
@@ -145,7 +162,7 @@ public class ServerController extends MapEditorController {
 	
 	@Override
 	public void handleClick(Point p, MouseEvent event) {
-		if(inPreview || !gameHandler.isPlaying) return;
+		if(inPreview) return;
 		if(event.getButton() == MouseButton.PRIMARY) {
 			Entity e;
 			if((e=getMap().getEntity(p)) != null) {
@@ -162,7 +179,7 @@ public class ServerController extends MapEditorController {
 	
 	@Override
 	public void handleDrag(Point2D old, Point2D cur, MouseEvent e) {
-		if(inPreview || !gameHandler.isPlaying || !gameHandler.isBufferEnabled()) return;
+		if(inPreview || !gameHandler.isBufferEnabled()) return;
 		super.handleDrag(old, cur, e);
 	}
 	
@@ -178,16 +195,27 @@ public class ServerController extends MapEditorController {
 		gameHandler.pushUpdates();
 	}
 
+	public void setConnected(final boolean connected) {
+		Utils.safeRun(() -> {
+			if(connected == true) {
+				resync.setDisable(false);
+				resync.setText("Resync");
+				iconConnected.fillProperty().set(Color.rgb(33,255,95));
+			} else {
+				resync.setText("Reconnect");
+				iconConnected.fillProperty().set(Color.rgb(255,31,31));
+			}
+		});
+	}
+	
 	@FXML
-	public void beginClicked(ActionEvent e) {
-		if(resync.getText().equals("begin")) {
-			gameHandler.begin();
-			reconnect.setDisable(false);
-			resync.setText("resync");
-			btnSendImage.setDisable(false);
-			btnSendText.setDisable(false);
-		} else {
-			gameHandler.resync();
+	public void onResyncClicked(ActionEvent e) {
+		if(resync.getText().equals("Resync"))
+			gameHandler.resync(false);
+		else {
+			gameHandler.reconnect();
+			resync.setText("Reconnecting...");
+			resync.setDisable(true);
 		}
 	}
 
@@ -249,14 +277,6 @@ public class ServerController extends MapEditorController {
 		inPreview = false;
 		setMap(oldMap);
 		hboxPreviewTools.setVisible(false);
-	}
-	
-	public void reconnectClicked(ActionEvent e) {
-		try {
-			gameHandler.reconnect();
-		} catch(IOException ex) {
-			ErrorHandler.handle("Could not reopen server.", ex);
-		}
 	}
 	
 	public InitiativeListController getILController() {

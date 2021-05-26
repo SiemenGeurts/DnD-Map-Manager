@@ -6,6 +6,8 @@ import actions.Action;
 import actions.ActionDecoder;
 import controller.MapController;
 import data.mapdata.Map;
+import gui.ErrorHandler;
+import helpers.Logger;
 
 public abstract class GameHandler {
 	public Map map;
@@ -14,28 +16,44 @@ public abstract class GameHandler {
 	public static short flags = 0;
 	
 	public abstract MapController getController();
-	
+	private Thread updating;
+	private static boolean isRunning = false;
 	public GameHandler() {
 		ActionDecoder.setGameHandler(this);
 		actions = new ArrayList<>();
-		Thread updating = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				long time = System.currentTimeMillis();
-				do {
-					try {
-						Thread.sleep((long) (1000 / 30));
-						update((System.currentTimeMillis() - time)/1000f);
-						time = System.currentTimeMillis();
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				} while (true);
-			}
+	
+	}
+	
+	protected void start() {
+		if(isRunning)
+			throw new IllegalStateException("Gamehandler thread is already running");
+		updating = new Thread(() -> {
+			long time = System.currentTimeMillis();
+			do {
+				try {
+					Thread.sleep((long) (1000 / 30));
+					processMessages(); //this loads new incoming messages and parses the actions
+					update((System.currentTimeMillis() - time)/1000f);
+					time = System.currentTimeMillis();
+				} catch (Exception e) {
+					if(isRunning)
+						ErrorHandler.handle("An exception occured!", e);
+					else
+						Logger.error(e);
+				}
+			} while (isRunning);
+			
 		});
 		updating.setDaemon(true);
 		updating.start();
+		isRunning = true;
 	}
+	
+	protected void stop() {
+		isRunning = false;
+		updating.interrupt();
+	}
+	
 	
 	public void update(float dt) {
 		if(actions.size()==0) return;
@@ -59,8 +77,9 @@ public abstract class GameHandler {
 	public abstract void selectInitiative(int id);
 	public abstract void removeInitiative(int id);
 	public abstract void clearInitiative();
-	public abstract void addInitiative(int id, int initiative);
+	public abstract void addInitiative(int id, double initiative);
 	
+	abstract void processMessages();
 	
 	public static final short DISPLAY_IMAGE = 1;
 }

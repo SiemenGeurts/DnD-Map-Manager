@@ -2,17 +2,22 @@ package app;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map.Entry;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Stack;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import actions.Action;
 import actions.ActionDecoder;
 import actions.ActionEncoder;
+import comms.Message;
 import comms.SerializableJSON;
-import comms.Server;
+import comms.ServerListener;
 import controller.CreateTextPaneController;
 import controller.InitiativeListController.InitiativeEntry;
 import controller.MainMenuController;
@@ -21,13 +26,12 @@ import controller.ToolkitController;
 import data.mapdata.Map;
 import data.mapdata.PresetTile;
 import data.mapdata.ServerMap;
-import data.mapdata.Tile;
-import data.mapdata.Entity;
 import gui.ErrorHandler;
 import helpers.AssetManager;
 import helpers.Logger;
 import helpers.Utils;
-import helpers.codecs.Encoder;
+import helpers.codecs.JSONEncoder;
+import helpers.codecs.JSONKeys;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -44,29 +48,23 @@ import javafx.stage.Stage;
 
 public class ServerGameHandler extends GameHandler {
 
-	Server server;
-
+	ServerListener server;
+	public int serverport;
+	
 	ServerController controller;
 	public static ServerGameHandler instance;
 
-	private StringBuilder updates;
-	private Stack<String> undo;
+	private LinkedList<JSONObject> updates;
+	private Stack<JSONObject> undo;
 	private byte[][] oldMask;
 	
 	private boolean bufferUpdates = false;
 	public boolean isPlaying = false;
-	//for serverlistener
-	Runnable serverListener;
-	Thread listenerThread;
-	private Object pauseLock = new Object();
-	private boolean running = false, paused = false;
+
 	private boolean blockUpdates = false;
 	
-	public ServerGameHandler(Server _server) {
+	public ServerGameHandler(int serverport) {
 		super();
-		server = _server;
-		updates = new StringBuilder();
-		undo = new Stack<>();
 		instance = this;
 		
 		try {
@@ -97,55 +95,48 @@ public class ServerGameHandler extends GameHandler {
 			
 			MainMenuController.sceneManager.pushView(scene, loader);
 			controller.endInit();
+			
+			this.serverport = serverport;
+			server = new ServerListener(serverport, () -> onConnected(), () -> onDisconnected());
+			server.start();
+			updates = new LinkedList<>();
+			undo = new Stack<>();
 			// wait for the DM clicks a "begin" button
 			// all interaction will be handled by a javafx controller class
 			// all communication and gameplay will be handled by this gamehandler.
 		} catch (IOException e) {
 			ErrorHandler.handle("Well, something went horribly wrong...", e);
 		}
-
-		serverListener = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					while (running) {
-						synchronized (pauseLock) {
-							if (paused) {
-								Logger.println("Listener paused");
-								try {
-									synchronized (pauseLock) {
-										pauseLock.wait();
-									}
-								} catch (InterruptedException ex) {
-									break;
-								}
-							}
-							if (!running)
-								break;
-							try {
-								Thread.sleep((long) (1000 / 20));
-								Logger.println("listening...");
-								ActionDecoder.decodeRequest(server.read(String.class)).attach();
-							} catch (IOException | InterruptedException e) {
-								Platform.runLater(new Runnable() {
-									public void run() {
-										ErrorHandler.handle("Communication was lost, please reconnect.", e);
-									}
-								});
-								break;
-							}
-						}
-					}
-				} catch(Exception e) {
-					ErrorHandler.handle("The server thread has crashed! Try resyncing the game.", e);
-				}
-			}
-		};
 	}
 	
-	public void preview(String action) {
-		int count = 0;
-		for(int i = 0; i < action.length(); i++) if(action.charAt(i)==';') count++;
+	@Override
+	protected void processMessages() {
+		Message<?> msg;
+		while((msg = server.readMessage())!=null) {
+			Logger.println("Processing message of type " + msg.getMessage().getClass().getSimpleName());
+			if(msg.getMessage() instanceof SerializableJSON) {
+				parseJSON(((SerializableJSON) msg.getMessage()).getJSON());
+			} else
+				ErrorHandler.handle("Received message of type " + msg.getMessage().getClass().getSimpleName() + " and didn't know what to do with it...", null);
+		}
+	}
+	private void parseJSON(JSONObject json) {
+		try {
+			Action action = ActionDecoder.decodeRequest(json);
+			if(action != null) {
+				action.attach();
+				return;
+			} else
+				ErrorHandler.handle("Unknown JSON type: " + json.getString("type"), null);
+		} catch(JSONException e) {
+			ErrorHandler.handle("Could not parse JSON", e);
+		}
+	}
+	
+	public void preview(JSONObject action) {
+		int count = 1;
+		if(action.getString("type").equals(JSONKeys.KEY_UPDATE_LIST))
+			count = action.getInt("size");
 		final int count2 = count;
 		Platform.runLater(new Runnable() {
 			public void run() {
@@ -164,8 +155,8 @@ public class ServerGameHandler extends GameHandler {
 				} else if(result.orElse(decline)==accept) {
 					ActionDecoder.decode(action, false).attach();
 					try {
-						server.write("accepted");
-					} catch(IOException e) {
+						server.sendMessage(JSONEncoder.accepted);
+					} catch(IllegalStateException | InterruptedException e) {
 						ErrorHandler.handle("Couldn't send confirmation of acceptance. You should probably resync." , e);
 					}
 				} else {
@@ -178,70 +169,80 @@ public class ServerGameHandler extends GameHandler {
 	public void previewAccepted() {
 		map = controller.previewMap;
 		try {
-			server.write("accepted");
-		} catch(IOException e) {
+			server.sendMessage(JSONEncoder.accepted);
+		} catch(IllegalStateException | InterruptedException e) {
 			ErrorHandler.handle("Couldn't send confirmation of acceptance. You should probably resync." , e);
 		}
 	}
 	
 	public void previewDeclined() {
 		try {
-			server.write("declined");
-		} catch(IOException e) {
+			server.sendMessage(JSONEncoder.declined);
+		} catch(IllegalStateException | InterruptedException e) {
 			ErrorHandler.handle("Couldn't send decline command. You should probably resync.", e);
 		}
 	}
-	
-	public void pauseServerListener() {
-		paused = true;
+
+	private void onConnected() {
+		isPlaying = true;
+		start();
+		controller.setConnected(true);
+		resync(true);
+		Platform.runLater(() -> {
+			Alert alert = new Alert(AlertType.INFORMATION);
+			alert.setTitle("Connection established.");
+			alert.setHeaderText("A client connected to the game.");
+			alert.setContentText("The players are now able to view the map.");
+			alert.show();
+		});
 	}
 	
-	public void resumeServerListener() {
-		synchronized(pauseLock) {
-			paused = false;
-			pauseLock.notifyAll();
+	public void disconnect() {
+		server.disconnect();
+	}
+	
+	public void onDisconnected() {
+		isPlaying = false;
+		stop();
+		controller.setConnected(false);
+	}
+	
+	private void onReconnected () {
+		isPlaying = true;
+		start();
+		controller.setConnected(true);
+		resync(true);
+	}
+	
+	public void reconnect() {
+		if(ServerListener.isActive()) {
+			stop();
+			ServerListener.stopAll();
 		}
+		 //start new server listener
+		server = new ServerListener(serverport, () -> onReconnected(), () -> onDisconnected());
+		server.start();
 	}
-
-	public void begin() {
-		// after the begin button has been clicked, execute the following sequence.
-		acceptClient();
-		sendTextures();
-		sendMap();
-		if(!running) {
-			running = true;
-			listenerThread = new Thread(serverListener);
-			listenerThread.setDaemon(true);
-			listenerThread.start();
-		} else
-			resumeServerListener();
-	}
-
-	public void resync() {
+	
+	public void resync(boolean includeBackground) {
 		try {
-			if(!listenerThread.isAlive()) {
-				//restart the thread
-				running = true;
-				listenerThread = new Thread(serverListener);
-				listenerThread.setDaemon(true);
-				listenerThread.start();
-			}
-			server.write(map, false);
-			for(InitiativeEntry entry : controller.getILController().getAll())
-				server.write(ActionEncoder.addInitiative(entry.getEntity().getID(), entry.getInitiative()));
-		} catch (IOException e) {
-			ErrorHandler.handle("Could not resync...", e);
+			server.sendMessage(map, includeBackground);
+		} catch(IllegalStateException | InterruptedException e) {
+			ErrorHandler.handle("Couldn't send map and/or initiative list. You should probably resync." , e);
 		}
+		try {
+			List<InitiativeEntry> il = controller.getILController().getAll();
+			if(il.size()==0)
+				server.sendMessage(ActionEncoder.clearInitiative());
+			else
+				server.sendMessage(JSONEncoder.encodeInitiatives(il));
+		} catch (IllegalStateException | InterruptedException e) {
+			ErrorHandler.handle("Couldn't send map and/or initiative list. You should probably resync." , e);
+		}
+		//reset the buffer
+		updates.clear();
 	}
-
-	public void reconnect() throws IOException {
-		pauseServerListener();
-		int port = server.server.getLocalPort();
-		server.server.close();
-		server = Server.create(port);
-		begin();
-	}
-
+	
 	public boolean loadMap(File f) throws IOException {
 		Map m = Utils.loadMap(f);
 		controller.currentFile = f;
@@ -251,51 +252,12 @@ public class ServerGameHandler extends GameHandler {
 		controller.setMap(map);
 		return true;
 	}
-
-	public void acceptClient() {
-		try {
-			server.waitForClient();
-			server.write(Encoder.VERSION_ID);
-			isPlaying = true;
-			ActionDecoder.setVersion(server.read(Integer.class));
-			Alert alert = new Alert(AlertType.INFORMATION);
-			alert.setTitle("Connection established.");
-			alert.setHeaderText("A client connected to the game.");
-			alert.setContentText("The players are now able to view the visible regions.");
-			alert.show();
-		} catch (IOException e) {
-			ErrorHandler.handle("Something went wrong while waiting for a client connection.", e);
-		}
-	}
-
-	public boolean sendTextures() {
-		Logger.println("[SERVER] sending textures.");
-		HashMap<Integer, Image> textures = new HashMap<>();
-		for (int i = 0; i < map.getWidth(); i++)
-			for (int j = 0; j < map.getHeight(); j++) {
-				Tile t = map.getTile(i, j);
-				if (t.getType() >= 0)
-					textures.put(t.getType(), t.getTexture());
-			}
-		for (Entity e : map.getEntities())
-			textures.put(e.getType(), e.getTexture());
-		try {
-			server.write(textures.size());
-			for (Entry<Integer, Image> pair : textures.entrySet()) {
-				server.write(pair.getValue(), pair.getKey());
-			}
-		} catch (IOException e) {
-			ErrorHandler.handle("Not all textures could be transferred. Please try again.", e);
-			return false;
-		}
-		return true;
-	}
 	
 	public boolean sendTexture(int id) {
 		Logger.println("[SERVER] sending texture " + id);
 		try {
-			server.write(AssetManager.getTexture(id), id);
-		} catch (IOException e) {
+			server.sendMessage(AssetManager.getTexture(id), id);
+		} catch (IllegalStateException | InterruptedException e) {
 			ErrorHandler.handle("Texture could not be send.", e);
 			return false;
 		}
@@ -305,66 +267,68 @@ public class ServerGameHandler extends GameHandler {
 	public boolean sendMap() {
 		Logger.println("[SERVER] sending map.");
 		try {
-			server.write(map);
-		} catch (IOException e) {
+			server.sendMessage(map, true);
+		} catch (IllegalStateException | InterruptedException e) {
 			ErrorHandler.handle("Could not send map. Please try again", e);
 			return false;
 		}
 		return true;
 	}
 
-	public void sendForcedUpdate(String action) {
-		if(blockUpdates)return;
+	public void sendForcedUpdate(JSONObject action) {
+		if(blockUpdates || !isPlaying)return;
 		//this bypasses the buffer
 		try{
-			server.write(action);
-		} catch (IOException e) {
-			ErrorHandler.handle("Update [" + action + "] could not be send. Try resyncing the game.", e);
+			server.sendMessage(action);
+		} catch (IllegalStateException | InterruptedException e) {
+			ErrorHandler.handle("Update of type '" + action.getString("type") + "' could not be send. Try resyncing the game.", e);
 		}
 	}
 	
-	public void sendUpdate(String action, String undoAction) {
-		if(blockUpdates) return; //if this is true, we're undoing the buffer, and we don't want to send the undo actions
+	public void sendUpdate(JSONObject action, JSONObject undoAction) {
+		if(blockUpdates || !isPlaying) return; //if this is true, we're undoing the buffer, and we don't want to send the undo actions
 		if (bufferUpdates)
-			updates.append(action).append(';');
+			updates.add(action);
 		else
 			try {
-				server.write(action);
-			} catch (IOException e) {
-				ErrorHandler.handle("Update [" + action + "] could not be send. Try resyncing the game.", e);
+				server.sendMessage(action);
+			} catch (IllegalStateException | InterruptedException e) {
+				ErrorHandler.handle("Update of type '" + action.getString("type") + "' could not be send. Try resyncing the game.", e);
 			}
 		undo.push(undoAction);
 	}
 
 	public void pushUpdates() {
+		if(!isPlaying) return;
 		if (bufferUpdates) {
 			try {
-				server.write(map.getMask());
-			} catch(IOException e) {
+				server.sendMessage(JSONEncoder.encodeMask(map.getMask()));
+			} catch(IllegalStateException | InterruptedException e) {
 				ErrorHandler.handle("Could not send the new Fog of War, try resyncing the game.", e);
 			}
-			if(updates.length()>0) {
-				try {
-					server.write(updates.toString());
-					updates = new StringBuilder();
-				} catch (IOException e) {
-					ErrorHandler.handle("Update [" + updates.toString() + "] could not be send. Try resyncing the game.",
-							e);
-				}
+			try {
+				JSONObject json = new JSONObject();
+				json.put("type", JSONKeys.KEY_UPDATE_LIST);
+				json.put("size", updates.size());
+				JSONArray array = new JSONArray();
+				while(updates.size()>0)
+					array.put(updates.poll());
+				json.put("array", array);
+				server.sendMessage(json);
+			} catch (IllegalStateException | InterruptedException e) {
+				ErrorHandler.handle("Update could not be send. Try resyncing the game.",e);
 			}
 		} else
 			ErrorHandler.handle("Buffer is not enabled", null);
 	}
 	
 	public void undo() {
+		if(undo.isEmpty()) return;
 		blockUpdates = true;
-		String[] s = undo.pop().split(";");
-		for (String line : s) {
-			Action action = ActionDecoder.decode(line, true);
-			action.setDelay(0);
-			action.update(0);
-			updates.delete(updates.lastIndexOf(";"), updates.length());
-		}
+		JSONObject json = undo.pop();
+		Action action = ActionDecoder.decode(json, true);
+		action.executeNow();
+		updates.removeLast();
 		blockUpdates = false;
 	}
 
@@ -372,16 +336,16 @@ public class ServerGameHandler extends GameHandler {
 		map.setMask(oldMask);
 		controller.redraw();
 		oldMask = null;
-		long count = updates.chars().filter(ch -> ch == ';').count();
-		for (int i = 0; i < count; i++)
-			undo();
-		updates = new StringBuilder();
+		while(!updates.isEmpty()) {
+			ActionDecoder.decode(undo.pop(), true).executeNow();
+			updates.removeLast();
+		}
 	}
 
 	public boolean requestDisableUpdateBuffer() {
 		if(!bufferUpdates)
 			return true;
-		if(updates.length()==0) {
+		if(updates.isEmpty()) {
 			//check if fow map changed
 			boolean maskchanged = false;
 			for(int i = 0; i < oldMask.length && !maskchanged; i++)
@@ -440,8 +404,8 @@ public class ServerGameHandler extends GameHandler {
 		Objects.requireNonNull(key);
 		this.map = new ServerMap(map, this);
 		try {
-			server.write(map);
-		} catch (IOException e) {
+			server.sendMessage(map, true);
+		} catch (IllegalStateException | InterruptedException e) {
 			ErrorHandler.handle("Could not send map. Try resyncing.", e);
 		}
 		return (ServerMap) this.map;
@@ -458,7 +422,7 @@ public class ServerGameHandler extends GameHandler {
 	}
 
 	@Override
-	public void addInitiative(int id, int initiative) {
+	public void addInitiative(int id, double initiative) {
 		controller.getILController().addEntity(map.getEntityById(id), initiative);
 	}
 	
@@ -485,14 +449,9 @@ public class ServerGameHandler extends GameHandler {
 				btnCancel.setOnAction(event -> sendImgStage.close());
 				btnSend.setOnAction(event -> {
 					try {
-						server.write(ActionEncoder.addFlag(DISPLAY_IMAGE));
-						server.write(tex, -6);
-					} catch (IOException e) {
+						server.sendMessage(tex, -6, true);
+					} catch (IllegalStateException | InterruptedException e) {
 						ErrorHandler.handle("Could not send image.", e);
-					} finally {
-						try {
-							server.write(ActionEncoder.remFlag(DISPLAY_IMAGE));
-						} catch (IOException e) {}
 					}
 					sendImgStage.close();
 				});
@@ -525,10 +484,12 @@ public class ServerGameHandler extends GameHandler {
 			sendTextStage.setScene(scene);
 			sendTextStage.showAndWait();
 			if(cont.isCanceled()) return;
-			System.out.println(cont.getPageCount());
-			server.write(new SerializableJSON(cont.getJSON()));
+			Logger.println("Page count: " +cont.getPageCount());
+			server.sendMessage(cont.getJSON());
 		} catch (IOException e) {
 			ErrorHandler.handle("Could not start stage", e);
+		} catch (IllegalStateException | InterruptedException e) {
+			ErrorHandler.handle("Could not send text", e);
 		}
         
 	}

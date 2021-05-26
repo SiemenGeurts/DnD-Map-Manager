@@ -1,7 +1,11 @@
 package actions;
 
+import org.json.JSONObject;
+
 import data.mapdata.Entity;
-import helpers.codecs.Encoder;
+import helpers.codecs.JSONEncoder;
+
+import static helpers.codecs.JSONKeys.*;
 
 /**
  * Possible actions:
@@ -19,55 +23,70 @@ import helpers.codecs.Encoder;
  */
 public class ActionEncoder {
 	
-	public static String set(int x, int y, int id) {
-		return "set [" + x + "," + y + "] to (" + id + ")";
+	public static JSONObject set(int x, int y, int id) {
+		JSONObject json = new JSONObject();
+		json.put("type", KEY_SET_TILE).put("x", x).put("y", y).put("id", id);
+		return json;
 	}
 	
-	public static String movement(int x1, int y1, int x2, int y2, int id) {
-		return "move (" + id + ") from [" + x1 + "," + y1 + "] to [" + x2 + "," + y2 + "]";
+	public static JSONObject movement(int x1, int y1, int x2, int y2, int id) {
+		JSONObject json = new JSONObject();
+		json.put("type", KEY_MOVEMENT).put("x1", x1).put("y1", y1).put("x2", x2).put("y2", y2);
+		json.put("id", id);
+		return json;
 	}
 	
-	public static String setBloodied(int id) {
-		return "bloodied (" + id + ")";
+	public static JSONObject setBloodied(int id, boolean value) {
+		JSONObject json = new JSONObject();
+		json.put("type", KEY_SET_BLOODIED).put("id", id).put("value", value);
+		return json;
 	}
 	
-	public static String clearTile(int x, int y) {
-		return "clear [" + x + "," + y + "]";
+	public static JSONObject clearTile(int x, int y) {
+		JSONObject json = new JSONObject();
+		json.put("type", KEY_CLEAR_TILE).put("x", x).put("y", y);
+		return json;
 	}
 
-	public static String removeEntity(int id) {
-		return "remove (" + id + ")";
+	public static JSONObject removeEntity(int id) {
+		return JSONEncoder.encode(IntKey.KEY_REMOVE_ENTITY, id);
 	}
 	
-	public static String addEntity(Entity e, boolean includeProperties) {
-		return "add <" + Encoder.encode(e,includeProperties) + ">";
+	public static JSONObject addEntity(Entity e, boolean includeProperties) {
+		JSONObject json = new JSONObject();
+		json.put("type", KEY_ADD_ENTITY); //change the json type
+		json.put("entity", JSONEncoder.encode(e, includeProperties));
+		return json;
 	}
 	
-	public static String requestTexture(int id) {
-		return "texture (" + id + ")";
+	public static JSONObject requestTexture(int id) {
+		return JSONEncoder.encode(IntKey.KEY_REQUEST_TEXTURE, id);
 	}
 	
-	public static String addFlag(short flag) {
-		return "!addflag <" + (char) flag + ">";
-	}
-	public static String remFlag(short flag) {
-		return "!remflag <" + (char) flag + ">";
-	}
-	
-	public static String addInitiative(int id, int initiative) {
-		return "addinit (" + id + ") (" + initiative + ")";
+	public static JSONObject addInitiative(int id, double initiative) {
+		JSONObject json = new JSONObject();
+		json.put("type", KEY_ADD_INITIATIVE);
+		json.put("id", id).put("initiative", initiative);
+		return json;
 	}
 	
-	public static String selectInitiative(int id) {
-		return "selectInit (" + id + ")";
+	public static JSONObject selectInitiative(int id) {
+		return JSONEncoder.encode(IntKey.KEY_SELECT_INITIATIVE, id);
 	}
 	
-	public static String removeInitiative(int id) {
-		return "remInit (" + id + ")";
+	public static JSONObject removeInitiative(int id) {
+		return JSONEncoder.encode(IntKey.KEY_REMOVE_INITIATIVE, id);
 	}
 	
-	public static String clearInitiative() {
-		return "clrInit";
+	public static JSONObject clearInitiative() {
+		return new JSONObject().put("type", KEY_CLEAR_INITIATIVE);
 	}
 	
+	public static JSONObject disconnect() {
+		return new JSONObject().put("type", KEY_DISCONNECT);
+	}
+	
+	public static JSONObject empty() {
+		return new JSONObject().put("type", KEY_EMPTY);
+	}
 }

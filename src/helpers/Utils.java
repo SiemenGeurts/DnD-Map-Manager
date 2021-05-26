@@ -272,19 +272,19 @@ public class Utils {
 	public static byte[] flatten(byte[][] arr) {
 		byte[] flat = new byte[arr.length*arr[0].length];
 		int rowlength = arr[0].length;
-		for(int i = 0; i < arr.length; i++)
-			for(int j = 0; j < rowlength; j++)
-				flat[i*rowlength+j] = arr[i][j];
+		for(int i = 0, k = 0; i < arr.length; i++)
+			for(int j = 0; j < rowlength; j++, k++)
+				flat[k] = arr[i][j];
 		return flat;
 	}
 	
 	public static byte[][] unflatten(byte[] flat, int w, int h) throws Exception {
 		if(flat.length!=w*h)
-			throw new Exception("Cannot unflatten array of length " + flat.length + " into " + w + "x" + h +" array");
-		byte[][] arr = new byte[w][h];
-		for(int i = 0; i < w; i++)
-			for(int j = 0; j < h; j++)
-				arr[i][j] = flat[i*h+j];
+			throw new Exception("Cannot unflatten array of length " + flat.length + " into " + h + "x" + w +" array");
+		byte[][] arr = new byte[h][w];
+		for(int i = 0, k = 0; i < h; i++)
+			for(int j = 0; j < w; j++, k++)
+				arr[i][j] = flat[k];
 		return arr;
 	}
 }

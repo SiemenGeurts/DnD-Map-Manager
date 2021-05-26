@@ -6,6 +6,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import data.mapdata.Map;
+import helpers.Logger;
 import helpers.ScalingBounds.ScaleMode;
 import helpers.codecs.Decoder;
 import helpers.codecs.Encoder;
@@ -30,6 +31,8 @@ public class SerializableMap implements Serializable {
 			hasBackground = true;
 			if(includeBackground)
 				background = new SerializableImage(map.getBackground());
+			else
+				background = null;
 			scaling = map.getScaling();
 		} else
 			hasBackground = false;
@@ -51,20 +54,18 @@ public class SerializableMap implements Serializable {
 	private void writeObject(ObjectOutputStream stream) throws IOException {
 		stream.defaultWriteObject();
 		String s = Encoder.encode(map, includeEntityProps);
-		System.out.println("encoded map: " + s);
+		//Logger.println("encoded map: " + s);
 		stream.writeObject(s.getBytes());
 	}
 	
 	private void readObject(ObjectInputStream stream) throws ClassNotFoundException, IOException {
 		stream.defaultReadObject();
 		String s = new String((byte[])stream.readObject());
-		System.out.println("map: " + s);
+		Logger.println("Decoded map");
 		map = Decoder.getDecoder(encodingVersion).decodeMap(s);
 		if(hasBackground)  {
 			if(background != null && background.getImage()!=null) {
 				map.setBackground(background.getImage());
-			} else {
-				hasBackground = false;
 			}
 			map.setScaling(scaling);
 		}

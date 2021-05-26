@@ -18,6 +18,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
 
 <VBox xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.ServerController">
    <children>
@@ -29,6 +30,7 @@
                   <SeparatorMenuItem mnemonicParsing="false" />
                   <MenuItem mnemonicParsing="false" onAction="#onSave" text="Save" />
                   <MenuItem mnemonicParsing="false" onAction="#onSaveAs" text="Save As…" />
+                  <MenuItem mnemonicParsing="false" onAction="#onDisconnect" text="Disconnect" />
                   <MenuItem mnemonicParsing="false" onAction="#onQuit" text="Quit" />
                </items>
             </Menu>
@@ -84,8 +86,8 @@
       </SplitPane>
       <ToolBar prefHeight="40.0" prefWidth="200.0" VBox.vgrow="NEVER">
         <items>
-          <Button fx:id="resync" mnemonicParsing="false" onAction="#beginClicked" text="begin" />
-            <Button fx:id="reconnect" disable="true" mnemonicParsing="false" onAction="#reconnectClicked" text="reconnect" />
+            <Circle fx:id="iconConnected" fill="#ff1f1f" radius="7.0" stroke="BLACK" strokeType="INSIDE" />
+          <Button fx:id="resync" disable="true" mnemonicParsing="false" onAction="#onResyncClicked" text="Resync" />
             <Separator orientation="VERTICAL">
                <padding>
                   <Insets left="10.0" right="10.0" />

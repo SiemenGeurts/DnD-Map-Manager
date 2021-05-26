@@ -1,5 +1,6 @@
 package controller;
 
+import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -9,6 +10,7 @@ import actions.ActionEncoder;
 import app.Constants;
 import app.ServerGameHandler;
 import data.mapdata.Entity;
+import helpers.Logger;
 import helpers.Utils;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -44,6 +46,7 @@ public class InitiativeListController {
 	private ButtonBar bar;
 
 	final Comparator<InitiativeEntry> comp = (InitiativeEntry e1, InitiativeEntry e2) -> e1.compareTo(e2);
+	final DecimalFormat numberFormat = new DecimalFormat("##.##");
 	
 	private boolean isServer = true;
 	private ServerGameHandler gameHandler;
@@ -64,7 +67,7 @@ public class InitiativeListController {
                     setText(null);
                     setGraphic(null);
                 } else {
-                    setText(entry.getInitiative() + "  "  + entry.getName());
+                    setText(numberFormat.format(entry.getInitiative()) + " " + entry.getName());
                     imageView.setImage(entry.getImage());
                     setGraphic(imageView);
                 }
@@ -77,7 +80,7 @@ public class InitiativeListController {
 			if(mapController != null)
 				mapController.setActiveEntity(newVal == null ? -1 : newVal.entity.getID());
 			if(isServer && newVal != null)
-				gameHandler.sendUpdate(ActionEncoder.selectInitiative(newVal.entity.getID()), oldVal == null ? "" : ActionEncoder.selectInitiative(oldVal.entity.getID()));
+				gameHandler.sendUpdate(ActionEncoder.selectInitiative(newVal.entity.getID()), oldVal == null ? ActionEncoder.empty() : ActionEncoder.selectInitiative(oldVal.entity.getID()));
 		});
 		
 		btnRemove.setOnAction(event -> {
@@ -123,6 +126,12 @@ public class InitiativeListController {
 		return Collections.unmodifiableList(list);
 	}
 	
+	public void redraw() {
+		Utils.safeRun(() -> {
+			listview.refresh();
+		});
+	}
+	
 	public void setMode(short mode) {
 		isServer = mode == Constants.SERVERMODE;
 		bar.setVisible(isServer);
@@ -157,9 +166,18 @@ public class InitiativeListController {
 		return false;
 	}
 	
-	public void addEntity(Entity entity, int initiative) {
+	public boolean hasEntityWithId(int id) {
+		if(list.size()==0) return false;
+		for(InitiativeEntry entry : list) {
+			if(entry.getEntity().getID() == id)
+				return true;
+		}
+		return false;
+	}
+	
+	public void addEntity(Entity entity, double initiative) {
 		if(entity == null)
-			System.err.println("Could not add null entity!");
+			Logger.error("Could not add null entity!");
 		Utils.safeRun(() -> {
 			list.add(new InitiativeEntry(entity, initiative));
 			list.sort(comp);
@@ -180,7 +198,7 @@ public class InitiativeListController {
 			Optional<String> result = dialog.showAndWait();
 			result.ifPresent(value -> {
 				try {
-					int initiative = Integer.valueOf(value);
+					double initiative = Double.valueOf(value);
 					success = true;
 					addEntity(entity, initiative);
 				} catch(NumberFormatException e) {}
@@ -190,9 +208,9 @@ public class InitiativeListController {
 	
 	public class InitiativeEntry implements Comparable<InitiativeEntry> {
 		Entity entity;
-		int initiative;
+		double initiative;
 		
-		public InitiativeEntry(Entity entity, int initiative) {
+		public InitiativeEntry(Entity entity, double initiative) {
 			this.entity = entity;
 			this.initiative = initiative;
 		}
@@ -201,7 +219,7 @@ public class InitiativeListController {
 			return entity;
 		}
 		
-		public int getInitiative() {
+		public double getInitiative() {
 			return initiative;
 		}
 		

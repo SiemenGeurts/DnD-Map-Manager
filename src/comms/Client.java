@@ -3,12 +3,9 @@ package comms;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 import helpers.Logger;
-import javafx.scene.image.Image;
 
 public class Client {
 	Socket client;
@@ -19,8 +16,8 @@ public class Client {
 	ObjectOutputStream ostream;
 	
 	long startTime;
-	private Client(Socket client, String ip, int port) throws IOException {
-		this.client = client;
+	public Client(String ip, int port) throws IOException {
+		client = new Socket(ip, port);
 		this.ip = ip;
 		this.port = port;
 		startTime = System.currentTimeMillis();
@@ -28,55 +25,18 @@ public class Client {
 		ostream = new ObjectOutputStream(client.getOutputStream());
 	}
 	
-	public Image readImage() throws IOException {
-		Logger.println(getTimeStamp() + "reading image");
-		try {
-		Message<?> m = (Message<?>) istream.readObject();
-		if(m.getMessage() instanceof SerializableImage)
-			return ((SerializableImage) m.getMessage()).getImage();
-		}catch(ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-		throw new CommsException("Message did not contain an image.");
-	}
-	
-	public <T extends Object> T read(Class<T> c) throws IOException {
-		if(c == Image.class)
-			return c.cast(readImage());
-		try {
-			Message<?> m = (Message<?>) istream.readObject();
-			if(c.isInstance(m.getMessage())) {
-				Logger.println(getTimeStamp() + "reading: " + m.getMessage());
-				return c.cast(m.getMessage());
-			}
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-		throw new CommsException("Received message was not of type " + c.getSimpleName());
-	}
-	
 	public Message<?> readMessage() throws IOException {
 		try {
 			Message<?> m = (Message<?>) istream.readObject();
-			Logger.println(getTimeStamp() + "reading: " + m.toString());
+			Logger.println("reading: " + m.getMessage().toString());
 			return m;
-		} catch(ClassNotFoundException e) {
-			e.printStackTrace();
+		} catch(ClassNotFoundException | NullPointerException e) {
+			throw new IOException("Received object which was not a message...");
 		}
-		throw new CommsException("Could not receive message.");
 	}
 	
-	public <T extends Serializable> void write(T obj) throws IOException {
-		Logger.println(getTimeStamp() +"writing: " + obj.toString());
-		ostream.writeObject(new Message<T>(obj));
+	public void write(Message<?> m) throws IOException {
+		ostream.writeObject(m);
 		ostream.flush();
-	}
-	
-	private String getTimeStamp() {
-		return "["  + (System.currentTimeMillis() - startTime) + "] ";
-	}
-	
-	public static Client create(String ip, int port) throws UnknownHostException, IOException {
-		return new Client(new Socket(ip, port), ip, port);
 	}
 }

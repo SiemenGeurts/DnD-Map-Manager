@@ -19,7 +19,7 @@ public class Entity {
 	private boolean bloodied = false;
 	private boolean isNPC = false;
 	private ArrayList<Property> properties;
-	private String description = "", name;
+	private String description = "", name = "";
 	
 	public Entity(Integer _type, int _x, int _y, int _width, int _height, boolean _isNPC, String name) {
 		this(_type, _x, _y, _width, _height, _isNPC);

@@ -1,16 +1,17 @@
 package actions;
 
 import java.awt.Point;
-import java.util.ArrayList;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import app.ClientGameHandler;
 import app.GameHandler;
 import app.ServerGameHandler;
 import data.mapdata.Entity;
 import data.mapdata.PresetTile;
-import helpers.AssetManager;
-import helpers.codecs.Decoder;
-
+import helpers.codecs.JSONDecoder;
+import static helpers.codecs.JSONKeys.*;
 
 /**
  * Possible actions:
@@ -29,211 +30,173 @@ import helpers.codecs.Decoder;
 public class ActionDecoder {
 	
 	static GameHandler handler;
-	private static Decoder decoder;
+	private static JSONDecoder decoder;
 	
 	public static void setVersion(int version) {
-		decoder = Decoder.getDecoder(version);
+		decoder = JSONDecoder.get(version);
 	}
 	
 	public static void setGameHandler(GameHandler _handler) {
 		handler = _handler;
 	}
 	
-	public static Action decode(String s) {
-		return decode(s, false);
+	public static Action decode(JSONObject json) {
+		return decode(json, false);
 	}
 	
-	public static Action decode(String s, boolean isServer) {
-		if(s.contains(";")) {
+	public static Action decode(JSONObject json, boolean isServer) {
+		String type = json.getString("type");
+		if(json.getString("type").equals(KEY_UPDATE_LIST)) {
 			Action a = Action.empty();
-			for(String line : s.split(";")) {
-				a.addAction(decodeLine(line, isServer));
-			}
-			a.setDelay(0); //remove delay of first action
-			return a;
-		} else {
-			Action a = decodeLine(s,isServer);
-			a.setDelay(0); //remove delay as there is only one action.
+			JSONArray array = json.getJSONArray("array");
+			for(int i = 0; i < array.length(); i++)
+				a.addAction(decode(array.getJSONObject(i), isServer));
+			a.setDelay(0);
 			return a;
 		}
-	}
-	
-	private static Action decodeLine(String s, boolean isServer) {
-		//every command starts with a single word representing the type of action.
-		//extract that word first
-		int index = s.indexOf(" ");
-		if(index == -1) {
-			switch(s) {
-			case "declined":
+		switch(type) {
+		case KEY_SET_TILE:
+			return new Action(isServer ? 0 : 0.15f) {
+				@Override
+				protected void execute() {
+					int id = json.getInt("id");
+					handler.map.getTile(json.getInt("x"), json.getInt("y")).setType(id);
+					if(!isServer) ClientGameHandler.instance.checkTexture(id);
+				}
+			};
+		case KEY_MOVEMENT:
+			int id = json.getInt("id");
+			Point p = new Point(json.getInt("x1"), json.getInt("y1"));
+			Point p2 = new Point(json.getInt("x2"), json.getInt("y2"));
+			if(isServer) {
 				return new Action(0) {
 					@Override
 					protected void execute() {
-						((ClientGameHandler)handler).onActionDeclined();
+						handler.map.getEntityById(id).setLocation(p2);
+						handler.getController().redraw();
 					}
 				};
-			case "accepted":
-				return new Action(0) {
-					@Override
-					protected void execute() {
-						((ClientGameHandler)handler).onActionAccepted();
+			} else
+				return new MovementAction(new GuideLine(new Point[] {p, p2}), handler.map.getEntityById(id), 0.5f);
+		case KEY_SET_BLOODIED:
+			return new Action(isServer ? 0 : 0.5f) {
+				@Override
+				protected void execute() {
+					Entity entity = handler.map.getEntityById(json.getInt("id"));
+					entity.setBloodied(json.getBoolean("value"));
+				}
+			};
+		case KEY_CLEAR_TILE:
+			return new Action(isServer ? 0 : 0.5f) {
+				@Override
+				protected void execute() {
+					handler.map.getTile(json.getInt("x"), json.getInt("y")).setType(PresetTile.EMPTY);
+				}
+			};
+		case KEY_ADD_ENTITY:
+			return new Action(0f) {
+				@Override
+				protected void execute() {
+					Entity e = decoder.decodeEntity(json.getJSONObject("entity"));
+					handler.map.addEntity(e);
+					if(!isServer)
+						ClientGameHandler.instance.checkTexture(e.getType());
+				}
+			};
+		case KEY_ADD_INITIATIVE:
+			return new Action(0f) {
+				@Override
+				protected void execute() {
+					handler.addInitiative(json.getInt("id"), json.getDouble("initiative"));
+				}
+			};
+		case KEY_CLEAR_INITIATIVE:
+			return new Action(0f) {
+				@Override
+				public void execute() {
+					handler.clearInitiative();
+				}
+			};
+		case KEY_INITIATIVELIST:
+			return new Action(0f) {
+				@Override
+				public void execute() {
+					JSONArray array = json.getJSONArray("initiatives");
+					for(int i = 0; i < array.length(); i++) {
+						JSONObject obj = array.getJSONObject(i);
+						handler.addInitiative(obj.getInt("entity_id"), obj.getDouble("initiative"));
 					}
-				};
-			case "clrInit":
-				return new Action(0f) {
-					@Override
-					public void execute() {
-						handler.clearInitiative();
-					}
-				};
-			default:
-				throw new IllegalArgumentException("command '" + s + "' could not be parsed.");
-			}
-		}
-		ArrayList<Object> arg = parseArgs(s.substring(index).trim());
-		switch(s.substring(0, index)) {
-			case "set":
-				return new Action(isServer ? 0 : 0.5f) {
-					@Override
-					protected void execute() {
-						Point p = (Point) arg.get(0);
-						int type = (Integer) arg.get(1);
-						handler.map.getTile(p).setType(type);
-						if(!isServer && type>=0 && !AssetManager.textureExists(type))
-							ClientGameHandler.instance.requestTexture(type);
-					}
-				};
-			case "move":
-				int id = (Integer) arg.get(0);
-				Point p = (Point) arg.get(1);
-				Point p2 = (Point) arg.get(2);
-				if(isServer) {
+				}
+			};
+		case KEY_FOW_MASK:
+			return new Action(0f) {
+				@Override
+				public void execute() {
+					handler.map.setMask(decoder.decodeMask(json));
+				}
+			};
+		case KEY_EMPTY:
+			return Action.empty();
+		default:
+			if(type.equals(BoolKey.KEY_PREVIEW_CONFIRMATION.get())) {
+				if(json.getBoolean("accepted")) {
 					return new Action(0) {
 						@Override
 						protected void execute() {
-							handler.map.getEntityById(id).setLocation(p2);
-							handler.getController().redraw();
+							((ClientGameHandler)handler).onActionAccepted();
 						}
 					};
-				} else
-					return new MovementAction(new GuideLine(new Point[] {p, p2}), handler.map.getEntityById(id), 0.5f);
-			case "bloodied":
-				return new Action(isServer ? 0 : 0.5f) {
-					@Override
-					protected void execute() {
-						Entity entity = handler.map.getEntityById((int)arg.get(0));
-						entity.setBloodied(true);
-					}
-				};
-			case "clear":
-				return new Action(isServer ? 0 : 0.5f) {
-					@Override
-					protected void execute() {
-						handler.map.getTile((Point) arg.get(0)).setType(PresetTile.EMPTY);
-					}
-				};
-			case "remove":
+				} else {
+					return new Action(0) {
+						@Override
+						protected void execute() {
+							((ClientGameHandler)handler).onActionDeclined();
+						}
+					};
+				}
+			} else if(type.equals(IntKey.KEY_REMOVE_ENTITY.get())) {
 				return new Action(0f) {
 					@Override
 					protected void execute() {
-						handler.map.removeEntity(handler.map.getEntityById((int) arg.get(0)));
+						handler.map.removeEntity(handler.map.getEntityById(json.getInt("value")));
 					}
 				};
-			case "add":
-				return new Action(0f) {
-					@Override
-					protected void execute() {
-						Entity e = decoder.decodeEntity((String) arg.get(0));
-						handler.map.addEntity(e);
-						if(!isServer && e.getType()>=0 && !AssetManager.textureExists(e.getType()))
-							ClientGameHandler.instance.requestTexture(e.getType());
-					}
-				};
-			case "addflag":
-				return new Action(0f) {
-					@Override
-					protected void execute() {
-						handler.addFlag((short) ((String) arg.get(0)).charAt(0));
-					}
-				};
-			case "remflag":
-				return new Action(0f) {
-					@Override
-					protected void execute() {
-						handler.removeFlag((short) ((String) arg.get(0)).charAt(0));
-					}
-				};
-			case "addinit":
-				return new Action(0f) {
-					@Override
-					protected void execute() {
-						handler.addInitiative((int) arg.get(0), (int) arg.get(1));
-					}
-				};
-			case "selectInit":
+			} else if(type.equals(IntKey.KEY_SELECT_INITIATIVE.get())) {
 				return new Action(0f) {
 					@Override
 					public void execute() {
-						handler.selectInitiative((int) arg.get(0));
+						handler.selectInitiative(json.getInt("value"));
 					}
 				};
-			case "remInit":
+			} else if(type.equals(IntKey.KEY_REMOVE_INITIATIVE.get())) {
 				return new Action(0f) {
 					@Override
 					public void execute() {
-						handler.removeInitiative((int) arg.get(0));
+						handler.removeInitiative(json.getInt("value"));
 					}
 				};
-			default:
-				return null;
+			}
+			return null;
 		}
 	}
 	
-	public static Action decodeRequest(String s) {
-		int index = s.indexOf(" ");
-		ArrayList<Object> arg = parseArgs(s.substring(index).trim());
-		switch(s.substring(0, index)) {
-		case "texture":
+	public static Action decodeRequest(JSONObject json) {
+		String type = json.getString("type");
+		if(type.equals(IntKey.KEY_REQUEST_TEXTURE.get())) {
 			return new Action(0) {
 				@Override
 				protected void execute() {
-					ServerGameHandler.instance.sendTexture((Integer) arg.get(0));
+					ServerGameHandler.instance.sendTexture(json.getInt("value"));
 				}
 			};
-		case "move":
+		} else if(type.equals(KEY_MOVEMENT) || type.equals(KEY_UPDATE_LIST)) {
 			return new Action(0) {
 				@Override
 				protected void execute() {
-					ServerGameHandler.instance.preview(s);
+					ServerGameHandler.instance.preview(json);
 				}
 			};
 		}
 		return null;
-	}
-	
-	private static ArrayList<Object> parseArgs(String s) {
-		int index = 0;
-		ArrayList<Object> arglist = new ArrayList<>(2);
-		int end = 0;
-		do {
-		switch(s.charAt(index++)) {
-			case '[':
-				end = s.indexOf(']', index);
-				String args[] = s.substring(index, end).split(",");
-				arglist.add(new Point(Integer.valueOf(args[0]), Integer.valueOf(args[1])));
-				index = end+1;
-				break;
-			case '(':
-				end = s.indexOf(')', index);
-				arglist.add(Integer.valueOf(s.substring(index, end)));
-				index = end;
-				break;
-			case '<':
-				end = s.indexOf('>', index);
-				arglist.add(s.substring(index, end));
-				index = end;
-				break;
-		}
-		} while(index<s.length());
-		return arglist;
 	}
 }

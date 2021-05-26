@@ -4,8 +4,8 @@ import java.util.Base64;
 
 import data.mapdata.Entity;
 import data.mapdata.Map;
-import helpers.codecs.version1.DecoderV1;
-import helpers.codecs.version1.DecoderV2;
+import helpers.codecs.versions.DecoderV1;
+import helpers.codecs.versions.DecoderV2;
 
 public abstract class Decoder {
 	public static final java.util.Base64.Decoder base64 = Base64.getDecoder();

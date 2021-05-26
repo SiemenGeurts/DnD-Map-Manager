@@ -18,8 +18,10 @@ import javafx.scene.image.Image;
 
 public class SerializableImage implements Serializable {
 	private static final long serialVersionUID = -5903801998352885750L;
+	
 	transient Image image;
 	int id;
+	boolean show = false;
 	
 	public SerializableImage(Image image) {
 		this.image = image;
@@ -28,6 +30,18 @@ public class SerializableImage implements Serializable {
 	public SerializableImage(Image image, int id) {
 		this.image = image;
 		this.id = id;
+	}
+	
+	public void setShow(boolean show) {
+		this.show = true;
+	}
+	
+	public boolean getShow() {
+		return show;
+	}
+	
+	public boolean shouldShow() {
+		return show;
 	}
 	
 	public Image getImage() {

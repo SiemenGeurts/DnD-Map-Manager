@@ -6,7 +6,6 @@ import app.ClientGameHandler;
 import app.MapManagerApp;
 import app.ServerGameHandler;
 import comms.Client;
-import comms.Server;
 import gui.ErrorHandler;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -65,14 +64,10 @@ public class MainMenuController {
 			stage.showAndWait();
 			if(controller.getResult() == IPDialogController.OK) {
 				if(controller.isServer()) {
-					try {
-						new ServerGameHandler(Server.create(controller.getPort()));
-					} catch(IOException e) {
-						ErrorHandler.handle("A server could not be created.", e);
-					}
+					new ServerGameHandler(controller.getPort());
 				} else {
 					try {
-						new ClientGameHandler(Client.create(controller.getIP(), controller.getPort()));
+						new ClientGameHandler(new Client(controller.getIP(), controller.getPort()));
 					} catch(IOException e) {
 						ErrorHandler.handle("A client could not be created.", e);
 					}

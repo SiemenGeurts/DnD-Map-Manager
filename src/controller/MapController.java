@@ -79,7 +79,7 @@ public class MapController extends SceneController {
     
     public void setFoWOpacity(double opacity) {
     	fowOpacity = Calculator.clamp(opacity, 0, 1);
-    	System.out.println("Opacity set to " + opacity);
+    	Logger.println("Opacity set to " + opacity);
     	redraw();
     }
     
@@ -138,10 +138,10 @@ public class MapController extends SceneController {
 	private void zoom(double zoom, double x, double y) {
 		double oldScale = SCALE;
 		double factor=zoom;//(zoom>0 ? SCALING_FACTOR*zoom : 1/(SCALING_FACTOR*-zoom));
-		System.out.println("Zoomed: " + factor);
+		//System.out.println("Zoomed: " + factor);
 		SCALE = Calculator.clamp(SCALE*factor, 0.5, 15);
 		FACTOR = SCALE*TILE_SIZE;
-		System.out.println(SCALE);
+		//System.out.println(SCALE);
 		
 		double mapWidth = FACTOR * currentMap.getWidth();
 		double mapHeight = FACTOR * currentMap.getHeight();
@@ -229,6 +229,7 @@ public class MapController extends SceneController {
 	public void redraw() {
 		gc.setFill(Color.WHITE);
 		gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+		if(currentMap == null) return;
 		drawBackground();
 		drawMap();
 	}
@@ -269,7 +270,7 @@ public class MapController extends SceneController {
     }
     
     protected void handleDrag(Point2D last, Point2D cur, MouseEvent event) {
-    	System.out.println("Dragged to:"  + cur.getX() + " : " + cur.getY());
+    	//Logger.println("Dragged to:"  + cur.getX() + " : " + cur.getY());
     }
     
     protected void setViewGrid(boolean b) {

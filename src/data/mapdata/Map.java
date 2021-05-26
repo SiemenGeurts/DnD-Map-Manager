@@ -87,8 +87,11 @@ public class Map {
 	}
 	
 	public void setMask(byte[][] m) {
-		mask = m;
-		isSaved = false;
+		if(m.length==tiles.length && m[0].length==tiles[0].length) {
+			mask = m;
+			isSaved = false;
+		} else
+			throw new IllegalArgumentException("Mask of size " + m.length + "x" + m[0].length + " does not match with map size " + tiles.length + "x" + tiles[0].length);
 	}
 	
 	public Entity getEntityById(int id) {
@@ -178,13 +181,17 @@ public class Map {
 
 	public Map copy() {
 		Tile[][] copiedTiles = new Tile[height][width];
+		byte[][] copiedMask = new byte[mask.length][mask[0].length];
 		for(int i = 0; i < height; i++)
-			for(int j = 0; j < width; j++)
+			for(int j = 0; j < width; j++) {
 				copiedTiles[i][j] = tiles[i][j].copy();
+				copiedMask[i][j] = mask[i][j];
+			}
 		Map copy = new Map(copiedTiles);
 		copy.entities = new ArrayList<Entity>(entities.stream().map(entity -> entity.copyWidthId(entity.getID())).collect(Collectors.toList()));
 		copy.setBackground(background);
 		copy.setScaling(mode);
+		copy.setMask(copiedMask);
 		copy.setUnsaved();
 		return copy;
 	}

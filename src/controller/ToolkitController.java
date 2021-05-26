@@ -12,7 +12,6 @@ import data.mapdata.prefabs.Prefab;
 import data.mapdata.prefabs.TilePrefab;
 import gui.ErrorHandler;
 import helpers.AssetManager;
-import helpers.JSONManager;
 import helpers.Utils;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
@@ -70,18 +69,18 @@ public class ToolkitController {
 				prefab = new EntityPrefab(id, propertyEditorController.getWidth(), propertyEditorController.getHeight(), propertyEditorController.getPropertyList(), propertyEditorController.getBloodied(), false, propertyEditorController.getDescription());
 				((EntityPrefab)prefab).setName(propertyEditorController.getName());
 				osController.addEntity((EntityPrefab) prefab, imgView.getImage());
-				JSONManager.addEntity((EntityPrefab) prefab);
+				AssetManager.getLibrary().addEntity((EntityPrefab) prefab);
 				break;
 			case PLAYER:
 				prefab = new EntityPrefab(id, propertyEditorController.getWidth(), propertyEditorController.getHeight(), propertyEditorController.getPropertyList(), propertyEditorController.getBloodied(), true, propertyEditorController.getDescription());
 				((EntityPrefab)prefab).setName(propertyEditorController.getName());
 				osController.addPlayer((EntityPrefab) prefab, imgView.getImage());
-				JSONManager.addPlayer((EntityPrefab) prefab);
+				AssetManager.getLibrary().addPlayer((EntityPrefab) prefab);
 				break;
 			case TILE:
 				prefab = new TilePrefab(id);
 				osController.addTile((TilePrefab) prefab, imgView.getImage());
-				JSONManager.addTile((TilePrefab) prefab);
+				AssetManager.getLibrary().addTile((TilePrefab) prefab);
 				break;
 		}
 	}

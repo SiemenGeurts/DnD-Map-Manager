@@ -3,8 +3,10 @@ package app;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.Optional;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -13,11 +15,12 @@ import actions.ActionDecoder;
 import actions.ActionEncoder;
 import actions.GuideLine;
 import actions.MovementAction;
-import comms.Client;
 import comms.Message;
 import comms.SerializableImage;
 import comms.SerializableJSON;
 import comms.SerializableMap;
+import comms.Client;
+import comms.ClientListener;
 import controller.ClientController;
 import controller.MainMenuController;
 import controller.TextPaneController;
@@ -29,7 +32,7 @@ import gui.Dialogs;
 import gui.ErrorHandler;
 import helpers.AssetManager;
 import helpers.Logger;
-import helpers.codecs.Encoder;
+import helpers.codecs.JSONKeys;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -44,26 +47,21 @@ import javafx.stage.Stage;
 
 public class ClientGameHandler extends GameHandler {
 
-	private Client client;
 	public static ClientGameHandler instance;
-
+	ClientListener client;
+	
 	ClientController controller;
-
-	// clientListener stuff
-	Thread clientListener;
-	private boolean running = false, paused = false;
-	private Object pauseLock = new Object();
 	
 	private Action undoAction;
-	private StringBuilder updates;
+	private LinkedList<JSONObject> updates;
 	private boolean bufferUpdates = true, awaitingResponse = false;
 	
-	public ClientGameHandler(Client client) {
+	public ClientGameHandler(Client c) {
 		super();
-		this.client = client;
+		client = new ClientListener(c, () -> onDisconnected());
 		instance = this;
 		undoAction = Action.empty();
-		updates = new StringBuilder();
+		updates = new LinkedList<>();
 		AssetManager.initializeManager(false);
 		try {
 			FXMLLoader loader = new FXMLLoader(
@@ -76,153 +74,85 @@ public class ClientGameHandler extends GameHandler {
 		} catch (IOException e) {
 			ErrorHandler.handle("Well, something went horribly wrong...", e);
 		}
-		
+		start();
 		try {
-			ActionDecoder.setVersion(client.read(Integer.class));
-		} catch (IOException e1) {
-			ActionDecoder.setVersion(Encoder.VERSION_ID);
-			ErrorHandler.handle("Couldn't receive version id, using current.", e1);
+			PresetTile.setupPresetTiles();
+		} catch (IOException e) {
+			ErrorHandler.handle("Could not load preset textures.", e);
 		}
-		try {
-			client.write(Encoder.VERSION_ID);
-		} catch(IOException e) {
-			ErrorHandler.handle("Couldn't send version id.", e);
-		}
-		loadTextures();
-		loadMap();
-
-		clientListener = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while (running) {
-					synchronized (pauseLock) {
-						if (paused) {
-							Logger.println("Listener paused");
-							try {
-								synchronized (pauseLock) {
-									pauseLock.wait();
-								}
-							} catch (InterruptedException ex) {
-								break;
-							}
-						}
-						if (!running)
-							break;
-						try {
-							while (true) {
-								Thread.sleep((long) (1000 / 20));
-								Message<?> m = client.readMessage();
-								if(m.getMessage() instanceof SerializableImage) {
-									SerializableImage si = (SerializableImage) m.getMessage();
-									if((flags & DISPLAY_IMAGE) == DISPLAY_IMAGE)
-										displayImage(si.getImage());
-									else {
-										AssetManager.putTexture(si.getId(), si.getImage());
-										controller.redraw();
-									}
-								} else if(m.getMessage() instanceof SerializableMap) {
-									Map newMap = ((SerializableMap) m.getMessage()).getMap();
-									if(((SerializableMap) m.getMessage()).hasBackground() && newMap.getBackground()==null)
-										newMap.setBackground(map.getBackground());
-									requestMissingTextures(newMap);
-									map = newMap;
-									controller.setMap(newMap);
-									controller.redraw();
-								} else if(m.getMessage() instanceof SerializableJSON) {
-									parseJSON(((SerializableJSON) m.getMessage()).getJSON());
-								} else if(m.getMessage() instanceof String) {
-									String message = (String) m.getMessage();
-									if(message.length() == 0) {
-										Logger.println("Ignored message of length 0");
-										continue;
-									}
-									if(message.startsWith("!"))
-										ActionDecoder.decode(message.substring(1)).executeNow();
-									else
-										ActionDecoder.decode((String) m.getMessage()).attach();
-								} else if(m.getMessage() instanceof byte[][]) {
-									map.setMask((byte[][]) m.getMessage());
-									controller.redraw();
-								}else
-									ErrorHandler.handle("Received message of type " + m.getMessage().getClass().getSimpleName() + " and didn't know what to do with it...", null);
-							}
-						} catch (IOException | InterruptedException e) {
-							Platform.runLater(new Runnable() {
-								public void run() {
-									ErrorHandler.handle("Communication was lost, please restart the session.", e);
-								}
-							});
-							break;
-						}
+	}
+	
+	@Override
+	protected void processMessages() {
+		Message<?> msg;
+		while((msg = client.readMessage())!=null) {
+			Logger.println("Processing message of type " + msg.getMessage().getClass().getSimpleName());
+			if(msg.getMessage() instanceof SerializableImage) {
+				SerializableImage si = (SerializableImage) msg.getMessage();
+				if(si.shouldShow())
+					displayImage(si.getImage());
+				else {
+					AssetManager.putTexture(si.getId(), si.getImage());
+					controller.redraw();
+					if(controller.getInitiativeController().hasEntityWithId(si.getId())) {
+						controller.getInitiativeController().redraw();
 					}
 				}
-			}
-		});
-		clientListener.setDaemon(true);
-		running = true;
-		clientListener.start();
-	}
-	
-	public void pauseClientListener() {
-		paused = true;
-	}
-	
-	public void resumeClientListener() {
-		synchronized(pauseLock) {
-			paused = false;
-			pauseLock.notifyAll();
+			} else if(msg.getMessage() instanceof SerializableMap) {
+				Map newMap = ((SerializableMap) msg.getMessage()).getMap();
+				if(((SerializableMap) msg.getMessage()).hasBackground() && newMap.getBackground()==null)
+					newMap.setBackground(map.getBackground());
+				requestMissingTextures(newMap);
+				map = newMap;
+				clearInitiative();
+				controller.setMap(newMap);
+				controller.redraw();
+			} else if(msg.getMessage() instanceof SerializableJSON) {
+				parseJSON(((SerializableJSON) msg.getMessage()).getJSON());
+			} else
+				ErrorHandler.handle("Received message of type " + msg.getMessage().getClass().getSimpleName() + " and didn't know what to do with it...", null);
 		}
 	}
 	
 	private void parseJSON(JSONObject json) {
 		try {
-		switch(json.getString("type")) {
-		case Constants.JSON_TYPE_SHOW_TEXT:
-			int n = json.getInt("num_pages");
-			String[] pages = new String[n];
-			for(int i = 0; i < n; i++)
-				pages[i] = json.getString("page"+(i+1));
-			displayText(pages);
-			break;
-		default:
-			ErrorHandler.handle("Unknown JSON type: " + json.getString("type"), null);
-		}
+			Logger.println("JSON type: " + json.getString("type"));
+			Action action = ActionDecoder.decode(json, false);
+			if(action != null) {
+				action.attach();
+				return;
+			}
+			switch(json.getString("type")) {
+			case Constants.JSON_TYPE_SHOW_TEXT:
+				int n = json.getInt("num_pages");
+				String[] pages = new String[n];
+				for(int i = 0; i < n; i++)
+					pages[i] = json.getString("page"+(i+1));
+				displayText(pages);
+				break;
+			
+			default:
+				ErrorHandler.handle("Unknown JSON type: " + json.getString("type"), null);
+			}
 		} catch(JSONException e) {
 			ErrorHandler.handle("Could not parse JSON", e);
 		}
 	}
-
-	public boolean loadTextures() {
-		Logger.println("[CLIENT] Loading textures.");
-		try {
-			int amount = client.read(Integer.class);
-			PresetTile.setupPresetTiles();
-			for (int i = 0; i < amount; i++) {
-				SerializableImage img = client.read(SerializableImage.class);
-				AssetManager.putTexture(img.getId(), img.getImage());
-			}
-		} catch (NumberFormatException | IOException e) {
-			ErrorHandler.handle("Did not recieve all textures. Please try again.", e);
-			return false;
-		}
-		return true;
-	}
-
-	public boolean loadMap() {
-		Logger.println("[CLIENT] Loading map.");
-		try {
-			SerializableMap smap = client.read(SerializableMap.class);
-			map = smap.getMap();
-			controller.setMap(map);
-			controller.drawMap();
-			resumeClientListener();
-		} catch (IOException e) {
-			ErrorHandler.handle("The map could not be loaded. Please try again.", e);
-			return false;
-		}
-		return true;
+	
+	public void disconnect() {
+		client.disconnect();
 	}
 	
+	private void onDisconnected() {
+		stop();
+		Dialogs.warning("Disconnected from server.", false);
+	}
+	
+	public void checkTexture(int id) {
+		if(id>=0 && !AssetManager.textureExists(id))
+			requestTexture(id);
+	}
+
 	public void move(Entity entity, Point target) {
 		if(awaitingResponse) return;
 		sendUpdate(ActionEncoder.movement(entity.getTileX(), entity.getTileY(), target.x, target.y, entity.getID()));
@@ -230,7 +160,7 @@ public class ClientGameHandler extends GameHandler {
 		new MovementAction(new GuideLine(new Point2D[] {entity.getLocation(), target}), entity, 0).attach();
 	}
 	
-	public void addInitiative(int id, int initiative) {
+	public void addInitiative(int id, double initiative) {
 		controller.getInitiativeController().addEntity(map.getEntityById(id), initiative);
 	}
 	
@@ -262,8 +192,8 @@ public class ClientGameHandler extends GameHandler {
 
 	public void requestTexture(int id) {
 		try {
-			client.write(ActionEncoder.requestTexture(id));
-		} catch (IOException e) {
+			client.sendMessage(ActionEncoder.requestTexture(id));
+		} catch (IllegalStateException e) {
 			ErrorHandler.handle("Could not send texture request or receive an answer.", e);
 		}
 	}
@@ -280,16 +210,19 @@ public class ClientGameHandler extends GameHandler {
 			return currentAction.insertAction(action);
 	}
 	
-	private boolean sendUpdate(String s) {
+	private boolean sendUpdate(JSONObject jobj) {
+		//These are only movement updates
+		//The undo action is appended by the calling method
+		//see move()
 		if(bufferUpdates) {
-			updates.append(s).append(';');
+			updates.add(jobj);
 			return true;
 		} else {
 			try {
 				awaitingResponse=true;
-				client.write(s);
+				client.sendMessage(jobj);
 				return true;
-			} catch(IOException e) {
+			} catch(IllegalStateException e) {
 				ErrorHandler.handle("Could not send updates. Please try again.", e);
 				return false;
 			}
@@ -298,10 +231,18 @@ public class ClientGameHandler extends GameHandler {
 	
 	public boolean pushUpdates() {
 		try {
-			awaitingResponse=true;
-			client.write(updates.toString());
+			awaitingResponse = true;
+			JSONObject json = new JSONObject();
+			json.put("type", JSONKeys.KEY_UPDATE_LIST);
+			json.put("size", updates.size());
+			JSONArray array = new JSONArray();
+			while(updates.size()>0)
+				array.put(updates.poll());
+			json.put("array", array);
+			client.sendMessage(json);
+			undoAction = null;
 			return true;
-		} catch(IOException e) {
+		} catch(IllegalStateException e) {
 			ErrorHandler.handle("Could not send updates. Please try again.", e);
 			return false;
 		}
@@ -310,7 +251,7 @@ public class ClientGameHandler extends GameHandler {
 	public boolean requestDisableUpdateBuffer() {
 		if(!bufferUpdates)
 			return true;
-		if(updates.length()==0) {
+		if(updates.size()==0) {
 			bufferUpdates = false;
 			return true;
 		}
@@ -353,14 +294,15 @@ public class ClientGameHandler extends GameHandler {
 	}
 	
 	public void clearBuffer() {
-		updates = new StringBuilder();
-		undoAction = Action.empty();
+		updates.clear();
+		undoAction = null;
 	}
 	
 	public void undoBuffer() {
-		undoAction.attach();
-		updates = new StringBuilder();
-		undoAction = Action.empty();
+		if(undoAction != null)
+			undoAction.attach();
+		updates.clear();
+		undoAction = null;
 	}
 	
 	private static final int MAX_WIDTH = 1000;

@@ -1,6 +1,7 @@
 package controller;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map.Entry;
 
 import data.mapdata.Entity;
 import data.mapdata.PresetTile;
@@ -10,7 +11,6 @@ import data.mapdata.prefabs.TilePrefab;
 import gui.BuilderButton;
 import gui.GridSelectionPane;
 import helpers.AssetManager;
-import helpers.JSONManager;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
@@ -55,18 +55,22 @@ public class ObjectSelectorController {
 		entityScrollPane.setContent(entityPane);
 		playerPane = new GridSelectionPane(5);
 		playerScrollPane.setContent(playerPane);
-		ArrayList<TilePrefab> tiles = JSONManager.getTiles();
+		HashMap<Integer, TilePrefab> tiles = AssetManager.getLibrary().getTiles();
 		if(tiles != null)
-			for(TilePrefab tp : tiles)
-				tilePane.add(createButton(tp, AssetManager.getTexture(tp.getType())));
-		ArrayList<EntityPrefab> entities = JSONManager.getEntities();
+			for(Entry<Integer, TilePrefab> entry : tiles.entrySet())
+				tilePane.add(createButton(entry.getValue(), AssetManager.getTexture(entry.getValue().getType())));
+		HashMap<Integer, EntityPrefab> entities = AssetManager.getLibrary().getEntities();
 		if(entities != null)
-			for(EntityPrefab ep : entities)
+			for(Entry<Integer, EntityPrefab> entry : entities.entrySet()) {
+				EntityPrefab ep = entry.getValue();
 				entityPane.add(createButton(ep, AssetManager.getTexture(ep.getType())), ep.getName());
-		entities = JSONManager.getPlayers();
+			}
+		entities = AssetManager.getLibrary().getPlayers();
 		if(entities != null)
-			for(EntityPrefab ep : entities)
+			for(Entry<Integer, EntityPrefab> entry : entities.entrySet()) {
+				EntityPrefab ep = entry.getValue();
 				playerPane.add(createButton(ep, AssetManager.getTexture(ep.getType())), ep.getName());
+			}
 	}
 	
 	public void reload() {
@@ -77,18 +81,22 @@ public class ObjectSelectorController {
 		tilePane.add(createButton(new TilePrefab(PresetTile.WALL), AssetManager.getTexture(PresetTile.WALL)));
 		tilePane.add(createButton(new TilePrefab(PresetTile.BUSHES), AssetManager.getTexture(PresetTile.BUSHES)));
 		tilePane.add(createButton(new TilePrefab(PresetTile.FIRE), AssetManager.getTexture(PresetTile.FIRE)));
-		ArrayList<TilePrefab> tiles = JSONManager.getTiles();
+		HashMap<Integer, TilePrefab> tiles = AssetManager.getLibrary().getTiles();
 		if(tiles != null)
-			for(TilePrefab tp : tiles)
-				tilePane.add(createButton(tp, AssetManager.getTexture(tp.getType())));
-		ArrayList<EntityPrefab> entities = JSONManager.getEntities();
+			for(Entry<Integer, TilePrefab> entry : tiles.entrySet())
+				tilePane.add(createButton(entry.getValue(), AssetManager.getTexture(entry.getValue().getType())));
+		HashMap<Integer, EntityPrefab> entities = AssetManager.getLibrary().getEntities();
 		if(entities != null)
-			for(EntityPrefab ep : entities)
+			for(Entry<Integer, EntityPrefab> entry : entities.entrySet()) {
+				EntityPrefab ep = entry.getValue();
 				entityPane.add(createButton(ep, AssetManager.getTexture(ep.getType())), ep.getName());
-		entities = JSONManager.getPlayers();
+			}
+		entities = AssetManager.getLibrary().getPlayers();
 		if(entities != null)
-			for(EntityPrefab ep : entities)
+			for(Entry<Integer, EntityPrefab> entry : entities.entrySet()) {
+				EntityPrefab ep = entry.getValue();
 				playerPane.add(createButton(ep, AssetManager.getTexture(ep.getType())), ep.getName());
+			}
 	}
 	
 	private <T> BuilderButton<T> createButton(Prefab<T> prefab, Image image) {
@@ -148,13 +156,13 @@ public class ObjectSelectorController {
 			delete.setOnAction(event -> {
 				if(editor.hideProperties()) {
 					if(prefabInstance == null) {
-						JSONManager.removeTile(selectedTile.getType());
+						AssetManager.getLibrary().removeTile(selectedTile.getType());
 						tilePane.remove(btnClicked);
 					} else if(prefabInstance.isNPC()) {
-						JSONManager.removeEntity(prefabInstance.getType());
+						AssetManager.getLibrary().removeEntity(prefabInstance.getType());
 						entityPane.remove(btnClicked);
 					} else {
-						JSONManager.removePlayer(prefabInstance.getType());
+						AssetManager.getLibrary().removePlayer(prefabInstance.getType());
 						playerPane.remove(btnClicked);
 					}
 					AssetManager.getLibrary().removeTexture(prefabInstance.getType());
@@ -169,10 +177,10 @@ public class ObjectSelectorController {
 			EntityPrefab prefab = EntityPrefab.fromEntity(prefabInstance);
 			btnClicked.setPrefab(prefab);
 			if(prefab.isPlayer) {
-				JSONManager.addPlayer(prefab);
+				AssetManager.getLibrary().addPlayer(prefab);
 				playerPane.updateName(btnClicked, prefab.getName());
 			} else {
-				JSONManager.addEntity(prefab);
+				AssetManager.getLibrary().addEntity(prefab);
 				entityPane.updateName(btnClicked, prefab.getName());
 			}
 		}
