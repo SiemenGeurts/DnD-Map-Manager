@@ -16,7 +16,11 @@ public class DecoderV1 extends Decoder {
 		int i = 0;
 		Entity entity = new Entity(Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]), Integer.valueOf(arr[i++]), Boolean.valueOf(arr[i++]));
 		entity.setID(Integer.valueOf(arr[i++]));
-		entity.setDescription(new String(base64.decode(arr[i++])));
+		String desc = arr[i++];
+		if(desc.strip().length() > 0)
+			entity.setDescription(new String(base64.decode(arr[i++])));
+		else
+			entity.setDescription("");
 		entity.setName(new String(arr[i++]));
 		ArrayList<Property> properties = new ArrayList<Property>();
 		for(;i < arr.length; i++) {

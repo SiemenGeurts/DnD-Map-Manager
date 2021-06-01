@@ -17,7 +17,7 @@ public class Encoder {
 		builder.append(entity.getType()).append(',').append(entity.getTileX()).append(',').append(entity.getTileY()).
 			append(',').append(entity.getWidth()).append(',').append(entity.getHeight());
 		builder.append(',').append(entity.isNPC()).append(',').append(entity.getID()).append(',').
-			append(base64.encodeToString(entity.getDescription().getBytes())).append(',').append(entity.getName());
+			append(entity.getDescription().length()>0 ? base64.encodeToString(entity.getDescription().getBytes()) : " ").append(',').append(entity.getName().length() > 0 ? entity.getName() : " ");
 		if(includeProperties)
 			for(Property p : entity.getProperties())
 				builder.append(',').append(p.getKey()).append('/').append(base64.encodeToString(p.getValue().getBytes()));

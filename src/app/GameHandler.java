@@ -51,7 +51,8 @@ public abstract class GameHandler {
 	
 	protected void stop() {
 		isRunning = false;
-		updating.interrupt();
+		if(updating != null)
+			updating.interrupt();
 	}
 	
 	

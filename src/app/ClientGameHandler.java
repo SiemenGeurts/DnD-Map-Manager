@@ -148,6 +148,10 @@ public class ClientGameHandler extends GameHandler {
 		Dialogs.warning("Disconnected from server.", false);
 	}
 	
+	public void requestResync() {
+		client.sendMessage(ActionEncoder.requestResync());
+	}
+	
 	public void checkTexture(int id) {
 		if(id>=0 && !AssetManager.textureExists(id))
 			requestTexture(id);

@@ -86,6 +86,10 @@ public class ActionEncoder {
 		return new JSONObject().put("type", KEY_DISCONNECT);
 	}
 	
+	public static JSONObject requestResync() {
+		return new JSONObject().put("type", KEY_REQUEST_RESYNC);
+	}
+	
 	public static JSONObject empty() {
 		return new JSONObject().put("type", KEY_EMPTY);
 	}

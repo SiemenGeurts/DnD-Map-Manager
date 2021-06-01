@@ -2,6 +2,7 @@ package controller;
 
 import java.awt.Point;
 import java.io.IOException;
+import java.util.Optional;
 
 import app.ClientGameHandler;
 import app.Constants;
@@ -13,8 +14,12 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -92,6 +97,26 @@ public class ClientController extends MapController {
 	@FXML
 	void onBtnPushClicked(ActionEvent event) {
 		gameHandler.pushUpdates();
+	}
+	
+	@FXML
+	void onDisconnect(ActionEvent event) {
+		ButtonType disconnect = new ButtonType("Disconnect", ButtonBar.ButtonData.OK_DONE);
+		ButtonType resync = new ButtonType("Resync", ButtonBar.ButtonData.APPLY);
+		ButtonType cancel = new ButtonType("cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+		Alert alert = new Alert(AlertType.WARNING, "Do you really want to disconnect or first try resyncing?", disconnect, resync, cancel);
+		alert.setTitle("Are you sure?");
+		alert.setHeaderText("Disconnect");
+		Optional<ButtonType> result = alert.showAndWait();
+		
+		if(result.orElse(cancel) == cancel) {
+			return;
+		} else if(result.orElse(cancel)==resync) {
+			gameHandler.requestResync();
+		} else if(result.orElse(cancel)==disconnect) {
+			onQuit();
+		}
 	}
 	
 	@Override

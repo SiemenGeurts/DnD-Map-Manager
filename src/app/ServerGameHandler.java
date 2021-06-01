@@ -224,6 +224,26 @@ public class ServerGameHandler extends GameHandler {
 		server.start();
 	}
 	
+	static boolean resyncOpen = false;
+	public void requestResync() {
+		Utils.safeRun(() -> {
+			if(resyncOpen) return;
+			resyncOpen = true;
+			ButtonType resync = new ButtonType("Resync", ButtonBar.ButtonData.YES);
+			ButtonType cancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+	
+			Alert alert = new Alert(AlertType.WARNING, "", resync, cancel);
+			alert.setTitle("Request for resync");
+			alert.setHeaderText("The connected client has requested a resync of the game. Do you want to continue? If you resync, all updates will automatically be pushed.");
+			Optional<ButtonType> result = alert.showAndWait();
+			resyncOpen = false;
+			if(result.orElse(cancel)==cancel)
+				return;
+			else if(result.orElse(cancel)==resync)
+				resync(false);
+		});
+	}
+	
 	public void resync(boolean includeBackground) {
 		try {
 			server.sendMessage(map, includeBackground);

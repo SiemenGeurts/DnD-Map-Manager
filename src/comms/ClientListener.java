@@ -31,6 +31,7 @@ public class ClientListener {
 		isInstanceActive = true;
 		stop = false;
 		isDisconnectedRun = false;
+		disconnect = false;
 		listener = new ClientListenerThread(client);
 		sender = new ClientSenderThread(client);
 		listener.start();

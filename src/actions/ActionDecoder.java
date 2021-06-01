@@ -189,6 +189,13 @@ public class ActionDecoder {
 					ServerGameHandler.instance.sendTexture(json.getInt("value"));
 				}
 			};
+		} else if(type.equals(KEY_REQUEST_RESYNC)) {
+			return new Action(0) {
+				@Override
+				protected void execute() {
+					ServerGameHandler.instance.requestResync();
+				}
+			};
 		} else if(type.equals(KEY_MOVEMENT) || type.equals(KEY_UPDATE_LIST)) {
 			return new Action(0) {
 				@Override

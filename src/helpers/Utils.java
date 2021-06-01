@@ -287,4 +287,14 @@ public class Utils {
 				arr[i][j] = flat[k];
 		return arr;
 	}
+	
+	public static String type(Object obj) {
+		String type = obj.getClass().getSimpleName();
+		if(type.length()!=0)
+			return type;
+		else {
+			type = obj.getClass().getName();
+			return type.substring(type.lastIndexOf(".")+1);
+		}
+	}
 }

@@ -12,6 +12,7 @@ public class JSONKeys {
 	public static final String KEY_ENTITY = "entity";
 	public static final String KEY_UPDATE_LIST = "list";
 	public static final String KEY_DISCONNECT = "disconnect";
+	public static final String KEY_REQUEST_RESYNC = "request_resync";
 	public static final String KEY_EMPTY = "empty";
 	
 	public static final String KEY_ADD_INITIATIVE ="add_init";

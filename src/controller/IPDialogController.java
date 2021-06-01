@@ -1,5 +1,6 @@
 package controller;
 
+import helpers.Settings;
 import helpers.Utils;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
@@ -43,6 +44,13 @@ public class IPDialogController {
 		rbServer.selectedProperty().addListener((observable, oldVal, newVal) -> {
 			portField.setDisable(!newVal);
 		});
+		
+		ipField.setText(Settings.getString(Settings.IP) + ":" + String.valueOf(Settings.getInt(Settings.CLIENTPORT)));
+		portField.setText(String.valueOf(Settings.getInt(Settings.SERVERPORT)));
+		if(Settings.getBool(Settings.SERVERSELECTED))
+			rbServer.setSelected(true);
+		else
+			rbClient.setSelected(true);
 	}
 	
 	@FXML
@@ -52,11 +60,13 @@ public class IPDialogController {
 				portField.setText(portField.getText().replaceAll("\\s+", ""));
 				if(Utils.isValidPort(portField.getText())) {
 					port = Integer.parseInt(portField.getText());
+					Settings.set(Settings.SERVERPORT, port);
 					option = OK;
 					isServer = true;
 					closeStage(e);
 				} else
 					portField.pseudoClassStateChanged(INVALID, true);
+				Settings.set(Settings.SERVERSELECTED, true);
 			} else {
 				ipField.setText(ipField.getText().trim().replaceAll("\\s+", ""));
 				if(Utils.isValidIP(ipField.getText())) {
@@ -68,10 +78,13 @@ public class IPDialogController {
 						ip = ipField.getText();						
 					option = OK;
 					isServer = false;
+					Settings.set(Settings.IP, ip);
+					Settings.set(Settings.CLIENTPORT, port);
 					closeStage(e);
 				} else {
 					ipField.pseudoClassStateChanged(INVALID, true);
 				}
+				Settings.set(Settings.SERVERSELECTED, false);
 			}
 		} else {
 			option = CANCEL;
