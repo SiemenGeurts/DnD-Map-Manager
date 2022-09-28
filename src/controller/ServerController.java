@@ -197,6 +197,8 @@ public class ServerController extends MapEditorController {
 
 	public void setConnected(final boolean connected) {
 		Utils.safeRun(() -> {
+			btnSendImage.setDisable(!connected);
+			btnSendText.setDisable(!connected);
 			if(connected == true) {
 				resync.setDisable(false);
 				resync.setText("Resync");

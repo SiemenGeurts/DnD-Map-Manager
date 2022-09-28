@@ -317,14 +317,22 @@ public class MapBuilderController extends MapEditorController {
 				iter.remove();
 		}
 		
-		
-		for(int i = y1; i<y2; i++)
+		//copy the tiles onto the new map
+		for(int i = y1; i<y2; i++) {
 			for(int j = x1; j<x2; j++) {
 				tiles[i-yStart][j-xStart] = getMap().getTile(j, i);
 				mask[i-yStart][j-xStart] = getMap().getMask(j, i);
 			}
-
-		if(newWidth>width) {
+		}
+		
+		for(int i = 0; i < newHeight; i++) {
+			for(int j = 0; j < newWidth; j++)
+				if(tiles[i][j]==null) {
+					tiles[i][j] = new Tile(PresetTile.EMPTY);
+					mask[i][j] = 0;
+				}
+		}
+		/*if(newWidth>width) {
 			xStart = -xStart;
 			for(int x = 0; x<xStart; x++)
 				for(int y = 0; y<newHeight; y++) {
@@ -349,7 +357,7 @@ public class MapBuilderController extends MapEditorController {
 					tiles[y][x] = new Tile(PresetTile.EMPTY);
 					mask[y][x] = 0;
 				}
-		}
+		}*/
 		getMap().setTiles(tiles);
 		getMap().setMask(mask);
 		calculateBackgroundBounds();

@@ -91,7 +91,6 @@ public class ClientController extends MapController {
 	@FXML
 	void onQuit() {
 		gameHandler.disconnect();
-		MainMenuController.sceneManager.popScene();
 	}
 	
 	@FXML

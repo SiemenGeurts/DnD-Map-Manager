@@ -146,6 +146,8 @@ public class ClientGameHandler extends GameHandler {
 	private void onDisconnected() {
 		stop();
 		Dialogs.warning("Disconnected from server.", false);
+		//otherwise it some error is thrown when trying to reconnect...
+		Platform.exit();
 	}
 	
 	public void requestResync() {
@@ -294,7 +296,7 @@ public class ClientGameHandler extends GameHandler {
 	public void onActionAccepted() {
 		clearBuffer();
 		awaitingResponse=false;
-		Dialogs.info("The DM accepted your movements!", false);
+		//Dialogs.info("The DM accepted your movements!", false);
 	}
 	
 	public void clearBuffer() {

@@ -153,7 +153,7 @@ public class CreateTextPaneController {
 		MapManagerApp.updateLastResourceDirectory(file);
 		
 		try {
-			setJSON(new JSONObject(Files.readString(file.toPath())));
+			setJSON(new JSONObject(new String(Files.readAllBytes(file.toPath()))));
 		} catch (JSONException | IOException e) {
 			ErrorHandler.handle("Could not load text.", e);
 		}

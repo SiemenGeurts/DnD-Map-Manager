@@ -28,7 +28,7 @@ public class Client {
 	public Message<?> readMessage() throws IOException {
 		try {
 			Message<?> m = (Message<?>) istream.readObject();
-			Logger.println("reading: " + m.getMessage().toString());
+			Logger.println("reading message["+m.getID()+"]: " + m.getMessage().toString());
 			return m;
 		} catch(ClassNotFoundException | NullPointerException e) {
 			throw new IOException("Received object which was not a message...");

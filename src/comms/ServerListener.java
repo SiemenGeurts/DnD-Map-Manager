@@ -141,9 +141,10 @@ public class ServerListener extends Thread {
 	}
 	
 	private <T extends Serializable> void sendMessage(T obj) throws IllegalStateException, InterruptedException {
-		Logger.println("Sending message of type " + obj.getClass().getSimpleName());
+		Message<T> msg = new Message<T>(obj);
+		Logger.println("Sending message["+msg.getID() +"] of type " + obj.getClass().getSimpleName());
 		if(isInstanceActive)
-			sender.sendingQueue.put(new Message<T>(obj));
+			sender.sendingQueue.put(msg);
 		else
 			throw new IllegalStateException("Server is not active");
 	}

@@ -1,5 +1,6 @@
 package comms;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -94,9 +95,10 @@ public class ClientListener {
 	}
 	
 	public void sendMessage(JSONObject jobj) throws IllegalStateException {
-		Logger.println("Sending message of type '" + jobj.getString("type") + "'");
+		Message<SerializableJSON> msg = new Message<SerializableJSON>(new SerializableJSON(jobj));
+		Logger.println("Sending message["+msg.getID()+"] of type '" + jobj.getString("type") + "'");
 		if(isInstanceActive)
-			sender.sendingQueue.add(new Message<SerializableJSON>(new SerializableJSON(jobj)));
+			sender.sendingQueue.add(msg);
 		else
 			throw new IllegalStateException("Client is not active");
 	}
@@ -134,6 +136,8 @@ public class ClientListener {
 							break;
 						} else
 							readingQueue.put(msg);
+					} catch(EOFException e) {
+						e.printStackTrace();
 					} catch (IOException | InterruptedException e) {
 						if(!stop) {
 							stop = true;

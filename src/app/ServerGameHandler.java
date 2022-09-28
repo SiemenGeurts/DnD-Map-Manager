@@ -284,17 +284,6 @@ public class ServerGameHandler extends GameHandler {
 		return true;
 	}
 
-	public boolean sendMap() {
-		Logger.println("[SERVER] sending map.");
-		try {
-			server.sendMessage(map, true);
-		} catch (IllegalStateException | InterruptedException e) {
-			ErrorHandler.handle("Could not send map. Please try again", e);
-			return false;
-		}
-		return true;
-	}
-
 	public void sendForcedUpdate(JSONObject action) {
 		if(blockUpdates || !isPlaying)return;
 		//this bypasses the buffer
@@ -423,10 +412,14 @@ public class ServerGameHandler extends GameHandler {
 	public ServerMap setMap(Map map, ServerController.Key key) {
 		Objects.requireNonNull(key);
 		this.map = new ServerMap(map, this);
-		try {
-			server.sendMessage(map, true);
-		} catch (IllegalStateException | InterruptedException e) {
-			ErrorHandler.handle("Could not send map. Try resyncing.", e);
+		if(isPlaying) {
+			try {
+				server.sendMessage(map, true);
+			} catch (IllegalStateException | InterruptedException e) {
+				ErrorHandler.handle("Could not send map. Try resyncing.", e);
+			}
+		} else {
+			Logger.println("No client connected, so no need to send the map");
 		}
 		return (ServerMap) this.map;
 	}
@@ -502,6 +495,8 @@ public class ServerGameHandler extends GameHandler {
 			CreateTextPaneController cont = loader.getController();
 			cont.setMode(CreateTextPaneController.SEND);
 			sendTextStage.setScene(scene);
+			sendTextStage.setResizable(true);
+			sendTextStage.sizeToScene();
 			sendTextStage.showAndWait();
 			if(cont.isCanceled()) return;
 			Logger.println("Page count: " +cont.getPageCount());
