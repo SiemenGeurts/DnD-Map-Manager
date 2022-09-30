@@ -120,7 +120,7 @@ public class ServerListener extends Thread {
 	
 	public void sendMessage(Map map, boolean includeBackground) throws IllegalStateException, InterruptedException {
 		Logger.println("Sending map");
-		sendMessage(new SerializableMap(map, includeBackground));
+		sendMessage(new SerializableMapV4(map, includeBackground));
 	}
 	
 	public void sendMessage(Image image, int id, boolean show) throws IllegalStateException, InterruptedException {

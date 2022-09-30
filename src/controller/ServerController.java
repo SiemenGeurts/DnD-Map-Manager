@@ -165,7 +165,7 @@ public class ServerController extends MapEditorController {
 		if(inPreview) return;
 		if(event.getButton() == MouseButton.PRIMARY) {
 			Entity e;
-			if((e=getMap().getEntity(p)) != null) {
+			if((e=getMap().getActiveLevel().getEntity(p)) != null) {
 				selected = e;
 			} else if(selected != null){
 				move(selected, p);
@@ -184,8 +184,8 @@ public class ServerController extends MapEditorController {
 	}
 	
 	private void move(Entity entity, Point p) {
-		gameHandler.sendUpdate(ActionEncoder.movement(entity.getTileX(), entity.getTileY(), p.x, p.y, entity.getID()),
-				ActionEncoder.movement(p.x, p.y, entity.getTileX(), entity.getTileY(), entity.getID()));
+		gameHandler.sendUpdate(ActionEncoder.movement(getMap().getActiveLevelIndex(), entity.getTileX(), entity.getTileY(), p.x, p.y, entity.getID()),
+				ActionEncoder.movement(getMap().getActiveLevelIndex(), p.x, p.y, entity.getTileX(), entity.getTileY(), entity.getID()));
 		entity.setLocation(p);
 		redraw();
 	}
@@ -250,7 +250,7 @@ public class ServerController extends MapEditorController {
 	@FXML
 	void onOpen() throws IOException {
 		super.onOpen();
-		setMap(gameHandler.setMap(getMap(), key)); //to ensure that this map becomes a ServerMap
+		gameHandler.setMap(getMap(), key); //to ensure that this map becomes a ServerMap
 		ilController.clear();
 		gameHandler.sendForcedUpdate(ActionEncoder.clearInitiative());
 	}

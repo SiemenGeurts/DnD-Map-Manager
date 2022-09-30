@@ -8,6 +8,7 @@ import org.json.JSONObject;
 
 import controller.InitiativeListController.InitiativeEntry;
 import data.mapdata.Entity;
+import data.mapdata.Map;
 import data.mapdata.Property;
 import data.mapdata.prefabs.EntityPrefab;
 import helpers.Utils;
@@ -18,7 +19,7 @@ public class JSONEncoder {
 	
 	public static final JSONObject accepted = new JSONObject();
 	public static final JSONObject declined = new JSONObject();
-	public static final int VERSION = 3;
+	public static final int VERSION = 4;
 	static {
 		accepted.put("type", BoolKey.KEY_PREVIEW_CONFIRMATION.get());
 		accepted.put("accepted", true);
@@ -76,12 +77,42 @@ public class JSONEncoder {
 		json.put("name", entity.getName());
 		json.put("id", entity.getID());
 		json.put("description", entity.getDescription());
-		JSONObject properties = new JSONObject();
 		if(includeProperties) {
+			JSONObject properties = new JSONObject();
 			for(Property p : entity.getProperties())
 				properties.put(p.getKey(), p.getValue());
 			json.put("properties", properties);
 		}
+		return json;
+	}
+	
+	public static JSONObject encode(Map map, boolean includeEntityData) {
+		JSONObject json = new JSONObject();
+		json.put("n_levels", map.getNumberOfLevels());
+		JSONArray levels = new JSONArray();
+		for(int i = 0; i < map.getNumberOfLevels(); i++) {
+			Map.Level level = map.getLevel(i);
+			JSONObject levelJson = new JSONObject();
+			levelJson.put("width", level.getWidth());
+			levelJson.put("height", level.getHeight());
+			StringBuilder builder = new StringBuilder();
+			for(int k = 0; k < level.getHeight(); k++)
+				for(int j = 0; j < level.getWidth(); j++)
+					builder.append(':').append(level.getTile(j,k).getType());
+			levelJson.put("tiles", builder.substring(1));
+			
+			List<Entity> entities = level.getEntities();
+			levelJson.put("n_entities", entities.size());
+			JSONArray entitiesJson = new JSONArray();
+			for(Entity e : entities)
+				entitiesJson.put(encode(e, includeEntityData));
+			
+			levelJson.put("entities", entitiesJson);
+			levelJson.put("mask", encodeMask(level.getMask()));
+			
+			levels.put(levelJson);
+		}
+		json.put("levels", levels);
 		return json;
 	}
 	

@@ -10,6 +10,7 @@ public class JSONKeys {
 	public static final String KEY_CLEAR_TILE = "clear";
 	public static final String KEY_ADD_ENTITY = "add_entity";
 	public static final String KEY_ENTITY = "entity";
+	public static final String KEY_CHANGE_LEVEL = "change_level";
 	public static final String KEY_UPDATE_LIST = "list";
 	public static final String KEY_DISCONNECT = "disconnect";
 	public static final String KEY_REQUEST_RESYNC = "request_resync";

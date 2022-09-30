@@ -17,6 +17,7 @@ import java.util.Base64;
 import javax.imageio.ImageIO;
 
 import app.MapManagerApp;
+import comms.SerializableMapV4;
 import comms.SerializableMap;
 import controller.SceneManager;
 import data.mapdata.Map;
@@ -24,7 +25,7 @@ import gui.Dialogs;
 import gui.ErrorHandler;
 import helpers.ScalingBounds.ScaleMode;
 import helpers.codecs.Decoder;
-import helpers.codecs.Encoder;
+import helpers.codecs.JSONEncoder;
 import javafx.application.Application.Parameters;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
@@ -44,7 +45,32 @@ public class Utils {
 		try {
 			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(mapFile));
 			int encodingVersion = ois.readInt();
-			if(encodingVersion==1 || encodingVersion==Encoder.VERSION_ID) {
+			if(encodingVersion==1 || encodingVersion==JSONEncoder.VERSION) {
+				SerializableMapV4 smap;
+				Object obj = ois.readObject();
+				File libFile;
+				boolean changesMade = false;
+				if(obj instanceof String) {
+					libFile = new File((String) obj);
+					if(!libFile.exists()) {
+						Dialogs.warning("Can't load the library associated with this map ("  + libFile.getName() + "). You'll have to select it manually.", true);
+						libFile = AssetManager.loadLibrary();
+						changesMade = true;
+					} else
+						AssetManager.setLibrary(Library.load(libFile));
+					smap = (SerializableMapV4) ois.readObject();
+				} else {
+					Dialogs.warning("No library was provided by the map, you'll have to select it manually.", true);
+					libFile = AssetManager.loadLibrary();
+					smap = (SerializableMapV4) obj;
+					changesMade = true;
+				}
+				Map map = smap.getMap();
+				map.setLibraryFile(libFile);
+				if(!changesMade) map.setSaved();
+				ois.close();
+				return map;
+			} else if(encodingVersion==2) {
 				SerializableMap smap;
 				Object obj = ois.readObject();
 				File libFile;
@@ -70,12 +96,12 @@ public class Utils {
 				ois.close();
 				return map;
 			} else {
-				ErrorHandler.handle("Could not load map with version " + encodingVersion + " only known version is 1", null);
+				ErrorHandler.handle("Could not load map with version " + encodingVersion, null);
 			}
 			ois.close();
 		} catch(ClassNotFoundException e) {
 			ErrorHandler.handle("Could not read map.", e);
-			return new Map(20, 14);
+			return Map.emptyMap(20, 14);
 		} catch(StreamCorruptedException e) {
 			ErrorHandler.handle("Could not read map, trying older version...", e);
 		}
@@ -109,8 +135,8 @@ public class Utils {
 		if(lines.size()>lineIndex) {
 			byte[] imgbytes = Base64.getDecoder().decode(lines.get(lineIndex++).getBytes());
 			BufferedImage image = ImageIO.read(new ByteArrayInputStream(imgbytes));
-			m.setBackground(SwingFXUtils.toFXImage(image, null));
-			m.setScaling(lines.get(lineIndex).equals("fit") ? ScaleMode.FIT : (lines.get(lineIndex).equals("extend") ? ScaleMode.EXTEND : ScaleMode.STRETCH));
+			m.getLevel(0).setBackground(SwingFXUtils.toFXImage(image, null));
+			m.getLevel(0).setScaling(lines.get(lineIndex).equals("fit") ? ScaleMode.FIT : (lines.get(lineIndex).equals("extend") ? ScaleMode.EXTEND : ScaleMode.STRETCH));
 			lineIndex++;
 		}
 		m.setSaved();
@@ -145,10 +171,10 @@ public class Utils {
 		saveLibrary(AssetManager.getLibrary(), map);
 		FileOutputStream fos = new FileOutputStream(mapFile);
 		ObjectOutputStream ous = new ObjectOutputStream(fos);
-		ous.writeInt(Encoder.VERSION_ID);
+		ous.writeInt(JSONEncoder.VERSION);
 		if(map.getLibraryFile() != null)
 			ous.writeObject(map.getLibraryFile().getAbsolutePath());
-		ous.writeObject(new SerializableMap(map, true, true));
+		ous.writeObject(new SerializableMapV4(map, true, true));
 		map.setSaved();
 		ous.flush();
 		ous.close();

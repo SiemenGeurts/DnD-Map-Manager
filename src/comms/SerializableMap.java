@@ -9,8 +9,11 @@ import data.mapdata.Map;
 import helpers.Logger;
 import helpers.ScalingBounds.ScaleMode;
 import helpers.codecs.Decoder;
-import helpers.codecs.Encoder;
 
+/**
+ * This is a deprecated class. It's only purpose is reading old maps.
+ * @author Joep Geuskens
+ */
 public class SerializableMap implements Serializable {
 	private static final long serialVersionUID = 7313703191129654465L;
 	transient Map map;
@@ -18,30 +21,10 @@ public class SerializableMap implements Serializable {
 	private int encodingVersion;
 	private ScaleMode scaling;
 	private SerializableImage background;
-	private boolean includeEntityProps;
+	@SuppressWarnings("unused")
+	private boolean includeEntityProps; //needed for backwards compatibility
 	
-	public SerializableMap(Map map, boolean includeBackground) {
-		this(map, includeBackground, false);
-	}
-	
-	public SerializableMap(Map map, boolean includeBackground, boolean includeEntityProps) {
-		this.map = map;
-		this.includeEntityProps = includeEntityProps;
-		if(map.getBackground()!=null) {
-			hasBackground = true;
-			if(includeBackground)
-				background = new SerializableImage(map.getBackground());
-			else
-				background = null;
-			scaling = map.getScaling();
-		} else
-			hasBackground = false;
-		encodingVersion = Encoder.VERSION_ID;
-	}
-	
-	public void setIncludeEntityProperties(boolean includeEntityProps) {
-		this.includeEntityProps = includeEntityProps;
-	}
+	private SerializableMap() {}
 	
 	public boolean hasBackground() {
 		return hasBackground;
@@ -52,10 +35,7 @@ public class SerializableMap implements Serializable {
 	}
 	
 	private void writeObject(ObjectOutputStream stream) throws IOException {
-		stream.defaultWriteObject();
-		String s = Encoder.encode(map, includeEntityProps);
-		//Logger.println("encoded map: " + s);
-		stream.writeObject(s.getBytes());
+		throw new IllegalArgumentException("Cannot write map of ouddated version");
 	}
 	
 	private void readObject(ObjectInputStream stream) throws ClassNotFoundException, IOException {
@@ -65,9 +45,9 @@ public class SerializableMap implements Serializable {
 		map = Decoder.getDecoder(encodingVersion).decodeMap(s);
 		if(hasBackground)  {
 			if(background != null && background.getImage()!=null) {
-				map.setBackground(background.getImage());
+				map.getActiveLevel().setBackground(background.getImage());
 			}
-			map.setScaling(scaling);
+			map.getActiveLevel().setScaling(scaling);
 		}
 	}
 }

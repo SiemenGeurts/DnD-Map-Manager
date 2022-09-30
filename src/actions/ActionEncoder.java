@@ -23,16 +23,18 @@ import static helpers.codecs.JSONKeys.*;
  */
 public class ActionEncoder {
 	
-	public static JSONObject set(int x, int y, int id) {
+	public static JSONObject set(int level, int x, int y, int id) {
 		JSONObject json = new JSONObject();
 		json.put("type", KEY_SET_TILE).put("x", x).put("y", y).put("id", id);
+		json.put("level", level);
 		return json;
 	}
 	
-	public static JSONObject movement(int x1, int y1, int x2, int y2, int id) {
+	public static JSONObject movement(int level, int x1, int y1, int x2, int y2, int id) {
 		JSONObject json = new JSONObject();
 		json.put("type", KEY_MOVEMENT).put("x1", x1).put("y1", y1).put("x2", x2).put("y2", y2);
 		json.put("id", id);
+		json.put("level", level);
 		return json;
 	}
 	
@@ -42,9 +44,10 @@ public class ActionEncoder {
 		return json;
 	}
 	
-	public static JSONObject clearTile(int x, int y) {
+	public static JSONObject clearTile(int level, int x, int y) {
 		JSONObject json = new JSONObject();
 		json.put("type", KEY_CLEAR_TILE).put("x", x).put("y", y);
+		json.put("level", level);
 		return json;
 	}
 
@@ -52,10 +55,18 @@ public class ActionEncoder {
 		return JSONEncoder.encode(IntKey.KEY_REMOVE_ENTITY, id);
 	}
 	
-	public static JSONObject addEntity(Entity e, boolean includeProperties) {
+	public static JSONObject addEntity(int level, Entity e, boolean includeProperties) {
 		JSONObject json = new JSONObject();
 		json.put("type", KEY_ADD_ENTITY); //change the json type
-		json.put("entity", JSONEncoder.encode(e, includeProperties));
+		json.put("entity", JSONEncoder.encode(e, includeProperties));		
+		json.put("level", level);
+		return json;
+	}
+	
+	public static JSONObject changeLevel(int level) {
+		JSONObject json = new JSONObject();
+		json.put("type", KEY_CHANGE_LEVEL);
+		json.put("level", level);
 		return json;
 	}
 	

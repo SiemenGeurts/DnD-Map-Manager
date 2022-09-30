@@ -47,7 +47,7 @@ public class MapEditorController extends MapController {
 	private Entity currentlyEdited;
 	protected EntityMenu entityMenu;
 	public boolean isSaved;
-	Runnable onPropertySave = () -> getMap().setUnsaved();
+	Runnable onPropertySave = () -> getMap().getActiveLevel().setUnsaved();
 	
 	@Override
 	public void initialize() {
@@ -131,7 +131,7 @@ public class MapEditorController extends MapController {
     			//if it does: set the editorpane to the entity
     			//if it doesn't: place an instance of toBePlaced on this tile.
     			Entity e;
-    			if((e=getMap().getEntity(p))!=null)
+    			if((e=getMap().getActiveLevel().getEntity(p))!=null)
     				showProperties(e);
     			else if(toBePlaced != null) {
 		    		if(toBePlaced instanceof TilePrefab) {
@@ -318,7 +318,7 @@ public class MapEditorController extends MapController {
 		
 		public void show(double canvasX, double canvasY, double screenX, double screenY) {
 			selectedTile = getTileOnPosition(canvasX, canvasY);
-			Entity e = getMap().getEntity(selectedTile);
+			Entity e = getMap().getActiveLevel().getEntity(selectedTile);
 			if(e!= null) {
 				show(e, screenX, screenY);
 			} else {

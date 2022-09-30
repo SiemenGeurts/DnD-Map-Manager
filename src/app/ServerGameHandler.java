@@ -23,9 +23,9 @@ import controller.InitiativeListController.InitiativeEntry;
 import controller.MainMenuController;
 import controller.ServerController;
 import controller.ToolkitController;
+import data.mapdata.Entity;
 import data.mapdata.Map;
 import data.mapdata.PresetTile;
-import data.mapdata.ServerMap;
 import gui.ErrorHandler;
 import helpers.AssetManager;
 import helpers.Logger;
@@ -57,6 +57,7 @@ public class ServerGameHandler extends GameHandler {
 	private LinkedList<JSONObject> updates;
 	private Stack<JSONObject> undo;
 	private byte[][] oldMask;
+	private boolean maskChanged = false;
 	
 	private boolean bufferUpdates = false;
 	public boolean isPlaying = false;
@@ -134,16 +135,15 @@ public class ServerGameHandler extends GameHandler {
 	}
 	
 	public void preview(JSONObject action) {
-		int count = 1;
-		if(action.getString("type").equals(JSONKeys.KEY_UPDATE_LIST))
-			count = action.getInt("size");
-		final int count2 = count;
+		final int count =
+				action.getString("type").equals(JSONKeys.KEY_UPDATE_LIST) ?
+				action.getInt("size") : 1;
 		Platform.runLater(new Runnable() {
 			public void run() {
 				ButtonType accept = new ButtonType("Accept", ButtonData.YES);
 				ButtonType decline = new ButtonType("Decline", ButtonData.NO);
 				ButtonType preview = new ButtonType("Preview", ButtonData.OTHER);
-				Alert alert = new Alert(Alert.AlertType.INFORMATION, "The party has made " + count2 + " moves. Do you want to accept or decline?", accept, decline, preview);
+				Alert alert = new Alert(Alert.AlertType.INFORMATION, "The party has made " + count + " moves. Do you want to accept or decline?", accept, decline, preview);
 				alert.setTitle("Update");
 				Optional<ButtonType> result = alert.showAndWait();
 				if(result.orElse(decline)==preview) {
@@ -264,11 +264,12 @@ public class ServerGameHandler extends GameHandler {
 	}
 	
 	public boolean loadMap(File f) throws IOException {
-		Map m = Utils.loadMap(f);
+		map = Utils.loadMap(f);
 		controller.currentFile = f;
-		if (m == null)
+		if (map == null)
 			return false;
-		map = new ServerMap(m, this);
+		map.setUpdateHandler(mapUpdateHandler);
+		map.addActiveLevelChangedListener(activeLevelChangedListener);
 		controller.setMap(map);
 		return true;
 	}
@@ -310,11 +311,12 @@ public class ServerGameHandler extends GameHandler {
 	public void pushUpdates() {
 		if(!isPlaying) return;
 		if (bufferUpdates) {
-			try {
-				server.sendMessage(JSONEncoder.encodeMask(map.getMask()));
-			} catch(IllegalStateException | InterruptedException e) {
-				ErrorHandler.handle("Could not send the new Fog of War, try resyncing the game.", e);
-			}
+			if(maskChanged)
+				try {
+					server.sendMessage(JSONEncoder.encodeMask(map.getActiveLevel().getMask()));
+				} catch(IllegalStateException | InterruptedException e) {
+					ErrorHandler.handle("Could not send the new Fog of War, try resyncing the game.", e);
+				}
 			try {
 				JSONObject json = new JSONObject();
 				json.put("type", JSONKeys.KEY_UPDATE_LIST);
@@ -342,7 +344,7 @@ public class ServerGameHandler extends GameHandler {
 	}
 
 	private void undoBuffer() {
-		map.setMask(oldMask);
+		map.setWholeMask(oldMask);
 		controller.redraw();
 		oldMask = null;
 		while(!updates.isEmpty()) {
@@ -357,9 +359,10 @@ public class ServerGameHandler extends GameHandler {
 		if(updates.isEmpty()) {
 			//check if fow map changed
 			boolean maskchanged = false;
+			byte[][] newMask = map.getActiveLevel().getMask();
 			for(int i = 0; i < oldMask.length && !maskchanged; i++)
 				for(int j = 0; j < oldMask[0].length && !maskchanged; j++)
-					if(oldMask[i][j] == map.getMask(j, i))
+					if(oldMask[i][j] == newMask[i][j])
 						maskchanged = true;
 			if(!maskchanged) {
 				bufferUpdates = false;
@@ -388,7 +391,7 @@ public class ServerGameHandler extends GameHandler {
 	
 	public void enableUpdateBuffer() {
 		if(!bufferUpdates) {
-			byte[][] mask = map.getMask();
+			byte[][] mask = map.getActiveLevel().getMask();
 			oldMask = new byte[mask.length][mask[0].length];
 			for(int i = 0; i < oldMask.length; i++)
 				for(int j = 0; j < oldMask[0].length; j++)
@@ -409,9 +412,11 @@ public class ServerGameHandler extends GameHandler {
 		return controller;
 	}
 	
-	public ServerMap setMap(Map map, ServerController.Key key) {
+	public Map setMap(Map map, ServerController.Key key) {
 		Objects.requireNonNull(key);
-		this.map = new ServerMap(map, this);
+		this.map = map;
+		map.setUpdateHandler(mapUpdateHandler);
+		map.addActiveLevelChangedListener(activeLevelChangedListener);
 		if(isPlaying) {
 			try {
 				server.sendMessage(map, true);
@@ -421,7 +426,7 @@ public class ServerGameHandler extends GameHandler {
 		} else {
 			Logger.println("No client connected, so no need to send the map");
 		}
-		return (ServerMap) this.map;
+		return map;
 	}
 	
 	@Override
@@ -508,4 +513,44 @@ public class ServerGameHandler extends GameHandler {
 		}
         
 	}
+	
+	private Map.UpdateHandler mapUpdateHandler = new Map.UpdateHandler() {
+		@Override
+		public void onSetTile(int level, int x, int y, int oldType, int newType) {
+			sendUpdate(ActionEncoder.set(level, x,y,newType), ActionEncoder.set(level, x,y,oldType));
+		}
+
+		@Override
+		public void onAddEntity(int level, Entity e) {
+			sendUpdate(ActionEncoder.addEntity(level, e, false), ActionEncoder.removeEntity(e.getID()));
+		}
+
+		@Override
+		public void onRemoveEntity(int level, Entity e) {
+			sendUpdate(ActionEncoder.removeEntity(e.getID()), ActionEncoder.addEntity(level, e, false));
+		}
+
+		/*@Override
+		public void onUpdateEntity(int level, int entityID, Entity oldValue, Entity newValue) {
+			//sendUpdate(ActionEncoder.updateEntity(level, entityID, newValue), ActionEncoder.updateEntity(level, entityID, oldValue));
+		}*/
+
+		@Override
+		public void onSetMask(int level, byte[][] oldMask, byte[][] newMask) {
+			maskChanged = true;
+		}
+
+		@Override
+		public void onUpdateMask(int level, int x, int y, int oldValue, int newValue) {
+			maskChanged = true;				
+		}
+	};
+	
+	private Map.LevelChangedListener activeLevelChangedListener = new Map.LevelChangedListener() {
+		
+		@Override
+		public void onActiveLevelChanged(int oldLevel, int newLevel) {
+			sendUpdate(ActionEncoder.changeLevel(newLevel), ActionEncoder.changeLevel(oldLevel));
+		}
+	};
 }

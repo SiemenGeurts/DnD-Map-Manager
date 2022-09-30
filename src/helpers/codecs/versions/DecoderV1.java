@@ -40,14 +40,13 @@ public class DecoderV1 extends Decoder {
 		for(int i = 0; i < tiles.length; i++)
 			for(int j = 0; j < rowlen; j++)
 				tiles[i][j] = new Tile(Integer.valueOf(s[i*rowlen+j+2]));
-		Map map = new Map(tiles);
 		
 		s = string.substring(index+1).split(":");
 		ArrayList<Entity> entities = new ArrayList<>(Integer.valueOf(s[0]));
 		for(int i = 1; i < s.length; i++) {
 			entities.add(decodeEntity(s[i]));
 		}
-		map.setEntities(entities);
+		Map map = Map.MapFromTilesAndEntities(tiles, entities);
 		return map;
 	}
 }

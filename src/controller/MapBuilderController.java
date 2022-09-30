@@ -167,8 +167,8 @@ public class MapBuilderController extends MapEditorController {
 			
 			anchor = new Point(1, 1);
 			setSelectedAnchor(1, 1);
-			tfWidth.setText(""+getMap().getWidth());
-			tfHeight.setText(""+getMap().getHeight());
+			tfWidth.setText(""+getCurrentLevel().getWidth());
+			tfHeight.setText(""+getCurrentLevel().getHeight());
 			tfWidth.textProperty().addListener(new NumericFieldListener(tfWidth, false));
 			tfHeight.textProperty().addListener(new NumericFieldListener(tfHeight, true));
 			
@@ -176,11 +176,11 @@ public class MapBuilderController extends MapEditorController {
 			tgScaling.selectedToggleProperty().addListener((obs, oldVal, newVal) -> {
 				if(oldVal==newVal) return;
 				if(newVal==rbFit)
-					getMap().setScaling(ScaleMode.FIT);
+					getCurrentLevel().setScaling(ScaleMode.FIT);
 				else if(newVal==rbExtend)
-					getMap().setScaling(ScaleMode.EXTEND);
+					getCurrentLevel().setScaling(ScaleMode.EXTEND);
 				else
-					getMap().setScaling(ScaleMode.STRETCH);
+					getCurrentLevel().setScaling(ScaleMode.STRETCH);
 				calculateBackgroundBounds();
 				redraw();
 			});
@@ -228,7 +228,7 @@ public class MapBuilderController extends MapEditorController {
 		if(f == null) return;
 		try {
 			Image img = SwingFXUtils.toFXImage(ImageIO.read(f), null);
-			getMap().setBackground(img);
+			getCurrentLevel().setBackground(img);
 			calculateBackgroundBounds();
 		} catch (IOException e1) {
 			ErrorHandler.handle("Could not read image.", e1);
@@ -257,8 +257,8 @@ public class MapBuilderController extends MapEditorController {
 	
 	@FXML
 	public void onApplyExpansion(ActionEvent e) {
-		int width = getMap().getWidth();
-		int height = getMap().getHeight();
+		int width = getCurrentLevel().getWidth();
+		int height = getCurrentLevel().getHeight();
 		int newWidth = Integer.parseInt(tfWidth.getText());
 		int newHeight = Integer.parseInt(tfHeight.getText());
 		if(newWidth<width || newHeight<height) {
@@ -308,7 +308,7 @@ public class MapBuilderController extends MapEditorController {
 		int y2 = yEnd > height ? height : yEnd;
 		Rectangle rect = new Rectangle(xStart, yStart, newWidth, newHeight);
 		
-		for(Iterator<Entity> iter = getMap().getAllEntities(key).iterator(); iter.hasNext();) {
+		for(Iterator<Entity> iter = getCurrentLevel().getAllEntities(key).iterator(); iter.hasNext();) {
 			Entity entity = iter.next();
 			if(rect.contains(entity.getLocation())) {
 				entity.setX(entity.getX()-xStart);
@@ -320,8 +320,8 @@ public class MapBuilderController extends MapEditorController {
 		//copy the tiles onto the new map
 		for(int i = y1; i<y2; i++) {
 			for(int j = x1; j<x2; j++) {
-				tiles[i-yStart][j-xStart] = getMap().getTile(j, i);
-				mask[i-yStart][j-xStart] = getMap().getMask(j, i);
+				tiles[i-yStart][j-xStart] = getCurrentLevel().getTile(j, i);
+				mask[i-yStart][j-xStart] = getCurrentLevel().getMask(j, i);
 			}
 		}
 		
@@ -332,34 +332,8 @@ public class MapBuilderController extends MapEditorController {
 					mask[i][j] = 0;
 				}
 		}
-		/*if(newWidth>width) {
-			xStart = -xStart;
-			for(int x = 0; x<xStart; x++)
-				for(int y = 0; y<newHeight; y++) {
-					tiles[y][x] = new Tile(PresetTile.EMPTY);
-					mask[y][x] = 0;
-				}
-			for(int x = xStart+width; x<newWidth; x++)
-				for(int y = 0; y<newHeight; y++) {
-					tiles[y][x] = new Tile(PresetTile.EMPTY);
-					mask[y][x] = 0;
-				}
-		}
-		if(newHeight>height) {
-			yStart = -yStart;
-			for(int y = 0; y < yStart; y++)
-				for(int x = xStart; x < width+xStart; x++) {
-					tiles[y][x] = new Tile(PresetTile.EMPTY);
-					mask[y][x] = 0;
-				}
-			for(int y = yStart+height; y < newHeight; y++)
-				for(int x = xStart; x < width+xStart; x++) {
-					tiles[y][x] = new Tile(PresetTile.EMPTY);
-					mask[y][x] = 0;
-				}
-		}*/
-		getMap().setTiles(tiles);
-		getMap().setMask(mask);
+		getCurrentLevel().setTiles(tiles, key);
+		getCurrentLevel().setMask(mask, key);
 		calculateBackgroundBounds();
 		redraw();
 	}
@@ -367,6 +341,8 @@ public class MapBuilderController extends MapEditorController {
 	public static void setEditingKey(Map.EditingKey _key) {
 		key = _key;
 	}
+	
+	
 	
 	class AnchorButtonClicked implements EventHandler<ActionEvent> {
 		int row, col;

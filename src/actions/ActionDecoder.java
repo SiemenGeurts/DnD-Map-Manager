@@ -60,7 +60,7 @@ public class ActionDecoder {
 				@Override
 				protected void execute() {
 					int id = json.getInt("id");
-					handler.map.getTile(json.getInt("x"), json.getInt("y")).setType(id);
+					handler.map.getLevel(json.getInt("level")).getTile(json.getInt("x"), json.getInt("y")).setType(id);
 					if(!isServer) ClientGameHandler.instance.checkTexture(id);
 				}
 			};
@@ -68,7 +68,8 @@ public class ActionDecoder {
 			int id = json.getInt("id");
 			Point p = new Point(json.getInt("x1"), json.getInt("y1"));
 			Point p2 = new Point(json.getInt("x2"), json.getInt("y2"));
-			if(isServer) {
+			int level = json.getInt("level");
+			if(isServer || level != handler.map.getActiveLevelIndex()) {
 				return new Action(0) {
 					@Override
 					protected void execute() {
@@ -77,8 +78,9 @@ public class ActionDecoder {
 					}
 				};
 			} else
-				return new MovementAction(new GuideLine(new Point[] {p, p2}), handler.map.getEntityById(id), 0.5f);
+				return new MovementAction(new GuideLine(new Point[] {p, p2}), handler.map.getLevel(json.getInt("level")).getEntityById(id), 0.5f);
 		case KEY_SET_BLOODIED:
+			
 			return new Action(isServer ? 0 : 0.5f) {
 				@Override
 				protected void execute() {
@@ -90,7 +92,7 @@ public class ActionDecoder {
 			return new Action(isServer ? 0 : 0.5f) {
 				@Override
 				protected void execute() {
-					handler.map.getTile(json.getInt("x"), json.getInt("y")).setType(PresetTile.EMPTY);
+					handler.map.getLevel(json.getInt("level")).getTile(json.getInt("x"), json.getInt("y")).setType(PresetTile.EMPTY);
 				}
 			};
 		case KEY_ADD_ENTITY:
@@ -98,7 +100,7 @@ public class ActionDecoder {
 				@Override
 				protected void execute() {
 					Entity e = decoder.decodeEntity(json.getJSONObject("entity"));
-					handler.map.addEntity(e);
+					handler.map.addEntity(json.getInt("level"), e);
 					if(!isServer)
 						ClientGameHandler.instance.checkTexture(e.getType());
 				}
@@ -132,7 +134,7 @@ public class ActionDecoder {
 			return new Action(0f) {
 				@Override
 				public void execute() {
-					handler.map.setMask(decoder.decodeMask(json));
+					handler.map.setWholeMask(json.getInt("level"), decoder.decodeMask(json));
 				}
 			};
 		case KEY_EMPTY:

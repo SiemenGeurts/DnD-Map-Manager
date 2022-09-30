@@ -18,7 +18,7 @@ import actions.MovementAction;
 import comms.Message;
 import comms.SerializableImage;
 import comms.SerializableJSON;
-import comms.SerializableMap;
+import comms.SerializableMapV4;
 import comms.Client;
 import comms.ClientListener;
 import controller.ClientController;
@@ -98,10 +98,10 @@ public class ClientGameHandler extends GameHandler {
 						controller.getInitiativeController().redraw();
 					}
 				}
-			} else if(msg.getMessage() instanceof SerializableMap) {
-				Map newMap = ((SerializableMap) msg.getMessage()).getMap();
-				if(((SerializableMap) msg.getMessage()).hasBackground() && newMap.getBackground()==null)
-					newMap.setBackground(map.getBackground());
+			} else if(msg.getMessage() instanceof SerializableMapV4) {
+				Map newMap = ((SerializableMapV4) msg.getMessage()).getMap();
+				//if(((SerializableMap) msg.getMessage()).hasBackground() && newMap.getBackground()==null)
+				//	newMap.setBackground(map.getBackground());
 				requestMissingTextures(newMap);
 				map = newMap;
 				clearInitiative();
@@ -161,7 +161,7 @@ public class ClientGameHandler extends GameHandler {
 
 	public void move(Entity entity, Point target) {
 		if(awaitingResponse) return;
-		sendUpdate(ActionEncoder.movement(entity.getTileX(), entity.getTileY(), target.x, target.y, entity.getID()));
+		sendUpdate(ActionEncoder.movement(map.getActiveLevelIndex(), entity.getTileX(), entity.getTileY(), target.x, target.y, entity.getID()));
 		undoAction = new MovementAction(new GuideLine(new Point2D[] {target, entity.getLocation()}), entity, 0).addAction(undoAction);
 		new MovementAction(new GuideLine(new Point2D[] {entity.getLocation(), target}), entity, 0).attach();
 	}
@@ -186,14 +186,16 @@ public class ClientGameHandler extends GameHandler {
 	}
 	
 	public void requestMissingTextures(Map map) {
-		for(Tile[] row : map.getTiles())
-			for(Tile t : row) {
-				if(t.getType()>=0 && !AssetManager.textureExists(t.getType()))
-					requestTexture(t.getType());
-			}
-		for(Entity e : map.getEntities())
-			if(e.getType()>=0 && !AssetManager.textureExists(e.getType()))
-				requestTexture(e.getType());
+		for(Map.Level level : map.getLevels()) {
+			for(Tile[] row : level.getTiles())
+				for(Tile t : row) {
+					if(t.getType()>=0 && !AssetManager.textureExists(t.getType()))
+						requestTexture(t.getType());
+				}
+			for(Entity e : level.getEntities())
+				if(e.getType()>=0 && !AssetManager.textureExists(e.getType()))
+					requestTexture(e.getType());
+		}
 	}
 
 	public void requestTexture(int id) {
