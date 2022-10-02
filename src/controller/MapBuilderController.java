@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Optional;
 
@@ -16,9 +17,13 @@ import data.mapdata.PresetTile;
 import data.mapdata.Tile;
 import gui.ErrorHandler;
 import gui.NumericFieldListener;
+import gui.ReorderableList;
 import helpers.AssetManager;
+import helpers.Logger;
 import helpers.Utils;
 import helpers.ScalingBounds.ScaleMode;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -27,11 +32,18 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.RadioMenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -44,6 +56,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.util.Pair;
+import javafx.util.converter.DefaultStringConverter;
 
 public class MapBuilderController extends MapEditorController {
 
@@ -75,6 +89,11 @@ public class MapBuilderController extends MapEditorController {
 	private ToggleGroup tgScaling;
 	@FXML
 	private CheckMenuItem chkboxViewGrid;
+	
+	@FXML
+	private Menu menuLevel;
+	@FXML
+	private MenuItem mbtnAddLevel;
 	
 	ToolkitController tkController;
 
@@ -195,6 +214,80 @@ public class MapBuilderController extends MapEditorController {
 		}
 	}
 	
+	private void updateLevelMenu() {
+		menuLevel.getItems().clear();
+		int activeLevelID = getMap().getActiveLevel().getID();
+		ToggleGroup tg = new ToggleGroup();
+		for(Map.Level level : getMap().getLevels()) {
+			RadioMenuItem item = new RadioMenuItem(level.getName());
+			final int id = level.getID();
+			item.setSelected(id==activeLevelID);
+			item.setOnAction(event -> {
+				Logger.println("Level " + id + " selected");
+				getMap().setActiveLevelWithID(id);
+			});
+			item.setToggleGroup(tg);
+			menuLevel.getItems().add(item);
+		}
+		menuLevel.getItems().add(new SeparatorMenuItem());
+		MenuItem addLevel = new MenuItem("New level");
+		addLevel.setOnAction(event -> {
+			TextInputDialog td = new TextInputDialog("Level" + (getMap().getNumberOfLevels()+1));
+			td.setHeaderText("Enter a name:");
+			td.showAndWait();
+			String name = td.getEditor().getText();
+			if(getMap().isValidLevelName(name)) {
+				getMap().addEmptyLevel(20, 14).setName(name);
+				updateLevelMenu();
+			} else
+				ErrorHandler.handle("That is not a valid name (maybe it already exists?)", null);
+		});
+		menuLevel.getItems().add(addLevel);
+		
+		MenuItem sortLevels = new MenuItem("Reorder levels");
+		sortLevels.setOnAction(event -> {
+			Dialog<ArrayList<Pair<Integer, String>>> dialog = new Dialog<>();
+			
+			ObservableList<Pair<Integer,String>> list = FXCollections.<Pair<Integer,String>>observableArrayList();
+			getMap().getLevels().forEach(level -> list.add(new Pair<>(level.getID(),level.getName())));
+			ReorderableList<String> rl = new ReorderableList<String>(list, new DefaultStringConverter());
+			rl.setPrefWidth(250);
+			rl.setPrefHeight(300);
+			dialog.getDialogPane().setContent(rl);
+			ButtonType confirm = new ButtonType("Confirm", ButtonData.APPLY);
+			ButtonType cancel = new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
+			dialog.getDialogPane().getButtonTypes().setAll(cancel, confirm);
+			dialog.setResultConverter(button -> {
+				if(button == confirm) {
+					ArrayList<Pair<Integer,String>> levelOrder = new ArrayList<>();
+					levelOrder.addAll(list);
+					return levelOrder;
+				}
+				return null;
+			});
+			
+			Optional<ArrayList<Pair<Integer,String>>> result = dialog.showAndWait();
+			result.ifPresent(order -> {
+				ArrayList<Map.Level> newOrder = new ArrayList<>();
+				order.forEach(pair -> {
+					Map.Level level = getMap().getLevelByID(pair.getKey());
+					level.setName(pair.getValue());
+					newOrder.add(level);
+				});
+				getMap().setLevels(newOrder, key);
+				updateLevelMenu();
+			});
+		});
+		menuLevel.getItems().add(sortLevels);
+	}
+	
+	@Override
+	public void setMap(Map map) {
+		super.setMap(map);
+		updateLevelMenu();
+		map.addActiveLevelChangedListener(levelChangedListener);
+	}
+	
 	public void endInit() {
 		MapManagerApp.stage.setResizable(true);
 		MapManagerApp.stage.setMaximized(true);
@@ -220,6 +313,11 @@ public class MapBuilderController extends MapEditorController {
     @FXML
     void hoverTile(MouseEvent event) {
  
+    }
+    
+    @FXML
+    void onLevelSelection(ActionEvent event) {
+    	
     }
 	
 	@FXML
@@ -342,7 +440,12 @@ public class MapBuilderController extends MapEditorController {
 		key = _key;
 	}
 	
-	
+	private Map.LevelChangedListener levelChangedListener = (oldLevel, newLevel) -> {
+		if(oldLevel!=newLevel) {
+			tfWidth.setText(String.valueOf(getMap().getLevel(newLevel).getWidth()));
+			tfHeight.setText(String.valueOf(getMap().getLevel(newLevel).getHeight()));
+		}
+	};
 	
 	class AnchorButtonClicked implements EventHandler<ActionEvent> {
 		int row, col;

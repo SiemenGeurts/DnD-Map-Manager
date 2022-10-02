@@ -1,6 +1,5 @@
 package helpers.codecs;
 
-import java.util.Base64;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -86,6 +85,31 @@ public class JSONEncoder {
 		return json;
 	}
 	
+	private static String encodeIntArray(int[] array) {
+		StringBuilder builder = new StringBuilder();
+		int t = array[0];
+		int count = 1;
+		for(int i = 1; i < array.length; i++) {
+			if(array[i]==t)
+				count++;
+			else {
+				if(count <= 3)
+					while(count-->0)
+						builder.append(':').append(t);
+				else
+					builder.append(':').append(count).append('#').append(t);
+				t = array[i];
+				count = 1;
+			}
+		}
+		if(count <= 3)
+			while(count-->0)
+				builder.append(':').append(t);
+		else
+			builder.append(':').append(count).append('#').append(t);
+		return builder.substring(1);
+	}
+	
 	public static JSONObject encode(Map map, boolean includeEntityData) {
 		JSONObject json = new JSONObject();
 		json.put("n_levels", map.getNumberOfLevels());
@@ -93,13 +117,16 @@ public class JSONEncoder {
 		for(int i = 0; i < map.getNumberOfLevels(); i++) {
 			Map.Level level = map.getLevel(i);
 			JSONObject levelJson = new JSONObject();
+			levelJson.put("name", level.getName());
 			levelJson.put("width", level.getWidth());
 			levelJson.put("height", level.getHeight());
-			StringBuilder builder = new StringBuilder();
+			
+			int[] types = new int[level.getHeight()*level.getWidth()];
+			int c = 0;
 			for(int k = 0; k < level.getHeight(); k++)
 				for(int j = 0; j < level.getWidth(); j++)
-					builder.append(':').append(level.getTile(j,k).getType());
-			levelJson.put("tiles", builder.substring(1));
+					types[c++] = level.getTile(j,k).getType();
+			levelJson.put("tiles", encodeIntArray(types));
 			
 			List<Entity> entities = level.getEntities();
 			levelJson.put("n_entities", entities.size());
@@ -121,7 +148,12 @@ public class JSONEncoder {
 		json.put("type", KEY_FOW_MASK);
 		json.put("width", mask[0].length);
 		json.put("height", mask.length);
-		json.put("mask", new String(Base64.getEncoder().encode(Utils.flatten(mask))));
+		byte[] flat = Utils.flatten(mask);
+		int[] array = new int[flat.length];
+		for(int i = 0; i < flat.length; i++)
+			array[i] = (int) flat[i];
+		json.put("mask", encodeIntArray(array));
+		System.out.println("Mask: " + json.toString());
 		return json;
 	}
 	

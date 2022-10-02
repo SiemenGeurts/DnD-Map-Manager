@@ -46,14 +46,13 @@ public class MapController extends SceneController {
 	
 	protected int activeEntityId = -1; //used for initiative
 	
-	final Map.LevelChangedListener levelListener = (oldLevel,newLevel) -> {
-		currentLevel = currentMap.getLevel(newLevel);
-		calculateBackgroundBounds();
-		redraw();
-	};
 	
     @FXML
     protected Canvas canvas;
+    final Map.LevelChangedListener levelListener = (oldLevel,newLevel) -> {
+    	currentLevel = currentMap.getLevel(newLevel);
+    	zoom(1.05,canvas.getWidth()/2,canvas.getHeight()/2);
+    };
     
     @Override
 	public void initialize() {

@@ -55,9 +55,10 @@ public class ServerGameHandler extends GameHandler {
 	public static ServerGameHandler instance;
 
 	private LinkedList<JSONObject> updates;
+	private JSONObject levelUpdateAction = null;
 	private Stack<JSONObject> undo;
 	private byte[][] oldMask;
-	private boolean maskChanged = false;
+	public boolean maskChanged = false;
 	
 	private boolean bufferUpdates = false;
 	public boolean isPlaying = false;
@@ -297,9 +298,16 @@ public class ServerGameHandler extends GameHandler {
 	
 	public void sendUpdate(JSONObject action, JSONObject undoAction) {
 		if(blockUpdates || !isPlaying) return; //if this is true, we're undoing the buffer, and we don't want to send the undo actions
-		if (bufferUpdates)
-			updates.add(action);
-		else
+		
+		if (bufferUpdates) {
+			Logger.println(action.getString("type"));
+			if(action.getString("type").equals(JSONKeys.KEY_CHANGE_LEVEL)) {
+				//don't send this, but store it instead
+				levelUpdateAction = action;
+			} else {
+				updates.add(action);
+			}
+		}else
 			try {
 				server.sendMessage(action);
 			} catch (IllegalStateException | InterruptedException e) {
@@ -311,9 +319,18 @@ public class ServerGameHandler extends GameHandler {
 	public void pushUpdates() {
 		if(!isPlaying) return;
 		if (bufferUpdates) {
+			if(levelUpdateAction != null) {
+				try {
+					server.sendMessage(levelUpdateAction);
+				} catch(IllegalStateException | InterruptedException e) {
+					ErrorHandler.handle("Could not send level update. Try resyncing the game.", e);
+				}
+				levelUpdateAction = null;
+			}
 			if(maskChanged)
 				try {
-					server.sendMessage(JSONEncoder.encodeMask(map.getActiveLevel().getMask()));
+					server.sendMessage(ActionEncoder.setMask(map.getActiveLevelIndex(), map.getActiveLevel().getMask()));
+					maskChanged = false;
 				} catch(IllegalStateException | InterruptedException e) {
 					ErrorHandler.handle("Could not send the new Fog of War, try resyncing the game.", e);
 				}
@@ -344,9 +361,12 @@ public class ServerGameHandler extends GameHandler {
 	}
 
 	private void undoBuffer() {
-		map.setWholeMask(oldMask);
+		byte[][] mask = map.getActiveLevel().getMask();
+		if(mask.length == oldMask.length && mask[0].length == oldMask[0].length)
+			map.setWholeMask(oldMask);
 		controller.redraw();
 		oldMask = null;
+		maskChanged = false;
 		while(!updates.isEmpty()) {
 			ActionDecoder.decode(undo.pop(), true).executeNow();
 			updates.removeLast();
@@ -542,7 +562,7 @@ public class ServerGameHandler extends GameHandler {
 
 		@Override
 		public void onUpdateMask(int level, int x, int y, int oldValue, int newValue) {
-			maskChanged = true;				
+			maskChanged = true;
 		}
 	};
 	

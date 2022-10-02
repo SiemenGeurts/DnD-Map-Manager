@@ -70,6 +70,14 @@ public class ActionEncoder {
 		return json;
 	}
 	
+	public static JSONObject setMask(int level, byte[][] mask) {
+		JSONObject json = new JSONObject();
+		json.put("type", KEY_SET_FOW_MASK);
+		json.put("level", level);
+		json.put("mask", JSONEncoder.encodeMask(mask));
+		return json;
+	}
+	
 	public static JSONObject requestTexture(int id) {
 		return JSONEncoder.encode(IntKey.KEY_REQUEST_TEXTURE, id);
 	}

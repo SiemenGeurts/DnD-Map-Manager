@@ -41,8 +41,8 @@ public class SerializableMap implements Serializable {
 	private void readObject(ObjectInputStream stream) throws ClassNotFoundException, IOException {
 		stream.defaultReadObject();
 		String s = new String((byte[])stream.readObject());
-		Logger.println("Decoded map");
 		map = Decoder.getDecoder(encodingVersion).decodeMap(s);
+		Logger.println("Decoded map");
 		if(hasBackground)  {
 			if(background != null && background.getImage()!=null) {
 				map.getActiveLevel().setBackground(background.getImage());

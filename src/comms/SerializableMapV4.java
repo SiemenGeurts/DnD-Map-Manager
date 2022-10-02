@@ -37,10 +37,13 @@ public class SerializableMapV4 implements Serializable {
 			if(level.getBackground()!=null) {
 				data.hasBackground = true;
 				hasBackground = true;
-				if(includeBackground)
+				if(includeBackground) {
 					data.background = new SerializableImage(level.getBackground());
+					data.background.setFormat(SerializableImage.Format.JPG);
+				}
 				data.scaling = level.getScaling();
 			}
+			backgrounds[i] = data;
 		}
 		encodingVersion = JSONEncoder.VERSION;
 	}
@@ -60,7 +63,6 @@ public class SerializableMapV4 implements Serializable {
 	private void writeObject(ObjectOutputStream stream) throws IOException {
 		stream.defaultWriteObject();
 		String s = JSONEncoder.encode(map, includeEntityProps).toString();
-		//Logger.println("encoded map: " + s);
 		stream.writeObject(s.getBytes());
 	}
 	
@@ -71,7 +73,7 @@ public class SerializableMapV4 implements Serializable {
 		Logger.println("Decoded map");
 		if(backgrounds.length != map.getNumberOfLevels())
 			Logger.println("Could not load backgrounds: inconsistent number of levels!");
-		if(hasBackground)  {
+		if(hasBackground) {
 			for(int i = 0; i < map.getNumberOfLevels(); i++) {
 				if(backgrounds[i] != null && backgrounds[i].hasBackground
 						&& backgrounds[i].background.getImage() != null) {
@@ -83,7 +85,8 @@ public class SerializableMapV4 implements Serializable {
 		map.setActiveLevel(activeLevel);
 	}
 	
-	public class LevelBackgroundData {
+	public class LevelBackgroundData implements Serializable {
+		private static final long serialVersionUID = 134821918815644445L;
 		int level;
 		boolean hasBackground;
 		SerializableImage background;

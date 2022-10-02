@@ -130,11 +130,18 @@ public class ActionDecoder {
 					}
 				}
 			};
-		case KEY_FOW_MASK:
+		case KEY_SET_FOW_MASK:
 			return new Action(0f) {
 				@Override
 				public void execute() {
-					handler.map.setWholeMask(json.getInt("level"), decoder.decodeMask(json));
+					handler.map.setWholeMask(json.getInt("level"), decoder.decodeMask(json.getJSONObject("mask")));
+				}
+			};
+		case KEY_CHANGE_LEVEL:
+			return new Action(0f) {
+				@Override
+				public void execute() {
+					handler.map.setActiveLevel(json.getInt("level"));
 				}
 			};
 		case KEY_EMPTY:

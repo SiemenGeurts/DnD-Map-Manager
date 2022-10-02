@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import controller.MapBuilderController;
@@ -26,6 +27,9 @@ public class Map {
 	UpdateHandler updateHandler = null;
 	private int activeLevel = 0;
 	Set<LevelChangedListener> levelListeners = null;
+	
+	private static final AtomicInteger idGen = new AtomicInteger();
+	
 	
 	public Map() {
 		levels = new ArrayList<>();
@@ -68,18 +72,6 @@ public class Map {
 		return levels.size();
 	}
 	
-	public void addLevel(Level level) {
-		levels.add(level);
-		setActiveLevel(levels.size()-1);
-		isSaved = false;
-	}
-	
-	public void addLevel(int index, Level level) {
-		levels.add(index, level);
-		setActiveLevel(index);
-		isSaved = false;
-	}
-	
 	public List<Level> getLevels() {
 		return Collections.unmodifiableList(levels);
 	}
@@ -96,6 +88,20 @@ public class Map {
 		if(index < 0 || index >= levels.size())
 			throw new ArrayIndexOutOfBoundsException("That level does not exist");
 		return levels.get(index);
+	}
+	
+	public Level getLevelByID(int id) {
+		for(Level level : levels)
+			if(level.getID() == id)
+				return level;
+		return null;
+	}
+	
+	public Level getLevelByName(String name) {
+		for(Level level : levels)
+			if(level.getName().equals(name))
+				return level;
+		return null;
 	}
 	
 	public Entity getEntityById(int id) {
@@ -128,24 +134,66 @@ public class Map {
 		return saved;
 	}
 	
+	public void addLevel(Level level) {
+		levels.add(level);
+		if(level.getName().trim().equals(""))
+			level.setName("Level " + (levels.size()));
+		setActiveLevel(levels.size()-1);
+		isSaved = false;
+	}
+	
+	public void addLevel(int index, Level level) {
+		levels.add(index, level);
+		if(level.getName().trim().equals(""))
+			level.setName("Level " + (index+1));
+		setActiveLevel(index);
+		isSaved = false;
+	}
+	
 	public Level addLevel(Tile[][] tiles, ArrayList<Entity> entities, byte[][] mask) {
 		Level level = new Level(tiles, mask, entities);
 		addLevel(level);
 		return level;
 	}
 	
-	public void addEmptyLevel(int width, int height) {
+	public Level addEmptyLevel(int width, int height) {
 		Level level = new Level(width, height);
 		for (int x = 0; x < width; x++)
 			for (int y = 0; y < height; y++)
 				level.setTile(x, y, new Tile(PresetTile.EMPTY));
-		levels.add(level);
+		addLevel(level);
+		return level;
+	}
+	
+	public void setLevels(ArrayList<Level> levels, EditingKey key) {
+		Objects.requireNonNull(key);
+		int activeLevelID = getActiveLevel().getID();
+		this.levels = levels;
+		//try to keep the active level the same
+		for(int i = 0; i < levels.size(); i++) {
+			if(levels.get(i).getID()==activeLevelID) {
+				setActiveLevel(i);
+				return;
+			}
+		}
+		setActiveLevel(0);
 	}
 	
 	public void setActiveLevel(int i) {
+		if(i < 0 || i >= levels.size())
+			return;
 		if(levelListeners != null && levelListeners.size()>0)
 			levelListeners.stream().forEach(l -> l.onActiveLevelChanged(activeLevel, i));
 		activeLevel = i;
+	}
+	
+	public void setActiveLevelWithID(int id) {
+		for(int i = 0; i < levels.size(); i++) {
+			if(levels.get(i).getID() == id) {
+				setActiveLevel(i);
+				return;
+			}
+		}
 	}
 	
 	public void setTile(int level, int x, int y, Tile tile) {
@@ -204,6 +252,17 @@ public class Map {
 		isSaved = true;
 	}
 	
+	public boolean isValidLevelName(String name) {
+		if(name == null || name.trim().equals(""))
+			return false;
+		if(name.contains("'") || name.contains("\"")) 
+			return false;
+		for(Level level : levels)
+			if(level.getName().equals(name))
+				return false;
+		return true;
+	}
+	
 	//Needed for backwards compatibility
 	public static Map MapFromTilesAndEntities(Tile[][] tiles, ArrayList<Entity> entities) {
 		Map map = new Map();
@@ -220,6 +279,8 @@ public class Map {
 	public static class EditingKey {}
 	
 	public class Level {
+		
+		private String name;
 		private int width, height;
 		private Tile[][] tiles;
 		protected ArrayList<Entity> entities;
@@ -227,6 +288,7 @@ public class Map {
 		protected ScalingBounds.ScaleMode mode = ScalingBounds.ScaleMode.FIT;
 		private byte[][] mask;
 		boolean isSaved = false;
+		private int id;
 		
 		public Level(int _width, int _height) {
 			width = _width;
@@ -234,6 +296,8 @@ public class Map {
 			tiles = new Tile[_height][_width];
 			mask = new byte[_height][_width];
 			entities = new ArrayList<>();
+			name = "";
+			id = idGen.getAndIncrement();
 		}
 		
 		public Level(Tile[][] _tiles) {
@@ -249,16 +313,31 @@ public class Map {
 			tiles = _tiles;
 			width = _tiles[0].length;
 			height = _tiles.length;
+			id = idGen.getAndIncrement();
+			name = "";
 			if(entities != null)
 				this.entities = entities;
 			else
 				this.entities = new ArrayList<>();
-			if(mask != null) {
+			if(_mask != null) {
 				if(_mask.length != tiles.length || _mask[0].length != _tiles[0].length)
 					throw new IllegalArgumentException("Mask size does not match map size");
 				mask = _mask;
 			}else
 				mask = new byte[height][width];
+		}
+		
+		public int getID() {
+			return id;
+		}
+		
+		public void setName(String name) {
+			this.name = name;
+			isSaved = false;
+		}
+		
+		public String getName() {
+			return name;
 		}
 		
 		protected void setTile(int x, int y, Tile tile) {

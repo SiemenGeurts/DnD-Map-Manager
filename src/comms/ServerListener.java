@@ -143,10 +143,15 @@ public class ServerListener extends Thread {
 	private <T extends Serializable> void sendMessage(T obj) throws IllegalStateException, InterruptedException {
 		Message<T> msg = new Message<T>(obj);
 		Logger.println("Sending message["+msg.getID() +"] of type " + obj.getClass().getSimpleName());
+		try {
 		if(isInstanceActive)
 			sender.sendingQueue.put(msg);
 		else
 			throw new IllegalStateException("Server is not active");
+		} catch(NullPointerException e) {
+			Logger.error(e);
+			Logger.println("Could not send message. Is a client connected?");
+		}
 	}
 	
 	private void onDisconnect() {

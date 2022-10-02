@@ -156,6 +156,10 @@ public class MapEditorController extends MapController {
     public void handleDrag(Point2D old, Point2D cur, MouseEvent e) {
     	if(lastDragPos != null && cur.distance(lastDragPos)<0.5) return;
     	lastDragPos = cur;
+    	Point center = new Point((int)cur.getX(), (int)cur.getY());
+    	if(center.x<0 || center.y < 0 || center.x >= getCurrentLevel().getWidth() || center.y >= getCurrentLevel().getHeight())
+    		return;
+    	
     	TilePrefab prefab = null;
     	boolean erasing = e.isControlDown();
     	boolean editingMask = paintController.isEditingMask();
@@ -167,7 +171,6 @@ public class MapEditorController extends MapController {
     		return;
     	int width = paintController.getSize();
     	byte opacity = erasing ? 0 : (byte)(Math.round(paintController.getOpacity()*64));
-    	Point center = new Point((int)cur.getX(), (int)cur.getY());
     	if(width==1) {
     		if(editingMask)
     			getMap().setMask(center.x, center.y, opacity);

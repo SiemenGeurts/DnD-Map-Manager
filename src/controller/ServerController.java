@@ -9,6 +9,7 @@ import app.ServerGameHandler;
 import data.mapdata.Entity;
 import data.mapdata.Map;
 import gui.ErrorHandler;
+import helpers.Logger;
 import helpers.Utils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -18,7 +19,10 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.MenuItem;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -62,6 +66,19 @@ public class ServerController extends MapEditorController {
     private AnchorPane statsPane;
     @FXML
     private AnchorPane initiativePane;
+    
+    //Level management
+    @FXML
+    private ChoiceBox<String> cbServerLevel;
+    @FXML
+    private ChoiceBox<String> cbClientLevel;
+    @FXML
+    private Button btnLock;
+    @FXML
+    private HBox hboxLevels;
+    static final Image IMG_LINKED = new Image("assets/images/icons/linked.png");
+	static final Image IMG_UNLINKED = new Image("assets/images/icons/unlinked.png");
+	private boolean locked = true;
     
     public Map previewMap, oldMap;
     public boolean inPreview = false;
@@ -151,6 +168,13 @@ public class ServerController extends MapEditorController {
 			});
 			entityMenu.addEntityMenuItem(item);
 			
+			ImageView imgView = new ImageView(IMG_LINKED);
+			imgView.setFitHeight(20);
+			imgView.setFitWidth(31);
+			btnLock.setGraphic(imgView);
+			btnLock.setDisable(true);
+			cbClientLevel.setDisable(true);
+			
 			MapManagerApp.stage.setResizable(true);
 			MapManagerApp.stage.setMaximized(true);
 			drawBackground();
@@ -199,6 +223,7 @@ public class ServerController extends MapEditorController {
 		Utils.safeRun(() -> {
 			btnSendImage.setDisable(!connected);
 			btnSendText.setDisable(!connected);
+			//TODO btnLock.setDisable(!connected);
 			if(connected == true) {
 				resync.setDisable(false);
 				resync.setText("Resync");
@@ -246,6 +271,51 @@ public class ServerController extends MapEditorController {
 		gameHandler.sendText();
 	}
 	
+	@FXML
+	public void onLockClicked(ActionEvent e) {
+		locked = !locked;
+		if(locked) {
+			((ImageView)btnLock.getGraphic()).setImage(IMG_LINKED);
+			cbClientLevel.setDisable(true);
+			cbClientLevel.getSelectionModel().select(cbServerLevel.getSelectionModel().getSelectedIndex());
+		} else {
+			((ImageView)btnLock.getGraphic()).setImage(IMG_UNLINKED);
+			cbClientLevel.setDisable(false);
+		}
+	}
+	
+	@Override
+	public void setMap(Map map) {
+		super.setMap(map);
+		cbServerLevel.getItems().clear();
+		cbClientLevel.getItems().clear();
+		for(Map.Level level : map.getLevels()) {
+			cbServerLevel.getItems().add(level.getName());
+			cbClientLevel.getItems().add(level.getName());
+		}
+		cbServerLevel.getSelectionModel().select(map.getActiveLevelIndex());
+		cbClientLevel.getSelectionModel().select(map.getActiveLevelIndex());
+		
+		cbServerLevel.setDisable(false);
+		map.addActiveLevelChangedListener(activeLevelChangedListener);
+		
+		cbServerLevel.setOnAction(event -> {
+			int index = cbServerLevel.getSelectionModel().getSelectedIndex();
+			if(index != getMap().getActiveLevelIndex() && gameHandler.maskChanged) {
+				ErrorHandler.handle("Cannot change level while fog of war has been edited", null);
+				return;
+			}
+			getMap().setActiveLevel(index);
+			if(locked)
+				cbClientLevel.getSelectionModel().select(index);
+		});
+		
+		cbClientLevel.setOnAction(event -> {
+			Logger.println("Client level: " + cbClientLevel.getSelectionModel().getSelectedIndex());
+		});
+		hboxLevels.setVisible(true);
+	}
+	
 	@Override
 	@FXML
 	void onOpen() throws IOException {
@@ -288,5 +358,16 @@ public class ServerController extends MapEditorController {
 	public void setGameHandler(ServerGameHandler _gameHandler) {
 		gameHandler = _gameHandler;
 	}
+	
+	private Map.LevelChangedListener activeLevelChangedListener = new Map.LevelChangedListener() {
+		
+		@Override
+		public void onActiveLevelChanged(int oldLevel, int newLevel) {
+			if(cbServerLevel != null) {
+				if(cbServerLevel.getSelectionModel().getSelectedIndex() != newLevel)
+					cbServerLevel.getSelectionModel().select(newLevel);
+			}
+		}
+	};
 	
 }

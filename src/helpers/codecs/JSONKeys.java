@@ -3,6 +3,7 @@ package helpers.codecs;
 public class JSONKeys {
 	public static final String KEY_PREFAB_ENTITY = "prefab_entity";
 	public static final String KEY_INITIATIVELIST = "initiativelist";
+	public static final String KEY_SET_FOW_MASK = "set_mask";
 	public static final String KEY_FOW_MASK = "fow_mask";
 	public static final String KEY_SET_TILE = "set_tile";
 	public static final String KEY_MOVEMENT = "move";

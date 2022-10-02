@@ -275,6 +275,8 @@ public class Utils {
 		fileChooser.getExtensionFilters().add(mapFilter);
 		fileChooser.setInitialDirectory(MapManagerApp.getLastMapDirectory());
 		File file = fileChooser.showSaveDialog(SceneManager.getPrimaryStage());
+		if(!file.getPath().endsWith(".map"))
+			file = new File(file.getPath()+".map");
 		if(file != null)
 			MapManagerApp.updateLastMapDirectory(file);
 		try {
@@ -295,23 +297,42 @@ public class Utils {
 		return file;
 	}
 	
-	public static byte[] flatten(byte[][] arr) {
-		byte[] flat = new byte[arr.length*arr[0].length];
+	public static <T> void flatten(T[][] arr, T[] output) {
+		if(output.length!=arr[0].length*arr.length)
+			throw new IllegalArgumentException("Utils.flatten: Output array is of wrong size");			
 		int rowlength = arr[0].length;
 		for(int i = 0, k = 0; i < arr.length; i++)
 			for(int j = 0; j < rowlength; j++, k++)
-				flat[k] = arr[i][j];
-		return flat;
+				output[k] = arr[i][j];
 	}
 	
-	public static byte[][] unflatten(byte[] flat, int w, int h) throws Exception {
+	public static byte[] flatten(byte[][] arr) {
+		byte[] output = new byte[arr.length*arr[0].length];
+		int rowlength = arr[0].length;
+		for(int i = 0, k = 0; i < arr.length; i++)
+			for(int j = 0; j < rowlength; j++, k++)
+				output[k] = arr[i][j];
+		return output;
+	}
+	
+	public static byte[][] unflatten(byte[] flat, int w, int h) {
+		byte[][] output = new byte[h][w];
 		if(flat.length!=w*h)
-			throw new Exception("Cannot unflatten array of length " + flat.length + " into " + h + "x" + w +" array");
-		byte[][] arr = new byte[h][w];
+			throw new IllegalArgumentException("Cannot unflatten array of length " + flat.length + " into " + h + "x" + w +" array");
 		for(int i = 0, k = 0; i < h; i++)
 			for(int j = 0; j < w; j++, k++)
-				arr[i][j] = flat[k];
-		return arr;
+				output[i][j] = flat[k];
+		return output;
+	}
+	
+	public static <T> void unflatten(T[] flat, int w, int h, T[][] output) {
+		if(output.length != h || output[0].length != w)
+			throw new IllegalArgumentException("Utils.unflatten: Output array is of wrong size");
+		if(flat.length!=w*h)
+			throw new IllegalArgumentException("Cannot unflatten array of length " + flat.length + " into " + h + "x" + w +" array");
+		for(int i = 0, k = 0; i < h; i++)
+			for(int j = 0; j < w; j++, k++)
+				output[i][j] = flat[k];
 	}
 	
 	public static String type(Object obj) {

@@ -25,7 +25,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox onKeyPressed="#keyDown" prefHeight="620.0" prefWidth="827.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.MapBuilderController">
+<VBox onKeyPressed="#keyDown" prefHeight="620.0" prefWidth="827.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.MapBuilderController">
   <children>
     <MenuBar fx:id="menuBar" VBox.vgrow="NEVER">
       <menus>
@@ -53,6 +53,7 @@
                   </Menu>
               </items>
             </Menu>
+            <Menu fx:id="menuLevel" mnemonicParsing="false" text="Levels" />
       </menus>
     </MenuBar>
       <SplitPane dividerPositions="0.8" prefHeight="160.0" prefWidth="200.0" VBox.vgrow="ALWAYS">

@@ -1,6 +1,5 @@
 package comms;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -136,8 +135,6 @@ public class ClientListener {
 							break;
 						} else
 							readingQueue.put(msg);
-					} catch(EOFException e) {
-						e.printStackTrace();
 					} catch (IOException | InterruptedException e) {
 						if(!stop) {
 							stop = true;
