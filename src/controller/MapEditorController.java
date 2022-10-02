@@ -176,8 +176,35 @@ public class MapEditorController extends MapController {
     			getMap().setMask(center.x, center.y, opacity);
     		else
     			getMap().setTile(center.x, center.y, prefab.getInstance(0, 0));
+    	} else if(width%2==1) {
+    		width -= 1; //now it's even
+    		for(int dx = -width/2; dx <= width/2; dx++) {
+    			for(int dy = -width/2; dy <= width/2; dy++) {
+    				if(!inMap(center.x+dx, center.y+dy)) continue;
+		    		if(editingMask)
+		    			getMap().setMask(center.x+dx, center.y+dy, opacity);
+		    		else
+		    			getMap().setTile(center.x+dx, center.y+dy, prefab.getInstance(0, 0));
+    			}
+    		}
+    	} else {
+    		int ddx = cur.getX()-center.x>0.5 ? 1 : 0;
+    		int ddy = cur.getY()-center.y>0.5 ? 1 : 0;
+    		for(int dx = -width/2; dx < width/2; dx++) {
+    			for(int dy = -width/2; dy < width/2; dy++) {
+    				if(!inMap(center.x+dx+ddx, center.y+dy+ddy)) continue;
+		    		if(editingMask)
+		    			getMap().setMask(center.x+dx+ddx, center.y+dy+ddy, opacity);
+		    		else
+		    			getMap().setTile(center.x+dx+ddx, center.y+dy+ddy, prefab.getInstance(0, 0));
+    			}
+    		}
     	}
     	redraw();
+    }
+    
+    private boolean inMap(int x, int y) {
+    	return x >= 0 && y >= 0 && x < getCurrentLevel().getWidth() && y < getCurrentLevel().getHeight();
     }
     
     @Override
