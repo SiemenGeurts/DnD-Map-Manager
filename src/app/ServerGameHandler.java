@@ -26,6 +26,7 @@ import controller.ToolkitController;
 import data.mapdata.Entity;
 import data.mapdata.Map;
 import data.mapdata.PresetTile;
+import gui.Dialogs;
 import gui.ErrorHandler;
 import helpers.AssetManager;
 import helpers.Logger;
@@ -56,6 +57,7 @@ public class ServerGameHandler extends GameHandler {
 
 	private LinkedList<JSONObject> updates;
 	private JSONObject levelUpdateAction = null;
+	private JSONObject levelUpdateUndoAction = null;
 	private Stack<JSONObject> undo;
 	private byte[][] oldMask;
 	public boolean maskChanged = false;
@@ -111,6 +113,18 @@ public class ServerGameHandler extends GameHandler {
 		}
 	}
 	
+	//this is only called at the start of the application
+	public boolean loadMap(File f) throws IOException {
+		map = Utils.loadMap(f);
+		controller.currentFile = f;
+		if (map == null)
+			return false;
+		map.setUpdateHandler(mapUpdateHandler);
+		map.addActiveLevelChangedListener(activeLevelChangedListener);
+		controller.setMap(map);
+		return true;
+	}
+	
 	@Override
 	protected void processMessages() {
 		Message<?> msg;
@@ -149,7 +163,7 @@ public class ServerGameHandler extends GameHandler {
 				Optional<ButtonType> result = alert.showAndWait();
 				if(result.orElse(decline)==preview) {
 					final Map old = map;
-					map = map.copy();
+					map = old.copy();
 					ActionDecoder.decode(action, false).executeNow();
 					controller.showPreview(map);
 					map = old;
@@ -169,6 +183,8 @@ public class ServerGameHandler extends GameHandler {
 	
 	public void previewAccepted() {
 		map = controller.previewMap;
+		maskChanged = false;
+		oldMask = copyMask(map.getActiveLevel().getMask());
 		try {
 			server.sendMessage(JSONEncoder.accepted);
 		} catch(IllegalStateException | InterruptedException e) {
@@ -262,17 +278,8 @@ public class ServerGameHandler extends GameHandler {
 		}
 		//reset the buffer
 		updates.clear();
-	}
-	
-	public boolean loadMap(File f) throws IOException {
-		map = Utils.loadMap(f);
-		controller.currentFile = f;
-		if (map == null)
-			return false;
-		map.setUpdateHandler(mapUpdateHandler);
-		map.addActiveLevelChangedListener(activeLevelChangedListener);
-		controller.setMap(map);
-		return true;
+		oldMask = null;
+		maskChanged = false;
 	}
 	
 	public boolean sendTexture(int id) {
@@ -303,6 +310,9 @@ public class ServerGameHandler extends GameHandler {
 			Logger.println(action.getString("type"));
 			if(action.getString("type").equals(JSONKeys.KEY_CHANGE_LEVEL)) {
 				//don't send this, but store it instead
+				if(levelUpdateAction == null)
+					//We'll only set the undo action the first time (so we undo back to the original level)
+					levelUpdateUndoAction = undoAction;
 				levelUpdateAction = action;
 			} else {
 				updates.add(action);
@@ -324,13 +334,16 @@ public class ServerGameHandler extends GameHandler {
 					server.sendMessage(levelUpdateAction);
 				} catch(IllegalStateException | InterruptedException e) {
 					ErrorHandler.handle("Could not send level update. Try resyncing the game.", e);
+				} finally {
+					levelUpdateAction = null;
+					levelUpdateUndoAction = null;
 				}
-				levelUpdateAction = null;
 			}
-			if(maskChanged)
+			if(getMaskChanged(map.getActiveLevelIndex()))
 				try {
 					server.sendMessage(ActionEncoder.setMask(map.getActiveLevelIndex(), map.getActiveLevel().getMask()));
 					maskChanged = false;
+					oldMask = null;
 				} catch(IllegalStateException | InterruptedException e) {
 					ErrorHandler.handle("Could not send the new Fog of War, try resyncing the game.", e);
 				}
@@ -361,16 +374,19 @@ public class ServerGameHandler extends GameHandler {
 	}
 
 	private void undoBuffer() {
-		byte[][] mask = map.getActiveLevel().getMask();
-		if(mask.length == oldMask.length && mask[0].length == oldMask[0].length)
+		if(getMaskChanged(map.getActiveLevelIndex())) {
 			map.setWholeMask(oldMask);
+			maskChanged = false;
+			oldMask = null;			
+		}
 		controller.redraw();
-		oldMask = null;
-		maskChanged = false;
 		while(!updates.isEmpty()) {
 			ActionDecoder.decode(undo.pop(), true).executeNow();
 			updates.removeLast();
 		}
+		controller.resetMapLevels(levelUpdateUndoAction.getInt("level"));
+		levelUpdateAction = null;
+		levelUpdateUndoAction = null;
 	}
 
 	public boolean requestDisableUpdateBuffer() {
@@ -378,13 +394,7 @@ public class ServerGameHandler extends GameHandler {
 			return true;
 		if(updates.isEmpty()) {
 			//check if fow map changed
-			boolean maskchanged = false;
-			byte[][] newMask = map.getActiveLevel().getMask();
-			for(int i = 0; i < oldMask.length && !maskchanged; i++)
-				for(int j = 0; j < oldMask[0].length && !maskchanged; j++)
-					if(oldMask[i][j] == newMask[i][j])
-						maskchanged = true;
-			if(!maskchanged) {
+			if(!getMaskChanged(map.getActiveLevelIndex()) && levelUpdateAction == null) {
 				bufferUpdates = false;
 				return true;
 			}
@@ -411,11 +421,9 @@ public class ServerGameHandler extends GameHandler {
 	
 	public void enableUpdateBuffer() {
 		if(!bufferUpdates) {
-			byte[][] mask = map.getActiveLevel().getMask();
-			oldMask = new byte[mask.length][mask[0].length];
-			for(int i = 0; i < oldMask.length; i++)
-				for(int j = 0; j < oldMask[0].length; j++)
-					oldMask[i][j] = mask[i][j];
+			//this creates the oldMask
+			oldMask = copyMask(map.getActiveLevel().getMask());
+			maskChanged = false; //just to be sure
 		}
 		bufferUpdates = true;
 	}
@@ -427,6 +435,32 @@ public class ServerGameHandler extends GameHandler {
 	public String getBufferedActions() {
 		return updates.toString();
 	}
+	
+	private byte[][] copyMask(byte[][] mask) {
+		byte[][] copy = new byte[mask.length][mask[0].length];
+		for(int i = 0; i < mask.length; i++)
+			for(int j = 0; j < mask[0].length; j++)
+				copy[i][j] = mask[i][j];
+		return copy;
+	}
+	
+	public boolean getMaskChanged(int level) {
+		if(oldMask == null) return false;
+		if(maskChanged) return true;
+		byte[][] mask = map.getLevel(level).getMask();
+		if(mask.length!=oldMask.length || mask[0].length != oldMask[0].length) {
+			ErrorHandler.handle("Mask dimensions changed... something went wrong.", new Exception("..."));
+			return false;
+		}
+		for(int i = 0; i < oldMask.length; i++)
+			for(int j = 0; j < oldMask[0].length; j++)
+				if(mask[i][j]!=oldMask[i][j]) {
+					maskChanged = true;
+					return maskChanged;
+				}
+		maskChanged = false;
+		return maskChanged;
+	}
 
 	public ServerController getController() {
 		return controller;
@@ -437,6 +471,8 @@ public class ServerGameHandler extends GameHandler {
 		this.map = map;
 		map.setUpdateHandler(mapUpdateHandler);
 		map.addActiveLevelChangedListener(activeLevelChangedListener);
+		oldMask = null;
+		maskChanged = false;
 		if(isPlaying) {
 			try {
 				server.sendMessage(map, true);
@@ -531,7 +567,6 @@ public class ServerGameHandler extends GameHandler {
 		} catch (IllegalStateException | InterruptedException e) {
 			ErrorHandler.handle("Could not send text", e);
 		}
-        
 	}
 	
 	private Map.UpdateHandler mapUpdateHandler = new Map.UpdateHandler() {
@@ -570,7 +605,17 @@ public class ServerGameHandler extends GameHandler {
 		
 		@Override
 		public void onActiveLevelChanged(int oldLevel, int newLevel) {
-			sendUpdate(ActionEncoder.changeLevel(newLevel), ActionEncoder.changeLevel(oldLevel));
+			if(getMaskChanged(oldLevel))
+				Dialogs.warning("The level was changed while the mask was (probably) being edited. This produces synchonization problems!", true);
+			//the servercontroller is also listening to this and will change the server level
+			// if the server level is locked with the client level, it will change the client level choicebox
+			// which will, in turn, trigger its action
+			// which then does the send update
+			//sendUpdate(ActionEncoder.changeLevel(newLevel), ActionEncoder.changeLevel(oldLevel));
+			if(isBufferEnabled()) {
+				oldMask = copyMask(map.getLevel(newLevel).getMask());
+				maskChanged = false;
+			}
 		}
 	};
 }

@@ -223,7 +223,7 @@ public class ServerController extends MapEditorController {
 		Utils.safeRun(() -> {
 			btnSendImage.setDisable(!connected);
 			btnSendText.setDisable(!connected);
-			//TODO btnLock.setDisable(!connected);
+			btnLock.setDisable(!connected);
 			if(connected == true) {
 				resync.setDisable(false);
 				resync.setText("Resync");
@@ -301,8 +301,9 @@ public class ServerController extends MapEditorController {
 		
 		cbServerLevel.setOnAction(event -> {
 			int index = cbServerLevel.getSelectionModel().getSelectedIndex();
-			if(index != getMap().getActiveLevelIndex() && gameHandler.maskChanged) {
+			if(index != getMap().getActiveLevelIndex() && gameHandler.getMaskChanged(getMap().getActiveLevelIndex())) {
 				ErrorHandler.handle("Cannot change level while fog of war has been edited", null);
+				event.consume();
 				return;
 			}
 			getMap().setActiveLevel(index);
@@ -310,10 +311,19 @@ public class ServerController extends MapEditorController {
 				cbClientLevel.getSelectionModel().select(index);
 		});
 		
-		cbClientLevel.setOnAction(event -> {
+		cbClientLevel.getSelectionModel().selectedIndexProperty().addListener((obs, oldValue, newValue) -> {
 			Logger.println("Client level: " + cbClientLevel.getSelectionModel().getSelectedIndex());
+			//Change client level
+			gameHandler.sendUpdate(ActionEncoder.changeLevel(newValue.intValue()), ActionEncoder.changeLevel(oldValue.intValue()));
 		});
 		hboxLevels.setVisible(true);
+	}
+	
+	public void resetMapLevels(int level) {
+		if(cbServerLevel.getSelectionModel().getSelectedIndex()!=level)
+			cbServerLevel.getSelectionModel().select(level);
+		if(cbClientLevel.getSelectionModel().getSelectedIndex()!=level)
+			cbClientLevel.getSelectionModel().select(level);
 	}
 	
 	@Override
